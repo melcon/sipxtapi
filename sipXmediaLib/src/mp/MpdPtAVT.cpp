@@ -33,17 +33,8 @@ struct AvtPacket {
 static int debugCtr = 0;
 
 const MpCodecInfo MpdPtAVT::smCodecInfo(
-         SdpCodec::SDP_CODEC_TONES,// codecType
-         "Pingtel_1.0",// codecVersion
-         8000,// samplingRate
-         0,// numBitsPerSample
-         1,// numChannels
-         6400,// bitRate. It doesn't matter right now.
-         128,// minPacketBits
-         128,// maxPacketBits
-         0,// numSamplesPerFrame
-         0,// requested length of jitter buffer
-         TRUE);// signalingCodec
+         SdpCodec::SDP_CODEC_TONES, "Pingtel_1.0", false,
+         8000, 0, 1, 0, 6400, 128, 128, 128, 0, 0, TRUE, FALSE);
 
 MpdPtAVT::MpdPtAVT(int payloadType)
    : MpDecoderBase(payloadType, &smCodecInfo),
@@ -106,8 +97,7 @@ void dumpRawAvtPacket(const MpRtpBufPtr &pRtp, int pThis)
 
 int MpdPtAVT::decode(const MpRtpBufPtr &pPacket,
                       unsigned decodedBufferLength,
-                      MpAudioSample *samplesBuffer,
-                      UtlBoolean bIsPLCFrame
+                      MpAudioSample *samplesBuffer
                      )
 {
    const struct AvtPacket* pAvt;

@@ -24,6 +24,7 @@
 #include "os/OsLock.h"
 #include "os/OsSysLog.h"
 #include "os/OsEvent.h"
+#include "tapi/sipXtapi.h"
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES

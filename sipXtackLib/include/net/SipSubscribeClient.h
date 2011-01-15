@@ -24,7 +24,6 @@
 #include <os/OsServerTask.h>
 #include <utl/UtlHashMap.h>
 #include <net/SipRefreshManager.h>
-#include <net/SipTransport.h>
 
 // DEFINES
 // MACROS
@@ -131,9 +130,7 @@ typedef void (*NotifyEventCallback) (const char* earlyDialogHandle,
                                void* applicationData,
                                const SubscriptionStateCallback subscriptionStateCallback,
                                const NotifyEventCallback notifyEventsCallback,
-                               UtlString& earlyDialogHandle,
-                               SIP_TRANSPORT_TYPE transport = SIP_TRANSPORT_AUTO,
-                               UtlBoolean bAllowContactOverride = TRUE);
+                               UtlString& earlyDialogHandle);
 
     //! Create a SIP event subscription for the given SUBSCRIBE request
     /*! 

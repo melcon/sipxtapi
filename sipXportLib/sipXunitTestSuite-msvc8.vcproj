@@ -6,7 +6,6 @@
 	ProjectGUID="{DB95F825-45EE-4D62-825D-F337E2210B01}"
 	RootNamespace="sipXunitTestSuite-msvc8"
 	Keyword="Win32Proj"
-	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform

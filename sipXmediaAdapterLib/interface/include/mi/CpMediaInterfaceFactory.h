@@ -11,6 +11,7 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
+
 #ifndef _CpMediaInterfaceFactory_h_
 #define _CpMediaInterfaceFactory_h_
 
@@ -22,7 +23,7 @@
 #include "os/OsStatus.h"
 #include "utl/UtlDefs.h"
 #include "utl/UtlString.h"
-#include "sdp/SdpCodecList.h"
+#include "net/SdpCodecFactory.h"
 #include "utl/UtlSList.h"
 #include "os/OsMutex.h"
 
@@ -119,22 +120,23 @@ public:
    /**
    * Create a media interface given the designated parameters.
    */
-   virtual CpMediaInterface* createMediaInterface(OsMsgQ* pInterfaceNotificationQueue,///< queue for sending interface notifications
-                                                  const SdpCodecList* pCodecList,///< list of SdpCodec instances
-                                                  const char* publicIPAddress,///< ignored
-                                                  const char* localIPAddress,///< local bind IP address
-                                                  const char* locale,///< locale for tone generator
-                                                  int expeditedIpTos,
-                                                  const char* szStunServer,
-                                                  int iStunPort,
-                                                  int iStunKeepAliveSecs,
-                                                  const char* szTurnServer,
-                                                  int iTurnPort,
-                                                  const char* szTurnUsername,
-                                                  const char* szTurnPassword,
-                                                  int iTurnKeepAliveSecs,
-                                                  UtlBoolean bEnableICE
-                                                  ) = 0;
+   virtual CpMediaInterface* createMediaInterface(OsMsgQ* pInterfaceNotificationQueue,
+      const char* publicAddress,
+      const char* localAddress,
+      int numCodecs,
+      SdpCodec* sdpCodecArray[],
+      const char* locale,
+      int expeditedIpTos,
+      const char* szStunServer,
+      int iStunPort,
+      int iStunKeepAliveSecs,
+      const char* szTurnServer,
+      int iTurnPort,
+      const char* szTurnUsername,
+      const char* szTurnPassword,
+      int iTurnKeepAliveSecs,
+      UtlBoolean bEnableICE
+      ) = 0;
 
    /**
     * Gets number of input audio devices
@@ -185,22 +187,6 @@ public:
    }
 
    /**
-    * Sets audio driver latency.
-    */
-   virtual OsStatus setAudioDriverLatency(double inputLatency, double outputLatency)
-   {
-      return OS_NOT_SUPPORTED;
-   }
-
-   /**
-    * Gets audio driver latency.
-    */
-   virtual OsStatus getAudioDriverLatency(double& inputLatency, double& outputLatency)
-   {
-      return OS_NOT_SUPPORTED;
-   }
-
-   /**
    * Mute the speaker
    */
    virtual OsStatus muteAudioOutput(UtlBoolean bMute)
@@ -233,13 +219,6 @@ public:
       return OS_NOT_SUPPORTED;
    }
 
-   /**
-    * Enable/disable voice activity detection
-    */
-   virtual OsStatus setVADMode(UtlBoolean bEnable)
-   {
-      return OS_NOT_SUPPORTED;
-   }
 
    /**
    * Enable AGC Status
@@ -283,28 +262,13 @@ public:
    }
 
    /**
-   * Populate the codec list using supplied string with audio and video codec names.
+   * Populate the codec factory, return number of rejected codecs
    */
-   virtual OsStatus buildCodecList(SdpCodecList& codecList, 
-                                   const UtlString& sAudioPreferences,
-                                   const UtlString& sVideoPreferences) = 0;
-
-   /**
-   * Populate the codec list with all available codecs.
-   */
-   virtual OsStatus buildAllCodecList(SdpCodecList& codecList) = 0;
-
-   /**
-    * Gets string with all supported audio codecs. Can be used to build codec list
-    * with all supported codecs.
-    */
-   virtual UtlString getAllSupportedAudioCodecs() const = 0;
-
-   /**
-   * Gets string with all supported video codecs. Can be used to build codec list
-   * with all supported codecs.
-   */
-   virtual UtlString getAllSupportedVideoCodecs() const = 0;
+   virtual OsStatus buildCodecFactory(SdpCodecFactory *pFactory, 
+      const UtlString& sAudioPreferences,
+      const UtlString& sVideoPreferences,
+      int videoFormat,
+      int* iRejected) = 0;
 
    /**
    * Sets the RTP port range for this factory
@@ -465,6 +429,16 @@ public:
       return OS_NOT_SUPPORTED;
    }
 
+   /** 
+   * Get specific codec identified by iCodec
+   */
+   virtual OsStatus getCodecNameByType(SdpCodec::SdpCodecTypes codecType, UtlString& codecName) const = 0;
+
+   /** 
+   * Get the connection id for the local audio connection
+   */
+   virtual OsStatus getLocalAudioConnectionId(int& connectionId) const = 0;
+
    /**
    * Gets mode how to send outbound DTMF
    */
@@ -485,14 +459,6 @@ public:
    * Return status of noise reduction
    */
    virtual OsStatus getAudioNoiseReductionMode(MEDIA_NOISE_REDUCTION_MODE& mode) const 
-   {
-      return OS_NOT_SUPPORTED;
-   }
-
-   /**
-    * Returns status of voice activity detection
-    */
-   virtual OsStatus getVADMode(UtlBoolean& bEnable) const
    {
       return OS_NOT_SUPPORTED;
    }

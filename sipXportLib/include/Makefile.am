@@ -6,6 +6,7 @@ nobase_includeHEADERS_INSTALL = $(INSTALL) -D -p -c -m 644
 nobase_include_HEADERS = \
     os/HostAdapterAddress.h \
     os/IStunSocket.h \
+    os/linux/AdapterInfo.h \
     os/linux/host_address.h \
     os/linux/OsBSemLinux.h \
     os/linux/OsCSemLinux.h \
@@ -16,7 +17,6 @@ nobase_include_HEADERS = \
     os/linux/OsFileLinux.h \
     os/linux/OsLinuxDefs.h \
     os/linux/OsMutexLinux.h \
-    os/linux/OsNetworkLinux.h \
     os/linux/OsPathLinux.h \
     os/linux/OsProcessIteratorLinux.h \
     os/linux/OsProcessLinux.h \
@@ -62,11 +62,11 @@ nobase_include_HEADERS = \
     os/OsNameDb.h \
     os/OsNameDbInit.h \
     os/OsNatAgentTask.h \
+    os/OsNatConnectionSocket.h \
     os/OsNatDatagramSocket.h \
     os/OsNatKeepaliveListener.h \
+    os/OsNatServerSocket.h \
     os/OsNatSocketBaseImpl.h \
-    os/OsNetwork.h \
-    os/OsNetworkAdapterInfo.h \
     os/OsNotification.h \
     os/OsPathBase.h \
     os/OsProcess.h \
@@ -78,11 +78,9 @@ nobase_include_HEADERS = \
     os/OsPtrLock.h \
     os/OsPtrMsg.h \
     os/OsQueuedEvent.h \
-    os/OsQueuedNotification.h \
     os/OsReadLock.h \
     os/OsRpcMsg.h \
     os/OsRWMutex.h \
-    os/OsRWSyncBase.h \
     os/OsServerSocket.h \
     os/OsServerTask.h \
     os/OsSharedLibMgr.h \
@@ -96,9 +94,6 @@ nobase_include_HEADERS = \
     os/OsSSLConnectionSocket.h \
     os/OsSSLServerSocket.h \
     os/OsStatus.h \
-    os/OsStunResultFailureMsg.h \
-    os/OsStunResultMsg.h \
-    os/OsStunResultSuccessMsg.h \
     os/OsSyncBase.h \
     os/OsSysLog.h \
     os/OsSysLogFacilities.h \
@@ -109,8 +104,6 @@ nobase_include_HEADERS = \
     os/OsTimeLog.h \
     os/OsTimer.h \
     os/OsTimerMsg.h \
-    os/OsTimerNotification.h \
-    os/OsTimerTaskCommandMsg.h \
     os/OsTimerTask.h \
     os/OsTokenizer.h \
     os/OsUtil.h \

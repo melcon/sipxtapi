@@ -49,8 +49,10 @@ libsipXmedia_la_SOURCES =  \
     ../config/sipxmedialib-buildstamp.h \
     ../config/sipxmedialib-buildstamp.cpp \
     mp/DSPlib.cpp \
+    mp/DspResampling.cpp \
+    mp/FilterBank.cpp \
+    mp/HandsetFilterBank.cpp \
     mp/MpArrayBuf.cpp \
-    mp/MpAsyncPortAudioStream.cpp \
     mp/MpAudioAbstract.cpp \
     mp/MpAudioBuf.cpp \
     mp/MpAudioDeviceInfo.cpp \
@@ -66,8 +68,6 @@ libsipXmedia_la_SOURCES =  \
     mp/MpAudioStreamParameters.cpp \
     mp/MpAudioUtils.cpp \
     mp/MpAudioWaveFileRead.cpp \
-    mp/MpBridgeAlgLinear.cpp \
-    mp/MpBridgeAlgSimple.cpp \
     mp/MpBuf.cpp \
     mp/MpBufPool.cpp \
     mp/MpBufferMsg.cpp \
@@ -90,89 +90,66 @@ libsipXmedia_la_SOURCES =  \
     mp/MpMediaTaskHelper.cpp \
     mp/MpMediaTaskMsg.cpp \
     mp/MpMisc.cpp \
-    mp/MpNoiseGeneratorBase.cpp \
-    mp/MpNoiseGeneratorDefault.cpp \
-    mp/MpNoiseGeneratorFactory.cpp \
-    mp/MpNoiseGeneratorSpanDsp.cpp \
     mp/MpNotificationDispatcher.cpp \
+    mp/MpPlayer.cpp \
+    mp/MpPlayerEvent.cpp \
     mp/MpPortAudioDriver.cpp \
     mp/MpPortAudioMixer.cpp \
-    mp/MpPortAudioStreamBase.cpp \
-    mp/MpResamplerBase.cpp \
-    mp/MpResamplerDefault.cpp \
-    mp/MpResamplerFactory.cpp \
-    mp/MpResamplerSpeex.cpp \
+    mp/MpPortAudioStream.cpp \
+    mp/MpRawAudioBuffer.cpp \
+    mp/MpResNotificationMsg.cpp \
     mp/MpResource.cpp \
+    mp/MpResourceFactory.cpp \
     mp/MpResourceMsg.cpp \
     mp/MpResourceSortAlg.cpp \
+    mp/MpResourceTopology.cpp \
     mp/MpRtpBuf.cpp \
     mp/MpRtpInputAudioConnection.cpp \
     mp/MpRtpInputConnection.cpp \
     mp/MpRtpOutputAudioConnection.cpp \
     mp/MpRtpOutputConnection.cpp \
     mp/MpSipxDecoders.cpp \
-    mp/MpStopDTMFTimerMsg.cpp \
-    mp/MpSyncPortAudioStream.cpp \
-    mp/MpTimerMsg.cpp \
-    mp/MpTypes.cpp \
+    mp/MpStreamFeeder.cpp \
+    mp/MpStreamMsg.cpp \
+    mp/MpStreamPlayer.cpp \
+    mp/MpStreamPlaylistPlayer.cpp \
+    mp/MpStreamQueuePlayer.cpp \
+    mp/MpTopologyGraph.cpp \
     mp/MpUdpBuf.cpp \
-    mp/MpdIPPG7221.cpp \
     mp/MpdIPPG7231.cpp \
-    mp/MpdIPPG728.cpp \
     mp/MpdIPPG729.cpp \
-    mp/MpdIPPG7291.cpp \
-    mp/MpdIPPG729i.cpp \
-    mp/MpdIPPGAmr.cpp \
-    mp/MpdIPPGAmrWb.cpp \
-    mp/MpdIPPGSM.cpp \
-    mp/MpdIPPPcma.cpp \
-    mp/MpdIPPPcmu.cpp \
     mp/MpdPtAVT.cpp \
-    mp/MpdSipxG722.cpp \
-    mp/MpdSipxG726.cpp \
     mp/MpdSipxGSM.cpp \
     mp/MpdSipxILBC.cpp \
-    mp/MpdSipxL16.cpp \
     mp/MpdSipxPcma.cpp \
     mp/MpdSipxPcmu.cpp \
     mp/MpdSipxSpeex.cpp \
-    mp/MpdSipxSpeexUWb \
-    mp/MpdSipxSpeexWb.cpp \
-    mp/MpeIPPG7221.cpp \
     mp/MpeIPPG7231.cpp \
-    mp/MpeIPPG728.cpp \
     mp/MpeIPPG729.cpp \
-    mp/MpeIPPG7291.cpp \
-    mp/MpeIPPG729i.cpp \
-    mp/MpeIPPGAmr.cpp \
-    mp/MpeIPPGAmrWb.cpp \
-    mp/MpeIPPGSM.cpp \
-    mp/MpeIPPPcma.cpp \
-    mp/MpeIPPPcmu.cpp \
     mp/MpePtAVT.cpp \
-    mp/MpeSipxG722.cpp \
-    mp/MpeSipxG726.cpp \
     mp/MpeSipxGSM.cpp \
     mp/MpeSipxILBC.cpp \
-    mp/MpeSipxL16.cpp \
     mp/MpeSipxPcma.cpp \
     mp/MpeSipxPcmu.cpp \
     mp/MpeSipxSpeex.cpp \
-    mp/MpeSipxSpeexUWb.cpp \
-    mp/MpeSipxSpeexWb.cpp \
+    mp/MprAudioFrameBuffer.cpp \
     mp/MprBridge.cpp \
+    mp/MprBufferRecorder.cpp \
     mp/MprDecode.cpp \
-    mp/MprSimpleDtmfDetector.cpp \
-    mp/MprSpanDspDtmfDetector.cpp \
+    mp/MprDecodeInbandDtmf.cpp \
     mp/MprDejitter.cpp \
     mp/MprDtmfDetectorFactory.cpp \
+    mp/MprEchoSuppress.cpp \
     mp/MprEncode.cpp \
     mp/MprFromFile.cpp \
     mp/MprFromMic.cpp \
     mp/MprFromNet.cpp \
+    mp/MprFromStream.cpp \
     mp/MprMixer.cpp \
     mp/MprNull.cpp \
+    mp/MprNullAec.cpp \
     mp/MprRecorder.cpp \
+    mp/MprSimpleDtmfDetector.cpp \
     mp/MprSpeexEchoCancel.cpp \
     mp/MprSpeexPreProcess.cpp \
     mp/MprSplitter.cpp \
@@ -180,6 +157,18 @@ libsipXmedia_la_SOURCES =  \
     mp/MprToSpkr.cpp \
     mp/MprToneGen.cpp \
     mp/NetInTask.cpp \
+    mp/StreamBufferDataSource.cpp \
+    mp/StreamDataSource.cpp \
+    mp/StreamDataSourceListener.cpp \
+    mp/StreamDecoderListener.cpp \
+    mp/StreamFileDataSource.cpp \
+    mp/StreamFormatDecoder.cpp \
+    mp/StreamHttpDataSource.cpp \
+    mp/StreamQueueMsg.cpp \
+    mp/StreamQueueingFormatDecoder.cpp \
+    mp/StreamRAWFormatDecoder.cpp \
+    mp/StreamWAVFormatDecoder.cpp \
+    mp/dft.cpp \
     mp/dtmflib.cpp \
     mp/mpG711.cpp \
     mp/mpau.cpp \

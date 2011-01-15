@@ -15,11 +15,14 @@
 
 MpCodecInfo::MpCodecInfo(SdpCodec::SdpCodecTypes codecType,
                            const char*    codecVersion,
+                           UtlBoolean     usesNetEq,
                            unsigned       samplingRate,
                            unsigned       numBitsPerSample,
                            unsigned       numChannels,
+                           unsigned       interleaveBlockSize,
                            unsigned       bitRate,
                            unsigned       minPacketBits,
+                           unsigned       avgPacketBits,
                            unsigned       maxPacketBits,
                            unsigned       numSamplesPerFrame,
                            unsigned       preCodecJitterBufferSize,
@@ -27,12 +30,15 @@ MpCodecInfo::MpCodecInfo(SdpCodec::SdpCodecTypes codecType,
                            UtlBoolean     doesVadCng)
  : mCodecType(codecType),
    mCodecVersion(codecVersion),
+   mUsesNetEq(usesNetEq),
    mSamplingRate(samplingRate),
    mNumBitsPerSample(numBitsPerSample),
    mNumSamplesPerFrame( numSamplesPerFrame ),
    mNumChannels(numChannels),
+   mInterleaveBlockSize(interleaveBlockSize),
    mBitRate(bitRate),
    mMinPacketBits(minPacketBits),
+   mAvgPacketBits(avgPacketBits),
    mMaxPacketBits(maxPacketBits),
    mPreCodecJitterBufferSize(preCodecJitterBufferSize),
    mIsSignalingCodec(signalingCodec),
@@ -45,12 +51,15 @@ MpCodecInfo::MpCodecInfo(const MpCodecInfo& rMpCodecInfo)
 {
    mCodecType=rMpCodecInfo.mCodecType;
    mCodecVersion=rMpCodecInfo.mCodecVersion;
+   mUsesNetEq=rMpCodecInfo.mUsesNetEq;
    mSamplingRate=rMpCodecInfo.mSamplingRate;
    mNumBitsPerSample=rMpCodecInfo.mNumBitsPerSample;
    mNumSamplesPerFrame=rMpCodecInfo.mNumSamplesPerFrame;
    mNumChannels=rMpCodecInfo.mNumChannels;
+   mInterleaveBlockSize=rMpCodecInfo.mInterleaveBlockSize;
    mBitRate=rMpCodecInfo.mBitRate;
    mMinPacketBits=rMpCodecInfo.mMinPacketBits;
+   mAvgPacketBits=rMpCodecInfo.mAvgPacketBits;
    mMaxPacketBits=rMpCodecInfo.mMaxPacketBits;
    mPreCodecJitterBufferSize=rMpCodecInfo.mPreCodecJitterBufferSize;
    mDoesVadCng=rMpCodecInfo.mDoesVadCng;
@@ -103,6 +112,14 @@ unsigned MpCodecInfo::getNumChannels(void) const
    return(mNumChannels);
 }
 
+unsigned MpCodecInfo::getInterleaveBlockSize(void) const
+{
+//Returns the size of the interleave block (in samples)
+// This value is not meaningful if the number of channels for the
+// codec is equal to 1.
+   return(mInterleaveBlockSize);
+}
+
 unsigned MpCodecInfo::getBitRate(void) const
 {
 //Returns the bit rate for this codec (in bits per second)
@@ -115,6 +132,12 @@ unsigned MpCodecInfo::getMinPacketBits(void) const
 {
 //Returns the minimum number of bits in an encoded frame
    return(mMinPacketBits);
+}
+
+unsigned MpCodecInfo::getAvgPacketBits(void) const
+{
+//Returns the average number of bits in an encoded frame
+   return(mAvgPacketBits);
 }
 
 unsigned MpCodecInfo::getMaxPacketBits(void) const
@@ -130,6 +153,12 @@ unsigned MpCodecInfo::getPreCodecJitterBufferSize(void) const
 }
 
 /* ============================ INQUIRY =================================== */
+
+UtlBoolean MpCodecInfo::usesNetEq(void) const
+{
+//Returns TRUE if codec uses GIPS NetEq; otherwise returns FALSE
+   return(mUsesNetEq);
+}
 
 
 UtlBoolean MpCodecInfo::isSignalingCodec (void) const

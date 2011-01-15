@@ -103,8 +103,6 @@ void SipRefreshMgr::startRefreshMgr()
 
 UtlBoolean SipRefreshMgr::newRegisterMsg(const Url& fromUrl,
                                          const Url& contactUri,
-                                         UtlBoolean bAllowContactOverride,
-                                         SIP_TRANSPORT_TYPE preferredTransport,
                                          int registryPeriodSeconds)
 {
    if (!isDuplicateRegister(fromUrl))
@@ -121,8 +119,6 @@ UtlBoolean SipRefreshMgr::newRegisterMsg(const Url& fromUrl,
                   fromUrl, // to                    
                   requestUri, // sip request uri
                   contactUri.toString(), // contact
-                  bAllowContactOverride,
-                  preferredTransport,
                   registerCallId,
                   registryPeriodSeconds);
 
@@ -174,6 +170,23 @@ void SipRefreshMgr::unRegisterUser(const Url& fromUrl)
       sipMsg.setContactField(contact.toString());
       sipMsg.removeHeader(SIP_EXPIRES_FIELD,0);
 
+      UtlString localIp;
+      int localPort;
+
+      SIPX_TRANSPORT_TYPE protocol = TRANSPORT_UDP;
+      UtlString fromString;
+
+      fromUrl.toString(fromString);
+      if (fromString.contains("sips:") || fromString.contains("transport=tls"))
+      {
+         protocol = TRANSPORT_TLS;
+      }
+      else if (fromString.contains("transport=tcp"))
+      {
+         protocol = TRANSPORT_TCP;
+      }
+      m_pSipUserAgent->getLocalAddress(&localIp, &localPort, protocol);
+      sipMsg.setLocalIp(localIp);
       Url lineUri = SipLine::getLineUri(fromUrl);
 
       if (m_pLineListener) 
@@ -229,6 +242,23 @@ SipRefreshMgr::sendRequest (
 
    bIsUnregOrUnsub = isExpiresZero(&request) ;
 
+   // Keep a copy for reschedule
+   UtlString localIp;
+   int localPort;
+   SIPX_TRANSPORT_TYPE protocol = TRANSPORT_UDP;
+   UtlString toField;
+   request.getToField(&toField);
+   if (toField.contains("sips:") || toField.contains("transport=tls"))
+   {
+      protocol = TRANSPORT_TLS;
+   }
+   if (toField.contains("transport=tcp"))
+   {
+      protocol = TRANSPORT_TCP;
+   }
+
+   m_pSipUserAgent->getLocalAddress(&localIp, &localPort, protocol);
+   request.setLocalIp(localIp);
    if ( !m_pSipUserAgent->send( request, getMessageQueue() ) )
    {
       UtlString toField ;    
@@ -809,8 +839,6 @@ void SipRefreshMgr::registerUrl(const Url& fromUrl,
                                 const Url& toUrl,
                                 const Url& requestUri,
                                 const UtlString& contactUrl,
-                                UtlBoolean bAllowContactOverride,
-                                SIP_TRANSPORT_TYPE preferredTransport,
                                 const UtlString& callId,
                                 int registerPeriod)
 {
@@ -829,12 +857,16 @@ void SipRefreshMgr::registerUrl(const Url& fromUrl,
       callId,             // callid
       startSequence,
       registerPeriod >= 0 ? registerPeriod : m_defaultRegistryPeriod );
-   regMessage.allowContactOverride(bAllowContactOverride);
-   regMessage.setPreferredTransport(SipTransport::getSipTransport(preferredTransport));
 
    // Add to the register list
    addToRegisterList(&regMessage);
 
+   UtlString localIp;
+   int localPort;
+   SIPXSTACK_TRANSPORT_TYPE transport = SipTransport::getSipTransport(requestUri);
+
+   m_pSipUserAgent->getLocalAddress(&localIp, &localPort, (SIPX_TRANSPORT_TYPE)transport);
+   regMessage.setLocalIp(localIp);
    if (sendRequest(regMessage , SIP_REGISTER_METHOD) != OS_SUCCESS)
    {
       // if we couldn't send, go ahead and remove the register request from the list
@@ -1183,7 +1215,7 @@ UtlString SipRefreshMgr::buildContactField(const Url& registerToField,
    // Use default contact from SipUserAgent if preferred is not supplied
    if (tempContact.length() == 0)
    {
-      m_pSipUserAgent->getDefaultContactUri(&tempContact);
+      m_pSipUserAgent->getContactUri(&tempContact);
    }
 
    // The contact URI does not have the correct urserId information in it ...
@@ -1194,6 +1226,11 @@ UtlString SipRefreshMgr::buildContactField(const Url& registerToField,
 
    contactUrl.setDisplayName(displayName);
    contactUrl.setUserId(userId);
+   if ( !lineId.isNull() )
+   {
+      contactUrl.setUrlParameter(SIP_LINE_IDENTIFIER, lineId);
+      contactUrl.includeAngleBrackets();
+   }
 
    int index = 0;
    UtlString paramName;

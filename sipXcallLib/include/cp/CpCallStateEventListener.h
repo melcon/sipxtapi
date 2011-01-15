@@ -20,8 +20,8 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <utl/UtlString.h>
-#include <net/SipDialog.h>
-#include <cp/CpDefs.h>
+#include "tapi/sipXtapiEvents.h"
+#include <net/SipSession.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -37,57 +37,47 @@
 class CpCallStateEvent
 {
 public:
-   UtlString m_sCallId; // id of abstract call
-   SipDialog* m_pSipDialog;
-   CP_CALLSTATE_CAUSE m_cause;
+
+   UtlString m_sSessionCallId;
+   UtlString m_sCallId;
+   SipSession m_Session;
+   UtlString m_sRemoteAddress;
+   SIPX_CALLSTATE_CAUSE m_cause;
    UtlString m_sOriginalSessionCallId; // callId supplied sometimes for transfer events
    int m_sipResponseCode;
    UtlString m_sResponseText;
-   UtlString m_sReferredBy;
-   UtlString m_sReferTo;
 
-   CpCallStateEvent(const UtlString& sCallId,
-      const SipDialog* pSipDialog,
-      CP_CALLSTATE_CAUSE cause,
+   CpCallStateEvent(const UtlString& sSessionCallId,
+      const UtlString& sCallId,
+      const SipSession& session,
+      const UtlString& sRemoteAddress,
+      SIPX_CALLSTATE_CAUSE cause,
       const UtlString& sOriginalSessionCallId = NULL,
       int sipResponseCode = 0,
-      const UtlString& sResponseText = NULL,
-      const UtlString& sReferredBy = NULL,
-      const UtlString& sReferTo = NULL)
-      : m_sCallId(sCallId),
-      m_pSipDialog(NULL),
+      const UtlString& sResponseText = NULL)
+      : m_sSessionCallId(sSessionCallId),
+      m_sCallId(sCallId),
+      m_Session(session),
+      m_sRemoteAddress(sRemoteAddress),
       m_cause(cause),
       m_sOriginalSessionCallId(sOriginalSessionCallId),
       m_sipResponseCode(sipResponseCode),
-      m_sResponseText(sResponseText),
-      m_sReferredBy(sReferredBy),
-      m_sReferTo(sReferTo)
+      m_sResponseText(sResponseText)
    {
-      if (pSipDialog)
-      {
-         // create copy of sip dialog
-         m_pSipDialog = new SipDialog(*pSipDialog);
-      }
+
    }
 
    CpCallStateEvent()
-      : m_pSipDialog(NULL)
-      , m_sipResponseCode(0)
-      , m_cause(CP_CALLSTATE_CAUSE_UNKNOWN)
    {
+      m_sipResponseCode = 0;
+      m_cause = CALLSTATE_CAUSE_UNKNOWN;
    }
 
    ~CpCallStateEvent()
    {
-      if (m_pSipDialog)
-      {
-         delete m_pSipDialog;
-         m_pSipDialog = NULL;
-      }
    }
 
    CpCallStateEvent(const CpCallStateEvent& event)
-      : m_pSipDialog(NULL)
    {
       *this = event;
    }
@@ -100,23 +90,13 @@ public:
       }
 
       m_sCallId = event.m_sCallId;
-      // get rid of old sip dialog if it exists
-      if (m_pSipDialog)
-      {
-         delete m_pSipDialog;
-         m_pSipDialog = NULL;
-      }
-      if (event.m_pSipDialog)
-      {
-         // copy new sip dialog
-         m_pSipDialog = new SipDialog(*(event.m_pSipDialog));
-      }
+      m_sSessionCallId = event.m_sSessionCallId;
+      m_Session = event.m_Session;
+      m_sRemoteAddress = event.m_sRemoteAddress;
       m_cause = event.m_cause;
       m_sOriginalSessionCallId = event.m_sOriginalSessionCallId;
       m_sipResponseCode = event.m_sipResponseCode;
       m_sResponseText = event.m_sResponseText;
-      m_sReferredBy = event.m_sReferredBy;
-      m_sReferTo = event.m_sReferTo;
 
       return *this;
    }

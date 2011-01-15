@@ -22,7 +22,7 @@
 #include <os/OsDateTime.h>
 #include <os/OsLock.h>
 #include <os/OsEvent.h>
-#include <os/OsTimerTaskCommandMsg.h>
+#include <os/OsTimerMsg.h>
 
 #include <time.h>
 #include <string.h>
@@ -232,8 +232,8 @@ public:
         OsTimer* pTimer ;
         OsStatus returnValue;
         long diffUSecs ; 
-        pNotifier = new OsCallback((intptr_t)this, TVCallback);
-        pTimer = new OsTimer(pNotifier);
+        pNotifier = new OsCallback((int)this, TVCallback);
+        pTimer = new OsTimer(*pNotifier);
         gCallBackCount = 0;
         g_get_current_time(&startTV);
         returnValue = pTimer->oneshotAfter(OsTime::NO_WAIT_TIME);
@@ -253,6 +253,7 @@ public:
                                diffUSecs > 0 && 
                                diffUSecs <= MsecsToUsecs(OSTIMETOLERANCE));
         delete pTimer;
+        delete pNotifier;
     }
 
     void testOneShotAfter()
@@ -265,6 +266,7 @@ public:
             int tolerance ; 
         } ;
 
+        OsCallback* pNotifier;
         string Message ; 
         int testCount ;
         
@@ -294,7 +296,8 @@ public:
             OsTime timeToWait(testData[i].seconds,
                 testData[i].milliseconds*OsTime::USECS_PER_MSEC) ; 
 
-            pTimer = new OsTimer(new OsCallback((intptr_t)this, TVCallback));
+            pNotifier = new OsCallback((int)this, TVCallback);
+            pTimer = new OsTimer(*pNotifier);
 
             expectedWaitUSecs= SecsToUsecs(testData[i].seconds) + 
                 MsecsToUsecs(testData[i].milliseconds) ; 
@@ -330,16 +333,19 @@ public:
                                    diffUSecs >= expectedWaitUSecs - MsecsToUsecs(testData[i].tolerance) &&
                                    diffUSecs <= expectedWaitUSecs + MsecsToUsecs(testData[i].tolerance));
             delete pTimer;
+            delete pNotifier;
         }
     }
 
     void testTimerAccuracy()
     {
+        OsCallback* pNotifier;
         OsTimer* pTimer;
         long expectedWaitUSecs;
         long diffUSecs;
 
-        pTimer = new OsTimer(new OsCallback((intptr_t)this, TVCallback));
+        pNotifier = new OsCallback((int)this, TVCallback);
+        pTimer = new OsTimer(*pNotifier);
 
         expectedWaitUSecs=(1*OsTime::USECS_PER_SEC) + (250*OsTime::USECS_PER_MSEC) ;  
         OsTime timeToWait(1, 250*OsTime::USECS_PER_MSEC) ; 
@@ -364,14 +370,17 @@ public:
                 diffUSecs >= expectedWaitUSecs - MsecsToUsecs(OSTIMETOLERANCE) &&
                 diffUSecs <= expectedWaitUSecs + MsecsToUsecs(OSTIMETOLERANCE));
         delete pTimer;
+        delete pNotifier;
     }
 
     void testOneShotAt()
     {
+        OsCallback* pNotifier ;
         OsTimer* pTimer ;
         UtlBoolean returnValue ;  
         long diffUSecs ; 
-        pTimer = new OsTimer(new OsCallback((intptr_t)this, TVCallback));
+        pNotifier = new OsCallback((int)this, TVCallback);
+        pTimer = new OsTimer(*pNotifier);
         // Create an OsDateTime object for 2 seconds in the future
         // and call oneShotAt.
         // Get the current time in seconds.
@@ -412,12 +421,15 @@ public:
                                diffUSecs > MsecsToUsecs(2000 - OSTIMETOLERANCE) && 
                                diffUSecs < MsecsToUsecs(2000 + OSTIMETOLERANCE));
         delete pTimer;
+        delete pNotifier;
     }
 
     void testStopTimerAfterOneShot()
     {
+        OsCallback* pNotifier; 
         OsTimer* pTimer ;
-        pTimer = new OsTimer(new OsCallback((intptr_t)this, TVCallback));
+        pNotifier = new OsCallback((int)this, TVCallback);
+        pTimer = new OsTimer(*pNotifier);
         gCallBackCount = 0;
         pTimer->oneshotAfter(oneSecond) ; 
         OsTask::delay(500) ; 
@@ -431,13 +443,16 @@ public:
         CPPUNIT_ASSERT_MESSAGE("mWasFired = FALSE",
                                pTimer->getWasFired() == FALSE);
         delete pTimer ; 
+        delete pNotifier;
     }
 
     void testPeriodicTimer()
     {
+        OsCallback* pNotifier ;
         OsTimer* pTimer ; 
         UtlBoolean returnValue ; 
-        pTimer = new OsTimer(new OsCallback((intptr_t)this, TVCallback));
+        pNotifier = new OsCallback((int)this, TVCallback);
+        pTimer = new OsTimer(*pNotifier);
         gCallBackCount = 0;
         returnValue = pTimer->periodicEvery(twoSeconds, twoSeconds) ; 
         //Give a delay of 10+ seconds . If all went well the call back method
@@ -453,12 +468,15 @@ public:
         CPPUNIT_ASSERT_MESSAGE("mWasFired = TRUE",
                                pTimer->getWasFired() == TRUE);
         delete pTimer ; 
+        delete pNotifier;
     }
 
     void testPeriodicTimer_FractionalTime()
     {
+        OsCallback* pNotifier ;
         OsTimer* pTimer ; 
-        pTimer = new OsTimer(new OsCallback((intptr_t)this, TVCallback));
+        pNotifier = new OsCallback((int)this, TVCallback);
+        pTimer = new OsTimer(*pNotifier);
         gCallBackCount = 0;
         pTimer->periodicEvery(OsTime::NO_WAIT_TIME, hundredMsec);
         //Give a delay of 1+ seconds . If all went well the call back method
@@ -471,14 +489,17 @@ public:
         CPPUNIT_ASSERT_MESSAGE("mWasFired = TRUE",
                                pTimer->getWasFired() == TRUE);
         delete pTimer ; 
+        delete pNotifier;
     }
 
     void testOneshotPeriodicComboTimer()
     {
         UtlBoolean returnValue ; 
+        OsCallback* pNotifier ;
         OsTimer* pTimer ; 
         long diffUSecs ; 
-        pTimer = new OsTimer(new OsCallback((intptr_t)this, TVCallback));
+        pNotifier = new OsCallback((int)this, TVCallback);
+        pTimer = new OsTimer(*pNotifier);
         gCallBackCount = 0;
         g_get_current_time(&startTV);
         returnValue = pTimer->periodicEvery(oneSecond, twoSeconds) ; 
@@ -500,14 +521,17 @@ public:
         CPPUNIT_ASSERT_EQUAL_MESSAGE("Test oneshot/periodic combo - Verify the timer is called " 
                                     "repeatadly as per the second argument", 3, gCallBackCount);
         delete pTimer ; 
+        delete pNotifier;
     }
 
     void testStopPeriodicTimer()
     {
+        OsCallback* pNotifier ;
         OsTimer* pTimer ; 
         OsTimer* pTimer2 ; 
         long diffUSecs ; 
-        pTimer = new OsTimer(new OsCallback((intptr_t)this, TVCallback));
+        pNotifier = new OsCallback((int)this, TVCallback);
+        pTimer = new OsTimer(*pNotifier);
         gCallBackCount = 0;
         pTimer->periodicEvery(oneSecond, twoSeconds) ; 
         // Test the case where the timer is stopped even before the first leg
@@ -523,7 +547,7 @@ public:
                                pTimer->getWasFired() == FALSE);
         delete pTimer ; 
 
-        pTimer2 = new OsTimer(new OsCallback((intptr_t)this, TVCallback));
+        pTimer2 = new OsTimer(*pNotifier);
         gCallBackCount = 0;
         g_get_current_time(&startTV);
         pTimer2->periodicEvery(oneSecond, twoSeconds) ; 
@@ -547,12 +571,15 @@ public:
         CPPUNIT_ASSERT_MESSAGE("mWasFired = FALSE",
                                pTimer2->getWasFired() == FALSE);
         delete pTimer2 ; 
+        delete pNotifier;
     }
 
     void testDeleteTimerBeforeExpires()
     {
+        OsCallback* pNotifier ;
         OsTimer* pTimer ; 
-        pTimer = new OsTimer(new OsCallback((intptr_t)this, TVCallback));
+        pNotifier = new OsCallback((int)this, TVCallback);
+        pTimer = new OsTimer(*pNotifier);
         gCallBackCount = 0;
         pTimer->periodicEvery(oneSecond, twoSeconds) ; 
         OsTask::delay(350) ; 
@@ -562,6 +589,7 @@ public:
         OsTask::delay(5000) ; 
         CPPUNIT_ASSERT_MESSAGE("Verify that a periodic timer can be stopped even " 
                               "before the first leg is called", gCallBackCount == 0);
+        delete pNotifier ; 
     }
 
     // Tests for various sequences of operations.
@@ -569,7 +597,8 @@ public:
     void testStartFire()
     {
        OsStatus returnValue;
-       OsTimer timer(new OsCallback((intptr_t)this, TVCallback));
+       OsCallback notifier((int) this, TVCallback);
+       OsTimer timer(notifier);
        gCallBackCount = 0;
        returnValue =  timer.oneshotAfter(oneSecond);
        CPPUNIT_ASSERT_MESSAGE("oneshotAfter", returnValue == OS_SUCCESS);
@@ -582,7 +611,8 @@ public:
     void testStartStop()
     {
        OsStatus returnValue;
-       OsTimer timer(new OsCallback((intptr_t)this, TVCallback));
+       OsCallback notifier((int) this, TVCallback);
+       OsTimer timer(notifier);
        gCallBackCount = 0;
        returnValue = timer.oneshotAfter(oneSecond);
        CPPUNIT_ASSERT_MESSAGE("oneshotAfter", returnValue == OS_SUCCESS);
@@ -598,7 +628,8 @@ public:
     void testStartPeriodicStop()
     {
        OsStatus returnValue;
-       OsTimer timer(new OsCallback((intptr_t)this, TVCallback));
+       OsCallback notifier((int) this, TVCallback);
+       OsTimer timer(notifier);
        gCallBackCount = 0;
        returnValue = timer.periodicEvery(oneSecond, twoSeconds);
        CPPUNIT_ASSERT_MESSAGE("periodicEvery", returnValue == OS_SUCCESS);
@@ -618,7 +649,8 @@ public:
     void testStartDelete()
     {
        OsStatus returnValue;
-       OsTimer* pTimer = new OsTimer(new OsCallback((intptr_t)this, TVCallback));
+       OsCallback notifier((int) this, TVCallback);
+       OsTimer* pTimer = new OsTimer(notifier);
        gCallBackCount = 0;
        returnValue = pTimer->oneshotAfter(oneSecond);
        CPPUNIT_ASSERT_MESSAGE("oneshotAfter", returnValue == OS_SUCCESS);
@@ -635,7 +667,8 @@ public:
     void testStartStopStartFire()
     {
        OsStatus returnValue;
-       OsTimer timer(new OsCallback((intptr_t)this, TVCallback));
+       OsCallback notifier((int) this, TVCallback);
+       OsTimer timer(notifier);
        gCallBackCount = 0;
        returnValue = timer.oneshotAfter(oneSecond);
        CPPUNIT_ASSERT_MESSAGE("oneshotAfter 1", returnValue == OS_SUCCESS);
@@ -654,7 +687,8 @@ public:
     void testStartStart()
     {
        OsStatus returnValue;
-       OsTimer timer(new OsCallback((intptr_t)this, TVCallback));
+       OsCallback notifier((int) this, TVCallback);
+       OsTimer timer(notifier);
        gCallBackCount = 0;
        returnValue = timer.oneshotAfter(oneSecond);
        CPPUNIT_ASSERT_MESSAGE("oneshotAfter 1", returnValue == OS_SUCCESS);
@@ -668,7 +702,8 @@ public:
     void testStartStopStop()
     {
        OsStatus returnValue;
-       OsTimer timer(new OsCallback((intptr_t)this, TVCallback));
+       OsCallback notifier((int) this, TVCallback);
+       OsTimer timer(notifier);
        gCallBackCount = 0;
        returnValue = timer.oneshotAfter(oneSecond);
        CPPUNIT_ASSERT_MESSAGE("oneshotAfter", returnValue == OS_SUCCESS);
@@ -685,7 +720,8 @@ public:
     void testStartFireStop()
     {
        OsStatus returnValue;
-       OsTimer timer(new OsCallback((intptr_t)this, TVCallback));
+       OsCallback notifier((int) this, TVCallback);
+       OsTimer timer(notifier);
        gCallBackCount = 0;
        returnValue = timer.oneshotAfter(oneSecond);
        CPPUNIT_ASSERT_MESSAGE("oneshotAfter", returnValue == OS_SUCCESS);
@@ -699,7 +735,8 @@ public:
     void testStop()
     {
        OsStatus returnValue;
-       OsTimer timer(new OsCallback((intptr_t)this, TVCallback));
+       OsCallback notifier((int) this, TVCallback);
+       OsTimer timer(notifier);
        gCallBackCount = 0;
        returnValue = timer.stop();
        CPPUNIT_ASSERT_MESSAGE("stop", returnValue == OS_FAILED);
@@ -753,7 +790,8 @@ public:
        // "started" but not put the timer back in the timer queue, so
        // when the update message caused OsTimerTask::removeTimer to run, it
        // couldn't find the timer.
-       OsTimer timer(new OsCallback((intptr_t)this, TVCallback));
+       OsCallback notifier((int) this, TVCallback);
+       OsTimer timer(notifier);
 
        // Start timer to fire in 1 sec, and every 1 sec after that.
        timer.periodicEvery(OsTime(1, 0), OsTime(1, 0));
@@ -801,7 +839,7 @@ public:
                 if (synchronous) {
                    // Send message and wait.
                    OsEvent event;
-                   OsTimerTaskCommandMsg msg(OsTimerTaskCommandMsg::OS_TIMER_UPDATE_SYNC, &timer, &event);
+                   OsTimerMsg msg(OsTimerMsg::OS_TIMER_UPDATE_SYNC, &timer, &event);
                    OsStatus res = OsTimerTask::getTimerTask()->postMessage(msg);
                    assert(res == OS_SUCCESS);
                    event.wait();
@@ -809,7 +847,7 @@ public:
                 else
                 {
                    // Send message.
-                   OsTimerTaskCommandMsg msg(OsTimerTaskCommandMsg::OS_TIMER_UPDATE, &timer, NULL);
+                   OsTimerMsg msg(OsTimerMsg::OS_TIMER_UPDATE, &timer, NULL);
                    OsStatus res = OsTimerTask::getTimerTask()->postMessage(msg);
                    assert(res == OS_SUCCESS);
                 }

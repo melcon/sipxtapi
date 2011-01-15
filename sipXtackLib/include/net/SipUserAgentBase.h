@@ -24,6 +24,11 @@
 #include <net/SipMessageEvent.h>
 #include <net/SipContactDb.h>
 
+class SIPX_TRANSPORT_DATA;
+
+
+
+
 // DEFINES
 // MACROS
 // EXTERNAL FUNCTIONS
@@ -59,13 +64,18 @@ public:
 
     virtual UtlBoolean handleMessage(OsMsg& eventMessage) = 0;
 
+    virtual void addMessageConsumer(OsServerTask* messageConsumer) = 0;
+    //: Add a SIP message recipient
+
+
     //: Send a SIP message over the net
     // This method sends the SIP message via
     // a SIP UDP or TCP client as dictated by policy and the address
     // specified in the message
     virtual UtlBoolean send(SipMessage& message,
         OsMsgQ* responseListener = NULL,
-        void* responseListenerData = NULL) = 0;
+        void* responseListenerData = NULL,
+        SIPX_TRANSPORT_DATA* pTransport = NULL) = 0;
     //! param: message - the sip message to be sent
     //! param: responseListener - the queue on which to place SipMessageEvents containing SIP responses from the same transaction as the request sent in message
     //! param: responseListenerData - data to be passed back with responses
@@ -78,7 +88,8 @@ public:
     // APPLICATION type are normal incoming messages
     // TRANSPORT_ERROR type are notification of failures to send messages
     virtual void dispatch(SipMessage* message,
-                          int messageType = SipMessageEvent::APPLICATION) = 0;
+                              int messageType = SipMessageEvent::APPLICATION,
+                              SIPX_TRANSPORT_DATA* pTransport = NULL) = 0;
 
     void addConfigChangeConsumer(OsMsgQ& messageQueue);
     //: Register to find out when UA config changes (i.e. contact address)
@@ -87,11 +98,7 @@ public:
 
     virtual void logMessage(const char* message, int messageLength) = 0;
 
-    virtual void getDefaultContactUri(UtlString* contactUri) ;
-
-    int getTcpPort() const { return mTcpPort; }
-    int getUdpPort() const { return mUdpPort; }
-    int getTlsPort() const { return mTlsPort; }
+    virtual void getContactUri(UtlString* contactUri) ;
 
 /* ============================ INQUIRY =================================== */
 
@@ -110,7 +117,7 @@ protected:
     int mUdpPort;
     int mTlsPort;
     UtlBoolean mMessageLogEnabled;
-    UtlString mDefaultContactAddress; // last resort contact which should be used sparingly
+    UtlString mContactAddress;
     OsRWMutex mObserverMutex;
     UtlHashBag mConfigChangeObservers;
     SipContactDb mContactDb;
@@ -122,6 +129,9 @@ private:
 
     SipUserAgentBase& operator=(const SipUserAgentBase& rhs);
      //:Assignment operator
+
+
+
 };
 
 /* ============================ INLINE METHODS ============================ */

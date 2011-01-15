@@ -75,8 +75,7 @@ public:
      /// Decode incoming RTP packet.
    virtual int decode(const MpRtpBufPtr &pPacket, ///< (in) Pointer to a media buffer
                       unsigned decodedBufferLength, ///< (in) Length of the samplesBuffer (in samples)
-                      MpAudioSample *samplesBuffer, ///< (out) Buffer for decoded samples
-                      UtlBoolean bIsPLCFrame
+                      MpAudioSample *samplesBuffer ///< (out) Buffer for decoded samples
                      );
      /**<
      *  @note This function do nothing. All real work is done in decodeIn().

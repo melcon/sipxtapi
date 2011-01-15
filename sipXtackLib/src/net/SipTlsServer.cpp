@@ -21,6 +21,7 @@
 #include <utl/UtlHashMapIterator.h>
 #include <utl/UtlPtr.h>
 
+#include <tapi/sipXtapi.h>
 #include <os/OsSSLServerSocket.h>
 #include <os/OsSSLConnectionSocket.h>
 
@@ -155,15 +156,19 @@ OsStatus SipTlsServer::createServerSocket(const char* szBindAddr,
         
         if (pServerSocket && pServerSocket->isOk())
         {
-            mServerPort = pServerSocket->getLocalHostPort();            
+            mServerPort = pServerSocket->getLocalHostPort() ;
+            
             port = pServerSocket->getLocalHostPort();
+            SIPX_CONTACT_ADDRESS contact;
+            SAFE_STRNCPY(contact.cIpAddress, szBindAddr, sizeof(contact.cIpAddress));
+            contact.iPort = port;
+            contact.eContactType = CONTACT_LOCAL;
+            UtlString szAdapterName;
 
-            UtlString adapterName;        
-            OsNetwork::getAdapterName(adapterName, szBindAddr);
-
-            SipContact sipContact(-1, SIP_CONTACT_LOCAL, SIP_TRANSPORT_TLS,
-               szBindAddr, port, adapterName, szBindAddr);
-            mSipUserAgent->addContact(sipContact);
+            getContactAdapterName(szAdapterName, contact.cIpAddress);
+            SAFE_STRNCPY(contact.cInterface, szAdapterName.data(), sizeof(contact.cInterface));
+            contact.eTransportType = TRANSPORT_TLS;
+            mSipUserAgent->addContactAddress(contact);
        
             // add address and port to the maps. Socket object deletion is managed by SipServerBroker
             mServerSocketMap.insertKeyAndValue(new UtlString(szBindAddr),

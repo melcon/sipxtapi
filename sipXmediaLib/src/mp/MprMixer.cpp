@@ -143,7 +143,7 @@ UtlBoolean MprMixer::doProcessFrame(MpBufPtr inBufs[],
    if (!out.isValid())
       return FALSE;
    out->setSamplesNumber(samplesPerFrame);
-   out->setSpeechType(MP_SPEECH_UNKNOWN);
+   out->setSpeechType(MpAudioBuf::MP_SPEECH_UNKNOWN);
 
    // Fill buffer with silence
    outstart = out->getSamplesWritePtr();

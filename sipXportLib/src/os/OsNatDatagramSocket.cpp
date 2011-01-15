@@ -29,9 +29,7 @@
 #include "os/OsSysLog.h"
 #include "os/OsEvent.h"
 #include "os/OsNotification.h"
-#include "os/OsStunResultFailureMsg.h"
-#include "os/OsStunResultSuccessMsg.h"
-#include <os/OsNetwork.h>
+#include "tapi/sipXtapi.h"
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -50,10 +48,8 @@ OsNatDatagramSocket::OsNatDatagramSocket(int remoteHostPortNum,
                                          const char* remoteHost, 
                                          int localHostPortNum, 
                                          const char* localHost,
-                                         OsMsgQ* pStunNotificationQueue) 
-: OsDatagramSocket(remoteHostPortNum, remoteHost, localHostPortNum, localHost)
-, mpStunNotificationQueue(pStunNotificationQueue)
-, mbStunNotified(false)
+                                         OsNotification *pNotification) 
+        : OsDatagramSocket(remoteHostPortNum, remoteHost, localHostPortNum, localHost)
 {    
     miRecordTimes = ONDS_MARK_NONE ;
     mpReadNotification = NULL ;
@@ -77,7 +73,8 @@ OsNatDatagramSocket::OsNatDatagramSocket(int remoteHostPortNum,
     miDestPort = remoteHostPort ;
     miDestPriority = -1 ;
 
-    mbStunNotified = false ;
+    mpNotification = pNotification ;      
+    mbNotified = false ;
 }
 
 
@@ -562,10 +559,10 @@ void OsNatDatagramSocket::readyDestination(const char* szAddress, int iPort)
 }
 
 
-void OsNatDatagramSocket::setStunNotificationQueue(OsMsgQ* pNotificationQueue) 
+void OsNatDatagramSocket::setNotifier(OsNotification* pNotification) 
 {
-    mpStunNotificationQueue = pNotificationQueue;
-    mbStunNotified = false;
+    mpNotification = pNotification ;
+    mbNotified = false ;
 }
 
 /* ============================ INQUIRY =================================== */
@@ -589,35 +586,39 @@ void OsNatDatagramSocket::setTurnAddress(const UtlString& address,
 
 void OsNatDatagramSocket::markStunSuccess(bool bAddressChanged)
 {
-   mStunState.status = NAT_STATUS_SUCCESS ;
+    mStunState.status = NAT_STATUS_SUCCESS ;
 
-   // Signal external identities interested in the STUN outcome.
-   if (mpStunNotificationQueue && (!mbStunNotified || bAddressChanged))
-   {   
-      UtlString adapterName;        
-      OsNetwork::getAdapterName(adapterName, mLocalIp);
+    // Signal external identities interested in the STUN outcome.
+    if (mpNotification && (!mbNotified || bAddressChanged))
+    {   
+        UtlString adapterName;
+        
+        getContactAdapterName(adapterName, mLocalIp);
 
-      OsStunResultSuccessMsg msg(adapterName, mLocalIp, localHostPort, mStunState.mappedAddress, mStunState.mappedPort);
-      mpStunNotificationQueue->send(msg);
-      mbStunNotified = true;
-   }
+        SIPX_CONTACT_ADDRESS* pContact = new SIPX_CONTACT_ADDRESS();
+        
+        SAFE_STRNCPY(pContact->cIpAddress, mStunState.mappedAddress, sizeof(pContact->cIpAddress));
+        pContact->iPort = mStunState.mappedPort;
+        SAFE_STRNCPY(pContact->cInterface, adapterName.data(), sizeof(pContact->cInterface));
+        pContact->eContactType = CONTACT_NAT_MAPPED;
+        pContact->eTransportType = TRANSPORT_UDP ;
+                
+        mpNotification->signal((intptr_t) pContact) ;
+        mbNotified = true ;
+    }
 }
 
 
 void OsNatDatagramSocket::markStunFailure() 
 {
-   mStunState.status = NAT_STATUS_FAILURE;
+    mStunState.status = NAT_STATUS_FAILURE ;
 
-   // Signal external identities interested in the STUN outcome.
-   if (mpStunNotificationQueue && !mbStunNotified)
-   {
-      UtlString adapterName;        
-      OsNetwork::getAdapterName(adapterName, mLocalIp);
-
-      OsStunResultFailureMsg msg(adapterName, mLocalIp, localHostPort);
-      mpStunNotificationQueue->send(msg);
-      mbStunNotified = true;
-   }
+    // Signal external identities interested in the STUN outcome.
+    if (mpNotification && !mbNotified)
+    {
+        mpNotification->signal(0) ;
+        mbNotified = true ;
+    }
 }
 
 

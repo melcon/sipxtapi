@@ -8,12 +8,14 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
+
 #ifndef _OsWriteLock_h_
 #define _OsWriteLock_h_
 
 // SYSTEM INCLUDES
+
 // APPLICATION INCLUDES
-#include <os/OsRWSyncBase.h>
+#include "OsRWMutex.h"
 
 // DEFINES
 // MACROS
@@ -25,8 +27,8 @@
 // FORWARD DECLARATIONS
 
 //:Lock class allowing exclusive access for a writer within a critical section
-// This class uses OsRWSyncBase objects for synchronization. The constructor
-// for the class automatically blocks until the OsRWSyncBase is acquired
+// This class uses OsRWMutex objects for synchronization. The constructor
+// for the class automatically blocks until the OsRWMutex is acquired
 // for writing. Similarly, the destructor automatically releases the lock.
 // <p>
 // The easiest way to use this object as a guard is to create the
@@ -51,18 +53,13 @@ public:
 
 /* ============================ CREATORS ================================== */
 
-   OsWriteLock(OsRWSyncBase& rRWSyncBase)
-   : mrRWSyncBase(rRWSyncBase)
-   {
-      rRWSyncBase.acquireWrite();
-   };
-   //:Constructor
+   OsWriteLock(OsRWMutex& rRWMutex)
+                : mrRWMutex(rRWMutex) { rRWMutex.acquireWrite(); };
+     //:Constructor
 
-   virtual ~OsWriteLock()
-   {
-      mrRWSyncBase.releaseWrite();
-   };
-   //:Destructor
+   virtual
+   ~OsWriteLock()  { mrRWMutex.releaseWrite(); };
+     //:Destructor
 
 /* ============================ MANIPULATORS ============================== */
 
@@ -75,7 +72,7 @@ protected:
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   OsRWSyncBase& mrRWSyncBase;
+   OsRWMutex& mrRWMutex;
 
    OsWriteLock();
      //:Default constructor (not implemented for this class)

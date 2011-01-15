@@ -20,7 +20,7 @@
 #include "utl/UtlDefs.h"
 #include "utl/UtlSListIterator.h"
 #include "os/OsSocket.h"
-#include "os/IStunSocket.h"
+#include "os/OsNatConnectionSocket.h"
 
 #include <net/HttpBody.h>
 #include <net/NameValuePair.h>
@@ -66,16 +66,8 @@ typedef enum
    SDP_MEDIA_TYPE_VIDEO,
 } SDP_MEDIA_TYPE;
 
-typedef enum
-{
-   SDP_STREAM_SENDRECV, // a=sendrecv
-   SDP_STREAM_SENDONLY, // a=sendonly
-   SDP_STREAM_RECVONLY, // a=recvonly
-   SDP_STREAM_INACTIVE, // a=inactive
-} SDP_STREAM_DIRECTION;
-
 // FORWARD DECLARATIONS
-class SdpCodecList;
+class SdpCodecFactory;
 
 /// Container for MIME type application/sdp.
 /**
@@ -114,9 +106,6 @@ class SdpBody : public HttpBody
 
    /// Copy constructor
    SdpBody(const SdpBody& rSdpBody);
-
-   /// Assignment operator
-   SdpBody& operator=(const SdpBody& rhs);
 
    /// Destructor
    virtual
@@ -208,11 +197,10 @@ class SdpBody : public HttpBody
                        RTP_TRANSPORT transportTypes[],
                        int numRtpCodecs,
                        SdpCodec* rtpCodecs[],
-                       const SdpSrtpParameters& srtpParams,
+                       SdpSrtpParameters& srtpParams,
                        int videoBandwidth,
                        int videoFramerate,
-                       RTP_TRANSPORT transportOffering,
-                       UtlBoolean bLocalHold = FALSE///< if true then a=sendonly is used
+                       RTP_TRANSPORT transportOffering
                        );
 
    /**<
@@ -230,11 +218,10 @@ class SdpBody : public HttpBody
                        RTP_TRANSPORT transportTypes[],
                        int numRtpCodecs, 
                        SdpCodec* rtpCodecs[],
-                       const SdpSrtpParameters& srtpParams,
+                       SdpSrtpParameters& srtpParams,
                        int videoBandwidth,
                        int videoFramerate,
-                       const SdpBody* sdpRequest,  ///< Sdp we are responding to
-                       UtlBoolean bLocalHold = FALSE
+                       const SdpBody* sdpRequest  ///< Sdp we are responding to
                        ); 
    /**<
     * This method is for building a SdpBody which is in response
@@ -259,8 +246,7 @@ class SdpBody : public HttpBody
    void addCodecParameters(int numRtpCodecs,
                            SdpCodec* rtpCodecs[],
                            const char* szMimeType = "audio",
-                           const int videoFramerate = 0,
-                           SDP_STREAM_DIRECTION streamDirection = SDP_STREAM_SENDRECV
+                           const int videoFramerate = 0
                            );
 
    /// Set address.
@@ -296,7 +282,7 @@ class SdpBody : public HttpBody
                   int numChannels
                   );
 
-   void addSrtpCryptoField(const SdpSrtpParameters& params);
+   void addSrtpCryptoField(SdpSrtpParameters& params);
 
    void addFormatParameters(int payloadType,
                             const char* formatParameters
@@ -430,34 +416,11 @@ class SdpBody : public HttpBody
 
    UtlBoolean getBandwidthField(int& bandwidth) const;
 
-   /**
-    * Gets direction of stream in SDP body. This method only tries to find flags like "a=sendonly",
-    * to discover direction of stream. The problem is there can be multiple streams, and this whole
-    * class needs a rewrite.
-    */
-   SDP_STREAM_DIRECTION getStreamDirection() const;
-
-   /**
-   * Translates stream direction from offer into answer, given that we may wish to do hold.
-   */
-   static SDP_STREAM_DIRECTION translateStreamDirection(const SdpBody* offerSdpRequest,
-                                                        UtlBoolean bLocalHold);
-
    /**<
     * Find the "a" record containing an rtpmap for the given
     * payload type id, parse it and return the parameters for it.
     */
 
-   /**
-    * Returns all SdpCodecs contained in SDP body of given mimeType. SdpCodecList is not
-    * cleared.
-    * TODO: Video support is not complete.
-    *
-    * @param mediaIndex Identifies media line for which we want codecs. Starts from 0, ends with MAXIMUM_MEDIA_TYPES.
-    */
-   void getBodySdpCodecs(SdpCodecList& sdpCodecList,
-                         const UtlString& mimeType,
-                         int mediaIndex) const;
 
    /// Find the send and receive codecs from the rtpCodecs array which are compatible with this SdpBody..
    void getBestAudioCodecs(int numRtpCodecs,
@@ -471,7 +434,7 @@ class SdpBody : public HttpBody
 
 
    /// Find the send and receive codecs from the rtpCodecs array which are compatible with this SdpBody.
-   void getBestAudioCodecs(const SdpCodecList& localRtpCodecs,
+   void getBestAudioCodecs(SdpCodecFactory& localRtpCodecs,
                            int& numCodecsInCommon,
                            SdpCodec**& commonCodecsForEncoder,
                            SdpCodec**& commonCodecsForDecoder,
@@ -480,7 +443,7 @@ class SdpBody : public HttpBody
                            int& rtcpPort,
                            int& videoRtpPort,
                            int& videoRtcpPort,
-                           const SdpSrtpParameters& localSrtpParams,
+                           SdpSrtpParameters& localSrtpParams,
                            SdpSrtpParameters& matchingSrtpParams,
                            int localBandwidth,
                            int& matchingBandwidth,
@@ -494,13 +457,13 @@ class SdpBody : public HttpBody
                           int audioPayloadTypes[],
                           int videoPayloadTypes[],
                           int videoRtpPort,
-                          const SdpCodecList& localRtpCodecs,
+                          SdpCodecFactory& localRtpCodecs,
                           int& numCodecsInCommon,
                           SdpCodec* commonCodecsForEncoder[],
                           SdpCodec* commonCodecsForDecoder[]) const;
 
    // Find common encryption suites
-   void getEncryptionInCommon(const SdpSrtpParameters& audioParams,
+   void getEncryptionInCommon(SdpSrtpParameters& audioParams,
                               SdpSrtpParameters& remoteParams,
                               SdpSrtpParameters& commonAudioParms) const;
 
@@ -638,6 +601,9 @@ class SdpBody : public HttpBody
    static NameValuePair* findFieldNameBefore(UtlSListIterator* iter,
                                              const char* targetFieldName,
                                              const char* beforeFieldName);
+
+   //! Disabled assignment operator
+   SdpBody& operator=(const SdpBody& rhs);
 
 };
 

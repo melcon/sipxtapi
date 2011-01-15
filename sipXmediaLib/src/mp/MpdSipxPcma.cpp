@@ -11,21 +11,15 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
+
 // APPLICATION INCLUDES
 #include "mp/MpdSipxPcma.h"
 #include "mp/MpSipxDecoders.h"
 #include "mp/MpDspUtils.h"
 
 const MpCodecInfo MpdSipxPcma::smCodecInfo(
-         SdpCodec::SDP_CODEC_PCMA,// codecType
-         "SIPfoundry 1.0",// codecVersion
-         8000,// samplingRate
-         16,// numBitsPerSample
-         1,// numChannels
-         64000,// bitRate. It doesn't matter right now.
-         160*8,// minPacketBits
-         160*8,// maxPacketBits
-         160);// numSamplesPerFrame - 20ms frame
+         SdpCodec::SDP_CODEC_PCMA, "SIPfoundry 1.0", true,
+         8000, 8, 1, 160, 64000, 1280, 1280, 1280, 160, 3);
 
 MpdSipxPcma::MpdSipxPcma(int payloadType)
 : MpDecoderBase(payloadType, &smCodecInfo)
@@ -48,26 +42,22 @@ OsStatus MpdSipxPcma::freeDecode()
 }
 
 int MpdSipxPcma::decode(const MpRtpBufPtr &pPacket,
-                        unsigned decodedBufferLength,// has always sufficient size
-                        MpAudioSample *samplesBuffer,
-                        UtlBoolean bIsPLCFrame) 
+                        unsigned decodedBufferLength,
+                        MpAudioSample *samplesBuffer) 
 {
-   if (!pPacket.isValid())
-      return 0;
-
-   unsigned payloadSize = pPacket->getPayloadSize();
-   unsigned maxPayloadSize = smCodecInfo.getMaxPacketBits()/8;
-
-   assert(payloadSize <= maxPayloadSize);
-   if (payloadSize > maxPayloadSize)
+   // Assert that available buffer size is enough for the packet.
+   if (pPacket->getPayloadSize() > decodedBufferLength)
    {
-      return 0;
+      osPrintf("MpdSipxPcma::decode: Jitter buffer overloaded. Glitch!\n");
    }
 
-   int sampleCount = pPacket->getPayloadSize(); // number of samples to decode
-   G711A_Decoder(sampleCount,
+   if (decodedBufferLength == 0)
+      return 0;
+
+   int samples = min(pPacket->getPayloadSize(), decodedBufferLength);
+   G711A_Decoder(samples,
                  (const uint8_t*)pPacket->getDataPtr(),
                  samplesBuffer);
-   return sampleCount;
+   return samples;
 }
 

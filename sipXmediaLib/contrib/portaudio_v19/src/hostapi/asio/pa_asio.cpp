@@ -965,20 +965,13 @@ PaError PaAsio_GetAvailableLatencyValues( PaDeviceIndex device,
     return result;
 }
 
-/* Unload whatever we loaded in LoadAsioDriver().
-   Also balance the call to CoInitialize(0).
-*/
-static void UnloadAsioDriver( void )
-{
-	ASIOExit();
-	CoUninitialize();
-}
+
 
 /*
     load the asio driver named by <driverName> and return statistics about
     the driver in info. If no error occurred, the driver will remain open
-    and must be closed by the called by calling UnloadAsioDriver() - if an error
-    is returned the driver will already be unloaded.
+    and must be closed by the called by calling ASIOExit() - if an error
+    is returned the driver will already be closed.
 */
 static PaError LoadAsioDriver( PaAsioHostApiRepresentation *asioHostApi, const char *driverName,
         PaAsioDriverInfo *driverInfo, void *systemSpecific )
@@ -987,23 +980,12 @@ static PaError LoadAsioDriver( PaAsioHostApiRepresentation *asioHostApi, const c
     ASIOError asioError;
     int asioIsInitialized = 0;
 
-    /* 
-	ASIO uses CoCreateInstance() to load a driver. That requires that
-	CoInitialize(0) be called for every thread that loads a driver.
-	It is OK to call CoInitialize(0) multiple times form one thread as long
-	as it is balanced by a call to CoUninitialize(). See UnloadAsioDriver().
-
-	The V18 version called CoInitialize() starting on 2/19/02.
-	That was removed from PA V19 for unknown reasons.
-	Phil Burk added it back on 6/27/08 so that JSyn would work.
+    /* @todo note that the V18 version always called CoInitialize() here to ensure 
+        that COM was initialized before loading the driver. 
+        probably the docs need to require clients to initialize COM in new threads?
     */
-	CoInitialize( 0 );
-
     if( !asioHostApi->asioDrivers->loadDriver( const_cast<char*>(driverName) ) )
     {
-		/* If this returns an error then it might be because CoInitialize(0) was removed.
-		  It should be called right before this.
-	    */
         result = paUnanticipatedHostError;
         PA_ASIO_SET_LAST_HOST_ERROR( 0, "Failed to load ASIO driver" );
         goto error;
@@ -1049,10 +1031,8 @@ static PaError LoadAsioDriver( PaAsioHostApiRepresentation *asioHostApi, const c
 
 error:
     if( asioIsInitialized )
-	{
-		ASIOExit();
-	}
-	CoUninitialize();
+        ASIOExit();
+
     return result;
 }
 
@@ -1164,7 +1144,7 @@ PaError PaAsio_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex
             goto error;
         }
 
-        IsDebuggerPresent_ = (IsDebuggerPresentPtr)GetProcAddress( LoadLibrary( "Kernel32.dll" ), "IsDebuggerPresent" );
+        IsDebuggerPresent_ = GetProcAddress( LoadLibrary( "Kernel32.dll" ), "IsDebuggerPresent" );
 
         for( i=0; i < driverCount; ++i )
         {
@@ -1182,6 +1162,7 @@ PaError PaAsio_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex
                 || strcmp (names[i],"ASIO Multimedia Driver")          == 0
                 || strncmp(names[i],"Premiere",8)                      == 0   //"Premiere Elements Windows Sound 1.0"
                 || strncmp(names[i],"Adobe",5)                         == 0   //"Adobe Default Windows Sound 1.5"
+                || strncmp(names[i],"ReaRoute ASIO",13)                == 0   //Reaper www.reaper.fm <- fix your stuff man.
                )
             {
                 PA_DEBUG(("BLACKLISTED!!!\n"));
@@ -1294,7 +1275,7 @@ PaError PaAsio_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex
                 if( !asioDeviceInfo->asioChannelInfos )
                 {
                     result = paInsufficientMemory;
-                    goto error_unload;
+                    goto error;
                 }
 
                 int a;
@@ -1307,7 +1288,7 @@ PaError PaAsio_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex
                     {
                         result = paUnanticipatedHostError;
                         PA_ASIO_SET_LAST_ASIO_ERROR( asioError );
-                        goto error_unload;
+                        goto error;
                     }
                 }
 
@@ -1320,13 +1301,13 @@ PaError PaAsio_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex
                     {
                         result = paUnanticipatedHostError;
                         PA_ASIO_SET_LAST_ASIO_ERROR( asioError );
-                        goto error_unload;
+                        goto error;
                     }
                 }
 
 
                 /* unload the driver */
-                UnloadAsioDriver();
+                ASIOExit();
 
                 (*hostApi)->deviceInfos[ (*hostApi)->info.deviceCount ] = deviceInfo;
                 ++(*hostApi)->info.deviceCount;
@@ -1362,9 +1343,6 @@ PaError PaAsio_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex
                                       ReadStream, WriteStream, GetStreamReadAvailable, GetStreamWriteAvailable );
 
     return result;
-
-error_unload:
-	UnloadAsioDriver();
 
 error:
     if( asioHostApi )
@@ -1538,7 +1516,7 @@ done:
     /* close the device if it wasn't already open */
     if( asioHostApi->openAsioDeviceIndex == paNoDevice )
     {
-        UnloadAsioDriver(); /* not sure if we should check for errors here */
+        ASIOExit(); /* not sure if we should check for errors here */
     }
 
     if( result == paNoError )
@@ -1619,7 +1597,6 @@ typedef struct PaAsioStream
     HANDLE completedBuffersPlayedEvent;
 
     bool streamFinishedCallbackCalled;
-    int isStopped;
     volatile int isActive;
     volatile bool zeroOutput; /* all future calls to the callback will output silence */
 
@@ -1754,98 +1731,6 @@ static PaError ValidateAsioSpecificStreamInfo(
 }
 
 
-static bool IsUsingExternalClockSource()
-{
-    bool result = false;
-    ASIOError asioError;
-    ASIOClockSource clocks[32];
-    long numSources=32;
-
-    /* davidv: listing ASIO Clock sources. there is an ongoing investigation by
-       me about whether or not to call ASIOSetSampleRate if an external Clock is
-       used. A few drivers expected different things here */
-    
-    asioError = ASIOGetClockSources(clocks, &numSources);
-    if( asioError != ASE_OK ){
-        PA_DEBUG(("ERROR: ASIOGetClockSources: %s\n", PaAsio_GetAsioErrorText(asioError) ));
-    }else{
-        PA_DEBUG(("INFO ASIOGetClockSources listing %d clocks\n", numSources ));
-        for (int i=0;i<numSources;++i){
-            PA_DEBUG(("ASIOClockSource%d %s current:%d\n", i, clocks[i].name, clocks[i].isCurrentSource ));
-           
-            if (clocks[i].isCurrentSource)
-                result = true;
-        }
-    }
-
-    return result;
-}
-
-
-static PaError ValidateAndSetSampleRate( double sampleRate )
-{
-    PaError result = paNoError;
-    ASIOError asioError;
-
-    // check that the device supports the requested sample rate 
-
-    asioError = ASIOCanSampleRate( sampleRate );
-    PA_DEBUG(("ASIOCanSampleRate(%f):%d\n", sampleRate, asioError ));
-
-    if( asioError != ASE_OK )
-    {
-        result = paInvalidSampleRate;
-        PA_DEBUG(("ERROR: ASIOCanSampleRate: %s\n", PaAsio_GetAsioErrorText(asioError) ));
-        goto error;
-    }
-
-    // retrieve the current sample rate, we only change to the requested
-    // sample rate if the device is not already in that rate.
-
-    ASIOSampleRate oldRate;
-    asioError = ASIOGetSampleRate(&oldRate);
-    if( asioError != ASE_OK )
-    {
-        result = paInvalidSampleRate;
-        PA_DEBUG(("ERROR: ASIOGetSampleRate: %s\n", PaAsio_GetAsioErrorText(asioError) ));
-        goto error;
-    }
-    PA_DEBUG(("ASIOGetSampleRate:%f\n",oldRate));
-
-    if (oldRate != sampleRate){
-        /* Set sample rate */
-
-        PA_DEBUG(("before ASIOSetSampleRate(%f)\n",sampleRate));
-
-        /*
-            If you have problems with some drivers when externally clocked, 
-            try switching on the following line and commenting out the one after it.
-            See IsUsingExternalClockSource() for more info.
-        */
-        //if( IsUsingExternalClockSource() ){
-        if( false ){
-            asioError = ASIOSetSampleRate( 0 );
-        }else{
-            asioError = ASIOSetSampleRate( sampleRate );
-        }
-        if( asioError != ASE_OK )
-        {
-            result = paInvalidSampleRate;
-            PA_DEBUG(("ERROR: ASIOSetSampleRate: %s\n", PaAsio_GetAsioErrorText(asioError) ));
-            goto error;
-        }
-        PA_DEBUG(("after ASIOSetSampleRate(%f)\n",sampleRate));
-    }
-    else
-    {
-        PA_DEBUG(("No Need to change SR\n"));
-    }
-
-error:
-    return result;
-}
-
-
 /* see pa_hostapi.h for a list of validity guarantees made about OpenStream  parameters */
 
 static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
@@ -1877,6 +1762,7 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
     PaAsioDriverInfo *driverInfo;
     int *inputChannelSelectors = 0;
     int *outputChannelSelectors = 0;
+    bool isExternal = false;
 
     /* Are we using blocking i/o interface? */
     int usingBlockingIo = ( !streamCallback ) ? TRUE : FALSE;
@@ -1897,8 +1783,6 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
         PA_DEBUG(("OpenStream paDeviceUnavailable\n"));
         return paDeviceUnavailable;
     }
-
-    assert( theAsioStream == 0 );
 
     if( inputParameters && outputParameters )
     {
@@ -1981,7 +1865,7 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
     if( result == paNoError )
         asioIsInitialized = 1;
     else{
-        PA_DEBUG(("OpenStream ERROR1 - LoadAsioDriver returned %d\n", result));
+        PA_DEBUG(("OpenStream ERROR1\n"));
         goto error;
     }
 
@@ -2007,9 +1891,76 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
         }
     }
 
-    result = ValidateAndSetSampleRate( sampleRate );
-    if( result != paNoError )
+
+    /* davidv: listing ASIO Clock sources, there is an ongoing investigation by
+       me about whether or not call ASIOSetSampleRate if an external Clock is
+       used. A few drivers expected different things here */
+    {
+        ASIOClockSource clocks[32];
+        long numSources=32;
+        asioError = ASIOGetClockSources(clocks, &numSources);
+        if( asioError != ASE_OK ){
+            PA_DEBUG(("ERROR: ASIOGetClockSources: %s\n", PaAsio_GetAsioErrorText(asioError) ));
+        }else{
+            PA_DEBUG(("INFO ASIOGetClockSources listing %d clocks\n", numSources ));
+            for (int i=0;i<numSources;++i){
+                PA_DEBUG(("ASIOClockSource%d %s current:%d\n", i,clocks[i].name, clocks[i].isCurrentSource ));
+               
+                /*
+                  If you have problems with some drivers when externally clocked, 
+                  uncomment the next two lines
+                 */
+                //if (clocks[i].isCurrentSource)
+                //    isExternal = true;
+            }
+        }
+    }
+
+    // check that the device supports the requested sample rate 
+
+    asioError = ASIOCanSampleRate( sampleRate );
+    PA_DEBUG(("ASIOCanSampleRate(%f):%d\n",sampleRate, asioError ));
+
+    if( asioError != ASE_OK )
+    {
+        result = paInvalidSampleRate;
+        PA_DEBUG(("ERROR: ASIOCanSampleRate: %s\n", PaAsio_GetAsioErrorText(asioError) ));
         goto error;
+    }
+
+
+    // retrieve the current sample rate, we only change to the requested
+    // sample rate if the device is not already in that rate.
+
+    ASIOSampleRate oldRate;
+    asioError = ASIOGetSampleRate(&oldRate);
+    if( asioError != ASE_OK )
+    {
+        result = paInvalidSampleRate;
+        PA_DEBUG(("ERROR: ASIOGetSampleRate: %s\n", PaAsio_GetAsioErrorText(asioError) ));
+        goto error;
+    }
+    PA_DEBUG(("ASIOGetSampleRate:%f\n",oldRate));
+
+    if (oldRate != sampleRate){
+
+        PA_DEBUG(("before ASIOSetSampleRate(%f)\n",sampleRate));
+
+        asioError = ASIOSetSampleRate( isExternal?0:sampleRate );
+        /* Set sample rate */
+        if( asioError != ASE_OK )
+        {
+            result = paInvalidSampleRate;
+            PA_DEBUG(("ERROR: ASIOSetSampleRate: %s\n", PaAsio_GetAsioErrorText(asioError) ));
+            goto error;
+        }
+        PA_DEBUG(("after ASIOSetSampleRate(%f)\n",sampleRate));
+    }
+    else
+    {
+        PA_DEBUG(("No Need to change SR\n"));
+    }
+
 
     /*
         IMPLEMENT ME:
@@ -2570,12 +2521,10 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
     stream->inputChannelCount = inputChannelCount;
     stream->outputChannelCount = outputChannelCount;
     stream->postOutput = driverInfo->postOutput;
-    stream->isStopped = 1;
     stream->isActive = 0;
-    
+
     asioHostApi->openAsioDeviceIndex = asioDeviceIndex;
 
-    theAsioStream = stream;
     *s = (PaStream*)stream;
 
     return result;
@@ -2628,9 +2577,8 @@ error:
         ASIODisposeBuffers();
 
     if( asioIsInitialized )
-	{
-		UnloadAsioDriver();
-	}
+        ASIOExit();
+
     return result;
 }
 
@@ -2681,9 +2629,7 @@ static PaError CloseStream( PaStream* s )
     PaUtil_FreeMemory( stream );
 
     ASIODisposeBuffers();
-    UnloadAsioDriver();
-
-    theAsioStream = 0;
+    ASIOExit();
 
     return result;
 }
@@ -3186,19 +3132,16 @@ static PaError StartStream( PaStream *s )
 
     if( result == paNoError )
     {
-        assert( theAsioStream == stream ); /* theAsioStream should be set correctly in OpenStream */
-
-        /* initialize these variables before the callback has a chance to be invoked */
-        stream->isStopped = 0;
-        stream->isActive = 1;
-        stream->streamFinishedCallbackCalled = false;
-
+        theAsioStream = stream;
         asioError = ASIOStart();
-        if( asioError != ASE_OK )
+        if( asioError == ASE_OK )
         {
-            stream->isStopped = 1;
-            stream->isActive = 0;
-
+            stream->isActive = 1;
+            stream->streamFinishedCallbackCalled = false;
+        }
+        else
+        {
+            theAsioStream = 0;
             result = paUnanticipatedHostError;
             PA_ASIO_SET_LAST_ASIO_ERROR( asioError );
         }
@@ -3207,18 +3150,6 @@ static PaError StartStream( PaStream *s )
     return result;
 }
 
-static void EnsureCallbackHasCompleted( PaAsioStream *stream )
-{
-    // make sure that the callback is not still in-flight after ASIOStop()
-    // returns. This has been observed to happen on the Hoontech DSP24 for
-    // example.
-    int count = 2000;  // only wait for 2 seconds, rather than hanging.
-    while( stream->reenterCount != -1 && count > 0 )
-    {
-        Sleep(1);
-        --count;
-    }
-}
 
 static PaError StopStream( PaStream *s )
 {
@@ -3269,7 +3200,7 @@ static PaError StopStream( PaStream *s )
             length is longer than the asio buffer size then that should
             be taken into account.
         */
-        if( WaitForSingleObject( stream->completedBuffersPlayedEvent,
+        if( WaitForSingleObject( theAsioStream->completedBuffersPlayedEvent,
                 (DWORD)(stream->streamRepresentation.streamInfo.outputLatency * 1000. * 4.) )
                     == WAIT_TIMEOUT )
         {
@@ -3278,17 +3209,13 @@ static PaError StopStream( PaStream *s )
     }
 
     asioError = ASIOStop();
-    if( asioError == ASE_OK )
-    {
-        EnsureCallbackHasCompleted( stream );
-    }
-    else
+    if( asioError != ASE_OK )
     {
         result = paUnanticipatedHostError;
         PA_ASIO_SET_LAST_ASIO_ERROR( asioError );
     }
 
-    stream->isStopped = 1;
+    theAsioStream = 0;
     stream->isActive = 0;
 
     if( !stream->streamFinishedCallbackCalled )
@@ -3300,6 +3227,7 @@ static PaError StopStream( PaStream *s )
     return result;
 }
 
+
 static PaError AbortStream( PaStream *s )
 {
     PaError result = paNoError;
@@ -3309,17 +3237,31 @@ static PaError AbortStream( PaStream *s )
     stream->zeroOutput = true;
 
     asioError = ASIOStop();
-    if( asioError == ASE_OK )
-    {
-        EnsureCallbackHasCompleted( stream );
-    }
-    else
+    if( asioError != ASE_OK )
     {
         result = paUnanticipatedHostError;
         PA_ASIO_SET_LAST_ASIO_ERROR( asioError );
     }
+    else
+    {
+        // make sure that the callback is not still in-flight when ASIOStop()
+        // returns. This has been observed to happen on the Hoontech DSP24 for
+        // example.
+        int count = 2000;  // only wait for 2 seconds, rather than hanging.
+        while( theAsioStream->reenterCount != -1 && count > 0 )
+        {
+            Sleep(1);
+            --count;
+        }
+    }
 
-    stream->isStopped = 1;
+    /* it is questionable whether we should zero theAsioStream if ASIOStop()
+        returns an error, because the callback could still be active. We assume
+        not - this is based on the fact that ASIOStop is unlikely to fail
+        if the callback is running - it's more likely to fail because the
+        callback is not running. */
+        
+    theAsioStream = 0;
     stream->isActive = 0;
 
     if( !stream->streamFinishedCallbackCalled )
@@ -3334,9 +3276,9 @@ static PaError AbortStream( PaStream *s )
 
 static PaError IsStreamStopped( PaStream *s )
 {
-    PaAsioStream *stream = (PaAsioStream*)s;
-    
-    return stream->isStopped;
+    //PaAsioStream *stream = (PaAsioStream*)s;
+    (void) s; /* unused parameter */
+    return theAsioStream == 0;
 }
 
 
@@ -3440,7 +3382,7 @@ static PaError ReadStream( PaStream      *s     ,
                data block is processed although it may be incomplete. */
 
             /* If the available amount of data frames is insufficient. */
-            if( PaUtil_GetRingBufferReadAvailable(pRb) < (long) lFramesPerBlock )
+            if( PaUtil_GetRingBufferReadAvailable(pRb) < lFramesPerBlock )
             {
                 /* Make sure, the event isn't already set! */
                 /* ResetEvent( blockingState->readFramesReadyEvent ); */
@@ -3469,8 +3411,11 @@ static PaError ReadStream( PaStream      *s     ,
                     /* If block processing has stopped, abort! */
                     if( blockingState->stopFlag ) { return result = paStreamIsStopped; }
 
-                    /* If a timeout is encountered, give up eventually. */
-                    return result = paTimedOut;
+                    /* if a timeout is encountered, continue, perhaps we should give up eventually */
+                    continue;
+                    /* To give up eventually, we may increase the time out
+                       period and return an error if it fails anyway. */
+                    /* retrun result = paTimedOut; */
                 }
             }
             /* Now, the ring buffer contains the required amount of data
@@ -3612,7 +3557,7 @@ static PaError WriteStream( PaStream      *s     ,
                data block is processed although it may be incomplete. */
 
             /* If the available amount of buffers is insufficient. */
-            if( PaUtil_GetRingBufferWriteAvailable(pRb) < (long) lFramesPerBlock )
+            if( PaUtil_GetRingBufferWriteAvailable(pRb) < lFramesPerBlock )
             {
                 /* Make sure, the event isn't already set! */
                 /* ResetEvent( blockingState->writeBuffersReadyEvent ); */
@@ -3640,9 +3585,11 @@ static PaError WriteStream( PaStream      *s     ,
 
                     /* If block processing has stopped, abort! */
                     if( blockingState->stopFlag ) { return result = paStreamIsStopped; }
-                    
-                    /* If a timeout is encountered, give up eventually. */
-                    return result = paTimedOut;
+                    /* if a timeout is encountered, continue, perhaps we should give up eventually */
+                    continue;
+                    /* To give up eventually, we may increase the time out
+                       period and return an error if it fails anyway. */
+                    /* retrun result = paTimedOut; */
                 }
             }
             /* Now, the ring buffer contains the required amount of free
@@ -3732,118 +3679,6 @@ static signed long GetStreamWriteAvailable( PaStream* s )
 }
 
 
-/* This routine will be called by the PortAudio engine when audio is needed.
-** It may called at interrupt level on some machines so don't do anything
-** that could mess up the system like calling malloc() or free().
-*/
-static int BlockingIoPaCallback(const void                     *inputBuffer    ,
-                                      void                     *outputBuffer   ,
-                                      unsigned long             framesPerBuffer,
-                                const PaStreamCallbackTimeInfo *timeInfo       ,
-                                      PaStreamCallbackFlags     statusFlags    ,
-                                      void                     *userData       )
-{
-    PaError result = paNoError; /* Initial return value. */
-    PaAsioStream *stream = *(PaAsioStream**)userData; /* The PA ASIO stream. */
-    PaAsioStreamBlockingState *blockingState = stream->blockingState; /* Persume blockingState is valid, otherwise the callback wouldn't be running. */
-
-    /* Get a pointer to the stream's blocking i/o buffer processor. */
-    PaUtilBufferProcessor *pBp = &blockingState->bufferProcessor;
-    PaUtilRingBuffer      *pRb = NULL;
-
-    /* If output data has been requested. */
-    if( stream->outputChannelCount )
-    {
-        /* If the callback input argument signalizes a output underflow,
-           make sure the WriteStream() function knows about it, too! */
-        if( statusFlags & paOutputUnderflowed ) {
-            blockingState->outputUnderflowFlag = TRUE;
-        }
-
-        /* Access the corresponding ring buffer. */
-        pRb = &blockingState->writeRingBuffer;
-
-        /* If the blocking i/o buffer contains enough output data, */
-        if( PaUtil_GetRingBufferReadAvailable(pRb) >= (long) framesPerBuffer )
-        {
-            /* Extract the requested data from the ring buffer. */
-            PaUtil_ReadRingBuffer( pRb, outputBuffer, framesPerBuffer );
-        }
-        else /* If no output data is available :-( */
-        {
-            /* Signalize a write-buffer underflow. */
-            blockingState->outputUnderflowFlag = TRUE;
-
-            /* Fill the output buffer with silence. */
-            (*pBp->outputZeroer)( outputBuffer, 1, pBp->outputChannelCount * framesPerBuffer );
-
-            /* If playback is to be stopped */
-            if( blockingState->stopFlag && PaUtil_GetRingBufferReadAvailable(pRb) < (long) framesPerBuffer )
-            {
-                /* Extract all the remaining data from the ring buffer,
-                   whether it is a complete data block or not. */
-                PaUtil_ReadRingBuffer( pRb, outputBuffer, PaUtil_GetRingBufferReadAvailable(pRb) );
-            }
-        }
-
-        /* Set blocking i/o event? */
-        if( blockingState->writeBuffersRequestedFlag && PaUtil_GetRingBufferWriteAvailable(pRb) >= (long) blockingState->writeBuffersRequested )
-        {
-            /* Reset buffer request. */
-            blockingState->writeBuffersRequestedFlag = FALSE;
-            blockingState->writeBuffersRequested     = 0;
-            /* Signalize that requested buffers are ready. */
-            SetEvent( blockingState->writeBuffersReadyEvent );
-            /* What do we do if SetEvent() returns zero, i.e. the event
-               could not be set? How to return errors from within the
-               callback? - S.Fischer */
-        }
-    }
-
-    /* If input data has been supplied. */
-    if( stream->inputChannelCount )
-    {
-        /* If the callback input argument signalizes a input overflow,
-           make sure the ReadStream() function knows about it, too! */
-        if( statusFlags & paInputOverflowed ) {
-            blockingState->inputOverflowFlag = TRUE;
-        }
-
-        /* Access the corresponding ring buffer. */
-        pRb = &blockingState->readRingBuffer;
-
-        /* If the blocking i/o buffer contains not enough input buffers */
-        if( PaUtil_GetRingBufferWriteAvailable(pRb) < (long) framesPerBuffer )
-        {
-            /* Signalize a read-buffer overflow. */
-            blockingState->inputOverflowFlag = TRUE;
-
-            /* Remove some old data frames from the buffer. */
-            PaUtil_AdvanceRingBufferReadIndex( pRb, framesPerBuffer );
-        }
-
-        /* Insert the current input data into the ring buffer. */
-        PaUtil_WriteRingBuffer( pRb, inputBuffer, framesPerBuffer );
-
-        /* Set blocking i/o event? */
-        if( blockingState->readFramesRequestedFlag && PaUtil_GetRingBufferReadAvailable(pRb) >= (long) blockingState->readFramesRequested )
-        {
-            /* Reset buffer request. */
-            blockingState->readFramesRequestedFlag = FALSE;
-            blockingState->readFramesRequested     = 0;
-            /* Signalize that requested buffers are ready. */
-            SetEvent( blockingState->readFramesReadyEvent );
-            /* What do we do if SetEvent() returns zero, i.e. the event
-               could not be set? How to return errors from within the
-               callback? - S.Fischer */
-            /** @todo report an error with PA_DEBUG */
-        }
-    }
-
-    return paContinue;
-}
-
-
 PaError PaAsio_ShowControlPanel( PaDeviceIndex device, void* systemSpecific )
 {
     PaError result = paNoError;
@@ -3881,9 +3716,10 @@ PaError PaAsio_ShowControlPanel( PaDeviceIndex device, void* systemSpecific )
 
     asioDeviceInfo = (PaAsioDeviceInfo*)hostApi->deviceInfos[hostApiDevice];
 
-    /* See notes about CoInitialize(0) in LoadAsioDriver(). */
-	CoInitialize(0);
-
+    /* @todo note that the V18 version always called CoInitialize() here to ensure 
+        that COM was initialized before loading the driver. 
+        probably the docs need to require clients to initialize COM in new threads?
+    */
     if( !asioHostApi->asioDrivers->loadDriver( const_cast<char*>(asioDeviceInfo->commonDeviceInfo.name) ) )
     {
         result = paUnanticipatedHostError;
@@ -3932,17 +3768,13 @@ PA_DEBUG(("PaAsio_ShowControlPanel: ASIOControlPanel(): %s\n", PaAsio_GetAsioErr
         goto error;
     }
 
-	CoUninitialize();
 PA_DEBUG(("PaAsio_ShowControlPanel: ASIOExit(): %s\n", PaAsio_GetAsioErrorText(asioError) ));
 
     return result;
 
 error:
     if( asioIsInitialized )
-	{
-		ASIOExit();
-	}
-	CoUninitialize();
+        ASIOExit();
 
     return result;
 }
@@ -4015,51 +3847,119 @@ error:
 }
 
 
-/* NOTE: the following functions are ASIO-stream specific, and are called directly
-    by client code. We need to check for many more error conditions here because
-    we don't have the benefit of pa_front.c's parameter checking.
+
+
+
+
+
+
+/* This routine will be called by the PortAudio engine when audio is needed.
+** It may called at interrupt level on some machines so don't do anything
+** that could mess up the system like calling malloc() or free().
 */
-
-static PaError GetAsioStreamPointer( PaAsioStream **stream, PaStream *s )
+static int BlockingIoPaCallback(const void                     *inputBuffer    ,
+                                      void                     *outputBuffer   ,
+                                      unsigned long             framesPerBuffer,
+                                const PaStreamCallbackTimeInfo *timeInfo       ,
+                                      PaStreamCallbackFlags     statusFlags    ,
+                                      void                     *userData       )
 {
-    PaError result;
-    PaUtilHostApiRepresentation *hostApi;
-    PaAsioHostApiRepresentation *asioHostApi;
-    
-    result = PaUtil_ValidateStreamPointer( s );
-    if( result != paNoError )
-        return result;
+    PaError result = paNoError; /* Initial return value. */
+    PaAsioStream *stream = *(PaAsioStream**)userData; /* The PA ASIO stream. */ /* This is a pointer to "theAsioStream", see OpenStream(). */
+    PaAsioStreamBlockingState *blockingState = stream->blockingState; /* Persume blockingState is valid, otherwise the callback wouldn't be running. */
 
-    result = PaUtil_GetHostApiRepresentation( &hostApi, paASIO );
-    if( result != paNoError )
-        return result;
+    /* Get a pointer to the stream's blocking i/o buffer processor. */
+    PaUtilBufferProcessor *pBp = &blockingState->bufferProcessor;
+    PaUtilRingBuffer      *pRb = NULL;
 
-    asioHostApi = (PaAsioHostApiRepresentation*)hostApi;
-    
-    if( PA_STREAM_REP( s )->streamInterface == &asioHostApi->callbackStreamInterface
-            || PA_STREAM_REP( s )->streamInterface == &asioHostApi->blockingStreamInterface )
+    /* If output data has been requested. */
+    if( stream->outputChannelCount )
     {
-        /* s is an ASIO  stream */
-        *stream = (PaAsioStream *)s;
-        return paNoError;
+        /* If the callback input argument signalizes a output underflow,
+           make sure the WriteStream() function knows about it, too! */
+        if( statusFlags & paOutputUnderflowed ) {
+            blockingState->outputUnderflowFlag = TRUE;
+        }
+
+        /* Access the corresponding ring buffer. */
+        pRb = &blockingState->writeRingBuffer;
+
+        /* If the blocking i/o buffer contains enough output data, */
+        if( PaUtil_GetRingBufferReadAvailable(pRb) >= framesPerBuffer )
+        {
+            /* Extract the requested data from the ring buffer. */
+            PaUtil_ReadRingBuffer( pRb, outputBuffer, framesPerBuffer );
+        }
+        else /* If no output data is available :-( */
+        {
+            /* Signalize a write-buffer underflow. */
+            blockingState->outputUnderflowFlag = TRUE;
+
+            /* Fill the output buffer with silence. */
+            (*pBp->outputZeroer)( outputBuffer, 1, pBp->outputChannelCount * framesPerBuffer );
+
+            /* If playback is to be stopped */
+            if( blockingState->stopFlag && PaUtil_GetRingBufferReadAvailable(pRb) < framesPerBuffer )
+            {
+                /* Extract all the remaining data from the ring buffer,
+                   whether it is a complete data block or not. */
+                PaUtil_ReadRingBuffer( pRb, outputBuffer, PaUtil_GetRingBufferReadAvailable(pRb) );
+            }
+        }
+
+        /* Set blocking i/o event? */
+        if( blockingState->writeBuffersRequestedFlag && PaUtil_GetRingBufferWriteAvailable(pRb) >= blockingState->writeBuffersRequested )
+        {
+            /* Reset buffer request. */
+            blockingState->writeBuffersRequestedFlag = FALSE;
+            blockingState->writeBuffersRequested     = 0;
+            /* Signalize that requested buffers are ready. */
+            SetEvent( blockingState->writeBuffersReadyEvent );
+            /* What do we do if SetEvent() returns zero, i.e. the event
+               could not be set? How to return errors from within the
+               callback? - S.Fischer */
+        }
     }
-    else
+
+    /* If input data has been supplied. */
+    if( stream->inputChannelCount )
     {
-        return paIncompatibleStreamHostApi;
+        /* If the callback input argument signalizes a input overflow,
+           make sure the ReadStream() function knows about it, too! */
+        if( statusFlags & paInputOverflowed ) {
+            blockingState->inputOverflowFlag = TRUE;
+        }
+
+        /* Access the corresponding ring buffer. */
+        pRb = &blockingState->readRingBuffer;
+
+        /* If the blocking i/o buffer contains not enough input buffers */
+        if( PaUtil_GetRingBufferWriteAvailable(pRb) < framesPerBuffer )
+        {
+            /* Signalize a read-buffer overflow. */
+            blockingState->inputOverflowFlag = TRUE;
+
+            /* Remove some old data frames from the buffer. */
+            PaUtil_AdvanceRingBufferReadIndex( pRb, framesPerBuffer );
+        }
+
+        /* Insert the current input data into the ring buffer. */
+        PaUtil_WriteRingBuffer( pRb, inputBuffer, framesPerBuffer );
+
+        /* Set blocking i/o event? */
+        if( blockingState->readFramesRequestedFlag && PaUtil_GetRingBufferReadAvailable(pRb) >= blockingState->readFramesRequested )
+        {
+            /* Reset buffer request. */
+            blockingState->readFramesRequestedFlag = FALSE;
+            blockingState->readFramesRequested     = 0;
+            /* Signalize that requested buffers are ready. */
+            SetEvent( blockingState->readFramesReadyEvent );
+            /* What do we do if SetEvent() returns zero, i.e. the event
+               could not be set? How to return errors from within the
+               callback? - S.Fischer */
+            /** @todo report an error with PA_DEBUG */
+        }
     }
+
+    return paContinue;
 }
-
-
-PaError PaAsio_SetStreamSampleRate( PaStream* s, double sampleRate )
-{
-    PaAsioStream *stream;
-    PaError result = GetAsioStreamPointer( &stream, s );
-    if( result != paNoError )
-        return result;
-
-    if( stream != theAsioStream )
-        return paBadStreamPtr;
-
-    return ValidateAndSetSampleRate( sampleRate );
-}
-

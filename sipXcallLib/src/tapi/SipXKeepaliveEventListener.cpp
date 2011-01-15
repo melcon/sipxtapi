@@ -117,7 +117,7 @@ void SipXKeepaliveEventListener::handleKeepaliveEvent(SIPX_KEEPALIVE_EVENT event
                                                       const char* szFeedbackAddress,
                                                       int feedbackPort)
 {
-   OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG,
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
       "handleKeepaliveEvent src=%p event=%s:%s type=%s remote=%s:%d keepalive=%ds mapped=%s:%d\n",
       m_pInst, 
       sipxKeepaliveEventToString(event),

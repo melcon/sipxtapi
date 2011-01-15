@@ -1274,12 +1274,8 @@ void SipRefreshManager::setForResend(RefreshDialogState& state,
         // Remove transport state info
         state.mpLastRequest->resetTransport();
 
-        int cseqNum;
-        UtlString cseqMethod;
-        state.mpLastRequest->getCSeqField(cseqNum, cseqMethod);
-
         // Set the dialog info and cseq
-        mpDialogMgr->setNextLocalTransactionInfo(*(state.mpLastRequest), cseqMethod);
+        mpDialogMgr->setNextLocalTransactionInfo(*(state.mpLastRequest));
 
         // Set the expiration
         if (expireNow)
@@ -1347,11 +1343,11 @@ UtlBoolean SipRefreshManager::getAcceptedExpiration(RefreshDialogState* state,
         // so that we can find the same contact in the response and
         // find out what the expiration is
         UtlString requestContact;
-        Url requestContactUrl;
+        Url requestContactUri;
         if(state && state->mpLastRequest &&
            state->mpLastRequest->getContactEntry(0, &requestContact))
         {
-           requestContactUrl = requestContact;
+           requestContactUri = requestContact;
         }
 
         // Register could have it in the Contact header
@@ -1362,7 +1358,7 @@ UtlBoolean SipRefreshManager::getAcceptedExpiration(RefreshDialogState* state,
             // Get the expires parameter for the contact if it exists
             Url contactUri(responseContactValue);
 
-            if(requestContactUrl.isUserHostPortEqual(contactUri))
+            if(requestContactUri.isUserHostPortEqual(contactUri))
             {
                 UtlString contactExpiresParameter;
                 if(contactUri.getFieldParameter(SIP_EXPIRES_FIELD, 

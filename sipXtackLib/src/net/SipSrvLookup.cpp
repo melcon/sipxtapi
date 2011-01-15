@@ -920,12 +920,7 @@ server_t& server_t::operator=(const server_t& rhs)
       return *this;
    }
 
-   if (host)
-   {
-      free(host);
-      host = NULL;
-   }
-   // Copy the host string, if present.
+   // Copy the host strign, if present.
    host = SAFE_STRDUP(rhs.host);
    // Copy the other fields.
    type = rhs.type;

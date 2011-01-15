@@ -20,7 +20,6 @@
 #include <utl/UtlString.h>
 #include "HttpMessage.h"
 #include "net/Url.h"
-#include <net/SipTransport.h>
 
 // DEFINES
 // MACROS
@@ -62,14 +61,14 @@ public:
       LINE_STATE_PROVISIONED, ///< don't send registration, but enabled because server provisioned it.
       LINE_STATE_TRYING,      ///< registration message sent, awaiting response
       LINE_STATE_EXPIRED      ///< registration expired on server
-   } LineStateEnum;
+   } LineStates;
 
    /* ============================ CREATORS ================================== */
    ///@name Creators
    //@{
 
    SipLine(const Url& fullLineUrl = "", ///< full line url. field parameters will be cut off
-           LineStateEnum state = LINE_STATE_UNKNOWN);
+           LineStates state = LINE_STATE_UNKNOWN);
 
    virtual ~SipLine();
    SipLine(const SipLine& rSipLine);
@@ -126,28 +125,28 @@ public:
     * transport parameter. Field parameters are removed. Contains <>. Useful for new
     * sip request messages, can be used in from field.
     */
-   static Url buildFullLineUrl(const Url& url);
+   static Url getFullLineUrl(const Url& url);
 
    /**
    * Constructs full line url from given url. Keeps display name, sip uri, but strips
    * transport parameter. Field parameters are removed. Contains <>. Useful for new
    * sip request messages, can be used in from field.
    */
-   static Url buildFullLineUrl(const UtlString& sUrl);
+   static Url getFullLineUrl(const UtlString& sUrl);
    //@}
 
    /* ============================ ACCESSORS ================================= */
    ///@name Accessors
    //@{
 
-   /** Gets state of line */
-   LineStateEnum getState() const;
+   /** Gets 12 characters uniquely identifying this line */
+   UtlString getLineId() const;
 
-   /** Gets state of line as string */
-   UtlString getStateAsString() const;
+   /** Gets state of line */
+   LineStates getState() const;
 
    /** Sets state of line. Changing state doesn't trigger any actions. */
-   void setState(LineStateEnum state);
+   void setState(LineStates state);
 
    /** Gets UserId part of userEnteredUrl */
    UtlString getUserId() const;
@@ -198,29 +197,13 @@ public:
    /** Removes all credentials for this line */
    void removeAllCredentials();
 
-   /**
-    * Set the preferred host/ip for the contact in subsequent registers.
-    */
-   void setPreferredContact(const UtlString& contactAddress,
-                            int contactPort);
+   /** Set the preferred host/ip for the contact in subsequent registers */
+   void setPreferredContact(const UtlString& contactAddress, int contactPort);
    
    /** 
     * Get Preferred host/ip for the contact in subsequent registers.
     */
    Url getPreferredContactUri() const;
-
-   /**
-    * If true then contact in REGISTER messages may be overridden if better
-    * contact is found.
-    */
-   UtlBoolean getAllowContactOverride() const { return m_bAllowContactOverride; }
-   void setAllowContactOverride(UtlBoolean val) { m_bAllowContactOverride = val; }
-
-   /**
-    * Gets preferred transport for REGISTER messages.
-    */
-   SIP_TRANSPORT_TYPE getPreferredTransport() const;
-   void setPreferredTransport(SIP_TRANSPORT_TYPE transport);
 
    //@}
    /* ============================ INQUIRY =================================== */
@@ -238,18 +221,16 @@ protected:
    Url m_lineUri; /// <line key which is the "userEnteredUrl" stripped of display name, angle brackets and all parameters (basically the URI).
    Url m_fullLineUrl; ///< line Url used to construct sip message from field. Doesn't contain transport parameter
 
-   LineStateEnum m_currentState; ///< current state of line
+   UtlString m_lineId; ///< 12 characters uniquely identifying line. Part of contact as LINE parameter
+   LineStates m_currentState; ///< current state of line
    Url m_preferredContactUri; ///< contact that will be used in SIP messages
-   UtlBoolean m_bAllowContactOverride; ///< when true then a better contact may be selected if found
-   SIP_TRANSPORT_TYPE m_preferredTransport; ///< preferred transport for REGISTER messages
    UtlString m_proxyServers; ///< SIP proxy servers address:port, separated by ,
 
    mutable UtlHashBag m_credentials; ///< bag of SipLineCredential
 
    void copyCredentials(const SipLine& rSipLine);
+   void generateLineID(UtlString& lineId);
    Url buildLineContact(const UtlString& address = NULL, int port = PORT_NONE);
-
-   static const char* convertLineStateToString(LineStateEnum lineState);
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

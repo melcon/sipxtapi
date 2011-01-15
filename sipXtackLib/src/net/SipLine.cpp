@@ -41,15 +41,15 @@ const UtlContainableType SipLine::TYPE = "SipLine";
 //////////////////////////////////////////////////////////////////////
 
 SipLine::SipLine(const Url& fullLineUrl,
-                 LineStateEnum state)
-: m_bAllowContactOverride(TRUE)
-, m_preferredTransport(SIP_TRANSPORT_AUTO)
+                 LineStates state)
 {
-   m_fullLineUrl = SipLine::buildFullLineUrl(fullLineUrl);
+   m_fullLineUrl = SipLine::getFullLineUrl(fullLineUrl);
    //then get uri from user entered url ...uri is complete in it
    m_lineUri = SipLine::getLineUri(fullLineUrl);
    m_currentState = state;
 
+   // create new Line Id for this line
+   generateLineID(m_lineId);
    // build default contact
    m_preferredContactUri = buildLineContact();
 }
@@ -74,14 +74,12 @@ SipLine& SipLine::operator=(const SipLine& rSipLine)
       m_lineUri = rSipLine.m_lineUri;
       m_fullLineUrl = rSipLine.m_fullLineUrl;
       m_currentState = rSipLine.m_currentState;
+      m_lineId = rSipLine.m_lineId;
       m_preferredContactUri = rSipLine.m_preferredContactUri;
-      m_bAllowContactOverride = rSipLine.m_bAllowContactOverride;
-      m_preferredTransport = rSipLine.m_preferredTransport;
       copyCredentials(rSipLine);
    }
    return *this;
 }
-
 //deep copy of credentials
 void SipLine::copyCredentials(const SipLine &rSipLine)
 {
@@ -104,12 +102,17 @@ void SipLine::copyCredentials(const SipLine &rSipLine)
    }
 }
 
-SipLine::LineStateEnum SipLine::getState() const
+UtlString SipLine::getLineId() const
+{
+   return m_lineId;
+}
+
+SipLine::LineStates SipLine::getState() const
 {
     return m_currentState;
 }
 
-void SipLine::setState(SipLine::LineStateEnum state)
+void SipLine::setState(SipLine::LineStates state)
 {
     m_currentState = state;
 }
@@ -232,29 +235,18 @@ Url SipLine::getPreferredContactUri() const
    return m_preferredContactUri;
 }
 
-SIP_TRANSPORT_TYPE SipLine::getPreferredTransport() const
-{
-   return m_preferredTransport;
-}
-
-void SipLine::setPreferredTransport(SIP_TRANSPORT_TYPE transport)
-{
-   m_preferredTransport = transport;
-   // also update transport parameter in contact
-   if (m_preferredTransport == SIP_TRANSPORT_TCP)
-   {
-      m_preferredContactUri.setUrlParameter(SIP_TRANSPORT, SIP_TRANSPORT_TCP_STR);
-   }
-   else
-   {
-      m_preferredContactUri.removeUrlParameter(SIP_TRANSPORT);
-   }
-}
-
 UtlBoolean SipLine::realmExists(const UtlString& realm) const
 {
    SipLineCredential* credential = dynamic_cast<SipLineCredential*>(m_credentials.find(&realm));
    return credential != NULL;
+}
+
+void SipLine::generateLineID(UtlString& lineId)
+{
+   lineId = NetMd5Codec::encode(m_lineUri.toString());
+
+   // Shorten the line Ids to 12 chars (from 32)
+   lineId.remove(12);
 }
 
 Url SipLine::buildLineContact(const UtlString& address, int port)
@@ -268,16 +260,8 @@ Url SipLine::buildLineContact(const UtlString& address, int port)
    }
    contactUrl.setPassword(NULL);
    contactUrl.setPath(NULL);
+   contactUrl.setUrlParameter(SIP_LINE_IDENTIFIER, m_lineId);
    contactUrl.includeAngleBrackets();
-
-   if (m_preferredTransport == SIP_TRANSPORT_TCP)
-   {
-      contactUrl.setUrlParameter(SIP_TRANSPORT, SIP_TRANSPORT_TCP_STR);
-   }
-   else
-   {
-      contactUrl.removeUrlParameter(SIP_TRANSPORT);
-   }
 
    return contactUrl;
 }
@@ -330,9 +314,7 @@ Url SipLine::getLineUri(const Url& url)
    lineUri.setDisplayName(NULL);
    if (lineUri.getScheme() == Url::SipsUrlScheme)
    {
-      // override scheme, we want sip and sips lines to be equivalent
-      // this is only used for line lookup, and doesn't violate security
-      lineUri.setScheme(Url::SipUrlScheme);
+      lineUri.setScheme(Url::SipUrlScheme); // override scheme, we want sip and sips lines to be equivalent
    }
    lineUri.removeAngleBrackets();
    lineUri.removeParameters();
@@ -347,9 +329,7 @@ Url SipLine::getLineUri(const UtlString& sUrl)
    lineUri.setDisplayName(NULL);
    if (lineUri.getScheme() == Url::SipsUrlScheme)
    {
-      // override scheme, we want sip and sips lines to be equivalent
-      // this is only used for line lookup, and doesn't violate security
-      lineUri.setScheme(Url::SipUrlScheme);
+      lineUri.setScheme(Url::SipUrlScheme); // override scheme, we want sip and sips lines to be equivalent
    }
    lineUri.removeAngleBrackets();
    lineUri.removeParameters();
@@ -363,7 +343,7 @@ UtlBoolean SipLine::areLineUrisEqual(const Url& leftUri, const Url& rightUri)
    return leftUri.isUserHostEqual(rightUri);
 }
 
-Url SipLine::buildFullLineUrl(const Url& url)
+Url SipLine::getFullLineUrl(const Url& url)
 {
    Url fullLineUrl(url.toString());
    fullLineUrl.includeAngleBrackets();
@@ -372,7 +352,7 @@ Url SipLine::buildFullLineUrl(const Url& url)
    return fullLineUrl;
 }
 
-Url SipLine::buildFullLineUrl(const UtlString& sUrl)
+Url SipLine::getFullLineUrl(const UtlString& sUrl)
 {
    Url fullLineUrl(sUrl);
    fullLineUrl.includeAngleBrackets();
@@ -391,41 +371,3 @@ void SipLine::setProxyServers(const UtlString& proxyServers)
    m_proxyServers = proxyServers;
 }
 
-const char* SipLine::convertLineStateToString(LineStateEnum lineState)
-{
-   const char* str = "Unknown";
-
-   switch (lineState)
-   {
-   case LINE_STATE_UNKNOWN:
-      str = MAKESTR(LINE_STATE_UNKNOWN);
-      break;
-   case LINE_STATE_REGISTERED:
-      str = MAKESTR(LINE_STATE_REGISTERED);
-      break;
-   case LINE_STATE_DISABLED:
-      str = MAKESTR(LINE_STATE_DISABLED);
-      break;
-   case LINE_STATE_FAILED:
-      str = MAKESTR(LINE_STATE_FAILED);
-      break;
-   case LINE_STATE_PROVISIONED:
-      str = MAKESTR(LINE_STATE_PROVISIONED);
-      break;
-   case LINE_STATE_TRYING:
-      str = MAKESTR(LINE_STATE_TRYING);
-      break;
-   case LINE_STATE_EXPIRED:
-      str = MAKESTR(LINE_STATE_EXPIRED);
-      break;
-   default:
-      break;
-   }
-
-   return str;
-}
-
-UtlString SipLine::getStateAsString() const
-{
-   return SipLine::convertLineStateToString(m_currentState);
-}

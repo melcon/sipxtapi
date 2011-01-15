@@ -8,8 +8,6 @@
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
-// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
-// Licensed under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -37,7 +35,7 @@ extern "C" {
 // STRUCTS
 // TYPEDEFS
 
-/// Derived class for G.723.1  decoder.
+/// Derived class for G.723 and G.723.1  decoder.
 class MpdIPPG7231: public MpDecoderBase
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
@@ -71,11 +69,21 @@ public:
 
    /* ============================ MANIPULATORS ============================== */
 
+     /// Receive a packet of RTP data
+   virtual int decodeIn(const MpRtpBufPtr &pPacket ///< (in) Pointer to a media buffer
+                       );
+     /**<
+     *  @note This method can be called more than one time per frame interval.
+     *
+     *  @returns >0 - length of packet to hand to jitter buffer.
+     *  @returns 0  - decoder don't want more packets.
+     *  @returns -1 - discard packet (e.g. out of order packet).
+     */
+
      /// Decode incoming RTP packet
    virtual int decode(const MpRtpBufPtr &pPacket, ///< (in) Pointer to a media buffer
                       unsigned decodedBufferLength, ///< (in) Length of the samplesBuffer (in samples)
-                      MpAudioSample *samplesBuffer, ///< (out) Buffer for decoded samples
-                      UtlBoolean bIsPLCFrame
+                      MpAudioSample *samplesBuffer ///< (out) Buffer for decoded samples
                      );
      /**<
      *  @return Number of decoded samples.

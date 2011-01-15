@@ -559,11 +559,6 @@ int OsProcessWnt::getCurrentPID()
 #endif
 }
 
-TID OsProcessWnt::getCurrentTID()
-{
-   return (TID)::GetCurrentThreadId();
-}
-
 /* ============================ INQUIRY =================================== */
 UtlBoolean OsProcessWnt::isRunning() const
 {

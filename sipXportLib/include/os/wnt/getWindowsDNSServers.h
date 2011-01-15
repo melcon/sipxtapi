@@ -14,25 +14,41 @@
 #ifndef getWindowsDNSServers_h_
 #define getWindowsDNSServers_h_
 
+#ifdef _WIN32
+
 // SYSTEM INCLUDES
 #include <winsock2.h>
 #include <iptypes.h>
+#include <time.h>
 
 // APPLICATION INCLUDES
 // DEFINES
-#define MAXIPLEN 40
+
+#define MAXIPLEN 40 
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
 // FORWARD DECLARATIONS
+#ifdef __cplusplus
+
+class UtlString;
+
 // STRUCTS
 // TYPEDEFS
 // MACROS
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS
 
-#ifdef __cplusplus
+/// Get this host's IP addresses.
+extern "C" bool getAllLocalHostIps(const class HostAdapterAddress* localHostAddresses[], int &numAddresses);
+/**<
+*  @param localHostAddresses Preallocated array for determined IP addresses.
+*  @param numAddresses Input: Size of the preallocated array.
+*                      Output: Number of IPs found by the system.
+*/
+extern "C" bool getContactAdapterName(UtlString &adapterName, const UtlString &ipAddress);
+//: Returns a generated adapter name associated with the IP address
 
 extern "C" int getWindowsDNSServers(char DNSServers[][MAXIPLEN], int max, const char* szLocalIp);
 
@@ -41,5 +57,7 @@ extern "C" int getWindowsDNSServers(char DNSServers[][MAXIPLEN], int max, const 
 int getWindowsDNSServers(char DNSServers[][MAXIPLEN], int max, const char* szLocalIp);
 
 #endif
+
+#endif //WIN32
 
 #endif // getWindowsDNSServers_h_

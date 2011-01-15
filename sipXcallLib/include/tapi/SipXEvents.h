@@ -29,6 +29,7 @@
 // EXTERNAL VARIABLES
 // CONSTANTS
 // FORWARD DECLARATIONS
+class SipSession;
 class SipMessage;
 class CpMediaEvent;
 
@@ -48,8 +49,7 @@ SIPX_RESULT sipxEventListenerRemoveInternal(const SIPX_INST hInst,
 
 void sipxFireConfigEvent(const SIPX_INST pInst,                                                        
                          SIPX_CONFIG_EVENT event,
-                         const SIPX_CONTACT_ADDRESS* pContactAddress = NULL,
-                         const SIPX_STUN_FAILURE_INFO* pStunFailureDetails = NULL);
+                         void* pEventData);
 
 /**
 * Fires SipPimClient events

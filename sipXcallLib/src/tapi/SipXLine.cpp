@@ -162,7 +162,7 @@ void sipxLineReleaseLock(SIPX_LINE_DATA* pData,
 
 void sipxLineRemoveAll(const SIPX_INST hInst) 
 {
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
    if (pInst)
    {
       int linesCount = pInst->pLineManager->getNumLines();
@@ -365,7 +365,7 @@ SIPX_LINE sipxLineLookupHandleByURI(SIPX_INSTANCE_DATA* pInst, const char* szURI
                   urlURI.getUserId(uriUsername);
                   pData->m_lineUri.getUserId(hostUsername);
 
-                  if (uriUsername.compareTo(hostUsername) == 0)
+                  if (uriUsername.compareTo(hostUsername, UtlString::ignoreCase) == 0)
                   {
                      hLine = pIndex->getValue();
                      break;
@@ -383,7 +383,7 @@ SIPX_LINE sipxLineLookupHandleByURI(SIPX_INSTANCE_DATA* pInst, const char* szURI
 
                      pUrl->getUserId(aliasUsername);
 
-                     if (uriUsername.compareTo(aliasUsername) == 0)
+                     if (uriUsername.compareTo(aliasUsername, UtlString::ignoreCase) == 0)
                      {
                         hLine = pIndex->getValue();
                         break;
@@ -629,8 +629,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineFindByURI(const SIPX_INST hInst,
 
    if (hInst && szURI)
    {
-      SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
-      *phLine = sipxLineLookupHandleByURI(pInst, szURI);
+      *phLine = sipxLineLookupHandleByURI((SIPX_INSTANCE_DATA*)hInst, szURI);
 
       if (*phLine != SIPX_LINE_NULL)
       {
@@ -657,7 +656,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineGet(const SIPX_INST hInst,
       hInst);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
    assert(pInst);
 
    if (pInst && lines && actual && max > 0)
@@ -725,8 +724,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineGetURI(const SIPX_LINE hLine,
 SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
                                      const char* szLineUrl,
                                      SIPX_LINE* phLine,
-                                     SIPX_CONTACT_ID contactId,
-                                     SIPX_TRANSPORT_TYPE transport)
+                                     SIPX_CONTACT_ID contactId)
 
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxLineAdd");
@@ -735,7 +733,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
       hInst, szLineUrl, phLine, contactId);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    assert(szLineUrl);
    assert(phLine);
@@ -747,49 +745,41 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
          Url userEnteredUrl(szLineUrl); // for example "display name"<sip:number@domain;transport=tcp?headerParam=value>;fieldParam=value
 
          // Set the preferred contact
-         SIPX_TRANSPORT_TYPE lineTransport = transport;
-         SIPX_CONTACT_TYPE contactType = CONTACT_LOCAL;
+         SIPX_CONTACT_ADDRESS* pContact = NULL;
+         SIPX_CONTACT_TYPE contactType = CONTACT_AUTO;
+         SIPX_TRANSPORT_TYPE suggestedTransport = TRANSPORT_UDP;
+         SIPX_TRANSPORT_TYPE transport = TRANSPORT_UDP;
          UtlString contactIp;
+         UtlString suggestedContactIp;
          int contactPort;
 
          // try to find contact by ID
-         SipContact* pContact = pInst->pSipUserAgent->getContactDb().find(contactId);
-         if (!pContact)
+         pContact = pInst->pSipUserAgent->getContactDb().find(contactId);
+         if (pContact)
          {
-            // contact was not found by contactId, use the first local contact, will be overridden later anyway
-            // when sending via SipUserAgent
-            pContact = pInst->pSipUserAgent->getContactDb().find((SIP_CONTACT_TYPE)contactType,
-               (SIP_TRANSPORT_TYPE)lineTransport);
-            if (!pContact)
-            {
-               // contact still not found, cannot continue
-               return SIPX_RESULT_INVALID_ARGS;
-            }
+            // contact found
+            contactType = pContact->eContactType;
+            suggestedContactIp = pContact->cIpAddress; // try to suggest contact IP address as well
          }
-         
-         contactType = (SIPX_CONTACT_TYPE)pContact->getContactType();
-         if (lineTransport != TRANSPORT_AUTO &&
-            lineTransport != (SIPX_TRANSPORT_TYPE)pContact->getTransportType())
-         {
-            delete pContact;
-            pContact = NULL;
-            // contact transport and supplied transport don't match
-            return SIPX_RESULT_INVALID_ARGS;
-         }
-         // if automatic transport was passed, use contact transport type
-         lineTransport = (SIPX_TRANSPORT_TYPE)pContact->getTransportType();
 
-         contactIp = pContact->getIpAddress(); // try to suggest contact IP address as well
-         contactPort = pContact->getPort();
-         delete pContact;
-         pContact = NULL;
+         suggestedTransport = (SIPX_TRANSPORT_TYPE)SipTransport::getSipTransport(szLineUrl);
+         transport = suggestedTransport; // we need to detect whether suggested transport was overridden
+
+         // select contact IP, port, maybe override contact type and suggestedTransport. Transport is used to select port.
+         sipxSelectContact(pInst, contactType, suggestedContactIp, contactIp, contactPort, transport);
+
+         if (transport != suggestedTransport)
+         {
+            // transport was rejected, we cannot use given lineUrl with this transport, return error
+            // the only way to proceed would have been removing suggestedTransport from szLineUrl
+            OsSysLog::add(FAC_SIPXTAPI, PRI_ERR, "selected transport %d was rejected", suggestedTransport);
+            sr = SIPX_RESULT_FAILURE;
+            return sr;
+         }
 
          SipLine line(userEnteredUrl, SipLine::LINE_STATE_UNKNOWN);
          Url lineUri = line.getLineUri(); // gets unique line uri, for line matching
          Url fullLineUrl = line.getFullLineUrl(); // gets full line url for constructing sip message from field
-         line.setPreferredTransport((SIP_TRANSPORT_TYPE)lineTransport);
-         // if automatic contact is used, allow contact override, otherwise disable it
-         line.setAllowContactOverride(contactId == SIPX_AUTOMATIC_CONTACT_ID);
          line.setPreferredContact(contactIp, contactPort);
 
          UtlBoolean bRC = pInst->pLineManager->addLine(line);
@@ -800,7 +790,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
             if (pData)
             {
                pData->m_contactUrl = line.getPreferredContactUri();
-               pData->m_transport = lineTransport;
+               pData->m_transport = suggestedTransport;
                pData->m_contactType = contactType;
 
                UtlBoolean res = gLineHandleMap.allocHandle(*phLine, pData);

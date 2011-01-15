@@ -21,7 +21,7 @@
 #include "os/OsQueuedEvent.h"
 #include "os/OsLock.h"
 #include "os/OsEvent.h"
-#include "os/OsTimerTaskCommandMsg.h"
+#include "os/OsTimerMsg.h"
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -44,7 +44,7 @@ static char dummy;
 // Timer expiration event notification happens using the 
 // newly created OsQueuedEvent object
 
-OsTimer::OsTimer(OsMsgQ* pQueue, const intptr_t userData) :
+OsTimer::OsTimer(OsMsgQ* pQueue, const int userData) :
    mBSem(OsBSem::Q_PRIORITY, OsBSem::FULL),
    mApplicationState(0),
    mTaskState(0),
@@ -65,14 +65,14 @@ OsTimer::OsTimer(OsMsgQ* pQueue, const intptr_t userData) :
 
 // The address of "this" OsTimer object is the eventData that is
 // conveyed to the Listener when the notification is signaled.
-OsTimer::OsTimer(OsNotification* pNotification) :
+OsTimer::OsTimer(OsNotification& rNotifier) :
    mBSem(OsBSem::Q_PRIORITY, OsBSem::FULL),
    mApplicationState(0),
    mTaskState(0),
    // Always initialize mDeleting, as we may print its value.
    mDeleting(FALSE),
-   mpNotifier(pNotification) ,
-   mbManagedNotifier(TRUE),
+   mpNotifier(&rNotifier) ,
+   mbManagedNotifier(FALSE),
    mOutstandingMessages(0),
    mTimerQueueLink(0),
    mWasFired(FALSE)
@@ -122,7 +122,7 @@ OsTimer::~OsTimer()
    // Send a message to the timer task if we need to.
    if (sendMessage) {
       OsEvent event;
-      OsTimerTaskCommandMsg msg(OsTimerTaskCommandMsg::OS_TIMER_UPDATE_SYNC, this, &event);
+      OsTimerMsg msg(OsTimerMsg::OS_TIMER_UPDATE_SYNC, this, &event);
       OsStatus res = OsTimerTask::getTimerTask()->postMessage(msg);
       assert(res == OS_SUCCESS);
       event.wait();
@@ -131,7 +131,6 @@ OsTimer::~OsTimer()
    // If mbManagedNotifier, free *mpNotifier.
    if (mbManagedNotifier) {
       delete mpNotifier;
-      mpNotifier = NULL;
    }
 }
 
@@ -163,7 +162,7 @@ void OsTimer::deleteAsync(OsTimer* timer)
    }
 
    // Send the message.
-   OsTimerTaskCommandMsg msg(OsTimerTaskCommandMsg::OS_TIMER_UPDATE_DELETE, this, NULL);
+   OsTimerMsg msg(OsTimerMsg::OS_TIMER_UPDATE_DELETE, this, NULL);
    OsStatus res = OsTimerTask::getTimerTask()->postMessage(msg);
    assert(res == OS_SUCCESS);
 }
@@ -175,12 +174,7 @@ OsStatus OsTimer::oneshotAt(const OsDateTime& when)
 {
    return startTimer(cvtToTime(when), FALSE, nullInterval);
 }
-
-OsStatus OsTimer::oneshotAt(const OsTime& when)
-{
-   return startTimer(cvtToInterval(when), FALSE, nullInterval);
-}
-
+     
 // Arm the timer to fire once at the current time + offset
 OsStatus OsTimer::oneshotAfter(const OsTime& offset)
 {
@@ -244,7 +238,7 @@ OsStatus OsTimer::stop(UtlBoolean synchronous)
       if (synchronous) {
          // Send message and wait.
          OsEvent event;
-         OsTimerTaskCommandMsg msg(OsTimerTaskCommandMsg::OS_TIMER_UPDATE_SYNC, this, &event);
+         OsTimerMsg msg(OsTimerMsg::OS_TIMER_UPDATE_SYNC, this, &event);
          OsStatus res = OsTimerTask::getTimerTask()->postMessage(msg);
          assert(res == OS_SUCCESS);
          event.wait();
@@ -252,7 +246,7 @@ OsStatus OsTimer::stop(UtlBoolean synchronous)
       else
       {
          // Send message.
-         OsTimerTaskCommandMsg msg(OsTimerTaskCommandMsg::OS_TIMER_UPDATE, this, NULL);
+         OsTimerMsg msg(OsTimerMsg::OS_TIMER_UPDATE, this, NULL);
          OsStatus res = OsTimerTask::getTimerTask()->postMessage(msg);
          assert(res == OS_SUCCESS);
       }
@@ -296,20 +290,6 @@ UtlBoolean OsTimer::getWasFired()
 {
    OsLock lock(mBSem);
    return mWasFired;
-}
-
-void OsTimer::getExpiresAt(OsDateTime& dateTime)
-{
-   OsLock lock(mBSem);
-   // mExpiresAt is in micro seconds
-   dateTime = OsDateTime(OsTime((long)(mExpiresAt/1000000), (long)(mExpiresAt % 1000000)));
-}
-
-void OsTimer::getExpiresAt(OsTime& time)
-{
-   OsLock lock(mBSem);
-   // mExpiresAt is in micro seconds
-   time = OsTime((long)(mExpiresAt/1000000), (long)(mExpiresAt % 1000000));
 }
 
 /* ============================ INQUIRY =================================== */
@@ -393,7 +373,7 @@ OsStatus OsTimer::startTimer(Time start,
    // If we need to, send an UPDATE message to the timer task.
    if (sendMessage)
    {
-      OsTimerTaskCommandMsg msg(OsTimerTaskCommandMsg::OS_TIMER_UPDATE, this, NULL);
+      OsTimerMsg msg(OsTimerMsg::OS_TIMER_UPDATE, this, NULL);
       OsStatus res = OsTimerTask::getTimerTask()->postMessage(msg);
       assert(res == OS_SUCCESS);
    }

@@ -41,7 +41,7 @@ public:
 
    SipTcpServer(int sipPort = SIP_PORT,
                 SipUserAgent* userAgent = NULL,
-                const char* protocolString = SIP_TRANSPORT_TCP_STR,
+                const char* protocolString = SIP_TRANSPORT_TCP,
                 const char* taskName  = "SipTcpServer-%d",
                 UtlBoolean bUseNextAvailablePort = FALSE,
                 const char* szBindAddr = NULL);

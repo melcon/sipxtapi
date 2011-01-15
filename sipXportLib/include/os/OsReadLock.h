@@ -8,12 +8,14 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
+
 #ifndef _OsReadLock_h_
 #define _OsReadLock_h_
 
 // SYSTEM INCLUDES
+
 // APPLICATION INCLUDES
-#include <os/OsRWSyncBase.h>
+#include "OsRWMutex.h"
 
 // DEFINES
 // MACROS
@@ -25,8 +27,8 @@
 // FORWARD DECLARATIONS
 
 //:Lock class allowing multiple simultaneous readers within a critical section
-// This class uses OsRWSyncBase objects for synchronization.
-// The constructor for the class automatically blocks until the OsRWSyncBase
+// This class uses OsRWMutex objects for synchronization.
+// The constructor for the class automatically blocks until the OsRWMutex
 // is acquired for reading. Similarly, the destructor automatically releases
 // the lock. The easiest way to use this object as a guard is to create the
 // object as a variable on the stack just before the section that needs to
@@ -50,18 +52,13 @@ public:
 
 /* ============================ CREATORS ================================== */
 
-   OsReadLock(OsRWSyncBase& rRWSyncBase)
-   : m_rRWSyncBase(rRWSyncBase)
-   {
-      rRWSyncBase.acquireRead();
-   };
-   //:Constructor
+   OsReadLock(OsRWMutex& rRWMutex)
+                : mrRWMutex(rRWMutex) { rRWMutex.acquireRead(); };
+     //:Constructor
 
-   virtual ~OsReadLock()
-   {
-      m_rRWSyncBase.releaseRead();
-   };
-   //:Destructor
+   virtual
+   ~OsReadLock()  { mrRWMutex.releaseRead(); };
+     //:Destructor
 
 /* ============================ MANIPULATORS ============================== */
 
@@ -74,7 +71,7 @@ protected:
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   OsRWSyncBase& m_rRWSyncBase;
+   OsRWMutex& mrRWMutex;
 
    OsReadLock();
      //:Default constructor (not implemented for this class)

@@ -169,11 +169,21 @@ SipClient* SipProtocolServerBase::createClient(const char* hostAddress,
 
     SipClient* client = getClient(hostAddress, hostPort, localIp);
 
-    if(!client)
+    if(! client)
     {
+#       if TEST_CLIENT_CREATION
+        OsSysLog::add(FAC_SIP, PRI_DEBUG, "SipProtocolServerBase::createClient( %s, %d )",
+                      hostAddress, hostPort);
+#       endif
+
         if(!portIsValid(hostPort))
         {
             hostPort = mDefaultPort;
+#           if TEST_CLIENT_CREATION
+            OsSysLog::add(FAC_SIP, PRI_DEBUG,
+                          "SipProtocolServerBase::createClient port defaulting to %d",
+                          hostPort);
+#           endif
         }
 
         OsTime time;
@@ -181,11 +191,6 @@ SipClient* SipProtocolServerBase::createClient(const char* hostAddress,
         long beforeSecs = time.seconds();
 
         OsSocket* clientSocket = buildClientSocket(hostPort, hostAddress, localIp);
-        if (!clientSocket) {
-           OsSysLog::add(FAC_SIP, PRI_ERR, "No client socket could be created for localIp=%s",
-              localIp);
-           return NULL;
-        }
 
         OsDateTime::getCurTimeSinceBoot(time);
         long afterSecs = time.seconds();
@@ -210,12 +215,19 @@ SipClient* SipProtocolServerBase::createClient(const char* hostAddress,
         if(isOk &&
            isReadyToWrite)
         {
+#ifdef TEST
+            osPrintf("Socket OK, creating client\n");
+#endif
             client = new SipClient(clientSocket) ;
-            if (client && clientSocket->getIpProtocol() == OsSocket::UDP)
+            if (client && mSipUserAgent->getUseRport() &&
+                    clientSocket->getIpProtocol() == OsSocket::UDP)
             {
-                client->setSharedSocket(TRUE);
+                client->setSharedSocket(TRUE) ;
             }
 
+#ifdef TEST
+            osPrintf("Created client\n");
+#endif
             if(mSipUserAgent)
             {
                 client->setUserAgent(mSipUserAgent);
@@ -236,12 +248,15 @@ SipClient* SipProtocolServerBase::createClient(const char* hostAddress,
                 mProtocolString.data(), client, localIp, hostAddress, hostPort);
 
             mClientList.push(client);
-        }        
-        else // The socket failed to be connected
+        }
+
+        // The socket failed to be connected
+        else
         {
             if(clientSocket)
             {
-                if (clientSocket->getIpProtocol() == OsSocket::TCP)
+                if (!mSipUserAgent->getUseRport() ||
+                        (clientSocket->getIpProtocol() == OsSocket::TCP))
                 {
                     delete clientSocket;
                 }

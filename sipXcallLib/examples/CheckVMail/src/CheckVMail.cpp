@@ -231,6 +231,9 @@ int findBestContact()
                 case CONTACT_RELAY:
                     szType = "RELAY" ;
                     break ;
+                case CONTACT_CONFIG:
+                    szType = "CONFIG" ;
+                    break ;
                 default:
                     assert(false) ;
                     break ;

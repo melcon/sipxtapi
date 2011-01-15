@@ -148,7 +148,7 @@ PhoneState* DialEntryPanel::DialEntryPhoneStateMachineObserver::OnDial(const wxS
 PhoneState* DialEntryPanel::DialEntryPhoneStateMachineObserver::OnRinging(SIPX_CALL hCall)
 {
     char szIncomingNumber[256];
-    sipxCallGetRemoteField(hCall, szIncomingNumber, 256);
+    sipxCallGetRemoteID(hCall, szIncomingNumber, 256);
     wxString incomingNumber(szIncomingNumber);
 
     wxCommandEvent comboEvent(ezEVT_UPDATE_ADDRESS_COMBO); 

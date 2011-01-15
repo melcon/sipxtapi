@@ -95,21 +95,18 @@ typedef enum SIPX_EVENT_CATEGORY
                                          sipXtapi or a particular call. */
     EVENT_CATEGORY_PIM,             /**< PIM event category. Currently contains only incoming
                                          pager messages. */
-    EVENT_CATEGORY_KEEPALIVE,        /**< KEEPALIVE events signal when a keepalive is 
+    EVENT_CATEGORY_KEEPALIVE        /**< KEEPALIVE events signal when a keepalive is 
                                          started/stopped/fails.  A feedback event will
                                          report back your NAT-mapped IP address in some 
                                          cases.  @see SIPX_KEEPALIVE_TYPE for more 
                                          information.*/                                         
-    EVENT_CATEGORY_RTP_REDIRECT,     /**<  Events related to RTP redirect functionality. Reported
-                                           events are redirect success, failure, redirect in progress etc. */
-    EVENT_CATEGORY_CONFERENCE,       /**<  Events related to conference functionality. */
 } SIPX_EVENT_CATEGORY;
 
 /**
  * VALID_SIPX_EVENT_CATEGORY utility macro to validate if an event category
  * is valid (within expected range).
  */
-#define VALID_SIPX_EVENT_CATEGORY(x) (((x) >= EVENT_CATEGORY_CALLSTATE) && ((x) <= EVENT_CATEGORY_CONFERENCE))
+#define VALID_SIPX_EVENT_CATEGORY(x) (((x) >= EVENT_CATEGORY_CALLSTATE) && ((x) <= EVENT_CATEGORY_KEEPALIVE))
 
 /**
  * Signature for event callback/observer.  Application developers should
@@ -242,8 +239,6 @@ typedef enum SIPX_CALLSTATE_EVENT
    CALLSTATE_TRANSFER_EVENT   = 12000, /**< The transfer state indicates a state change in a 
                                        transfer attempt.  Please see the CALLSTATE_TRANSFER_EVENT cause 
                                        codes for details on each state transition */
-   CALLSTATE_QUEUED          = 13000,/**< inbound Call has been queued - is awaiting processing. */
-   CALLSTATE_REMOTE_QUEUED   = 14000, /**< Outbound call has been put into queued state by remote party. */
 } SIPX_CALLSTATE_EVENT;
 
  
@@ -327,9 +322,6 @@ typedef enum SIPX_CALLSTATE_CAUSE
                                                     is part of a transfer. */
    CALLSTATE_CAUSE_CANCEL,        /**< The event was fired in response to a cancel
                                        attempt from the remote party */
-   CALLSTATE_CAUSE_CLIENT_ERROR,/**< Result of unknown 4xx response */
-   CALLSTATE_CAUSE_SERVER_ERROR,/**< Result of unknown 5xx response */
-   CALLSTATE_CAUSE_GLOBAL_ERROR,/**< Result of unknown 6xx response */
 } SIPX_CALLSTATE_CAUSE;
 
 /**
@@ -427,10 +419,7 @@ typedef enum
                                        For a SIPX_CONFIG_EVENT type of CONFIG_STUN_SUCCESS, 
                                        the pData pointer of the info structure will point to a
                                        SIPX_CONTACT_ADDRESS structure. */
-    CONFIG_STUN_FAILURE  = 41000, /**< Unable to obtain a STUN binding for signaling purposes.
-                                       For a SIPX_CONFIG_EVENT type of CONFIG_STUN_FAILURE,
-                                       the pData pointer of the info structure will point to a
-                                       SIPX_STUN_FAILURE_INFO structure. */
+    CONFIG_STUN_FAILURE  = 41000, /**< Unable to obtain a STUN binding for signaling purposes. */
 } SIPX_CONFIG_EVENT;
 
 
@@ -582,113 +571,31 @@ typedef enum
     KEEPALIVE_CAUSE_NORMAL
 } SIPX_KEEPALIVE_CAUSE;
 
+
 /**
-* Keepalive event information structure.   This information is passed as 
-* part of the sipXtapi callback mechanism.  Based on the 
-* SIPX_KEEPALIVE_CATEGORY, the application developer should cast the pInfo 
-* member of your callback to the appropriate structure.  
-*
-* @see SIPX_EVENT_CALLBACK_PROC
-* @see SIPX_EVENT_CATEGORY
-*/
+ * Keepalive event information structure.   This information is passed as 
+ * part of the sipXtapi callback mechanism.  Based on the 
+ * SIPX_KEEPALIVE_CATEGORY, the application developer should cast the pInfo 
+ * member of your callback to the appropriate structure.  
+ *
+ * @see SIPX_EVENT_CALLBACK_PROC
+ * @see SIPX_EVENT_CATEGORY
+ */
 typedef struct
 {
-   size_t                  nSize;     /**< Size of the structure */
-   SIPX_KEEPALIVE_EVENT    event;     /**< Keepalive event identifier. */
-   SIPX_KEEPALIVE_CAUSE    cause;     /**< Keepalive cause  */
-   SIPX_KEEPALIVE_TYPE     type;      /**< Keepalive type */
-   const char*             szRemoteAddress;   /**< Target IP/host where you are sending the keepalives */
-   int                     remotePort;        /**< Target port where you are sending the keepalives */
-   int                     keepAliveSecs;     /**< How often keepalives are being sent */
-   const char*             szFeedbackAddress;  /**< This UA's IP address as seen by the remote side (only 
-                                               valid in FEEDBACK events) */
-   int                     feedbackPort;      /**< This UA's port as seen by the remote side (only valid 
-                                              in FEEDBACK events) */
+    size_t                  nSize;     /**< Size of the structure */
+    SIPX_KEEPALIVE_EVENT    event;     /**< Keepalive event identifier. */
+    SIPX_KEEPALIVE_CAUSE    cause;     /**< Keepalive cause  */
+    SIPX_KEEPALIVE_TYPE     type;      /**< Keepalive type */
+    const char*             szRemoteAddress;   /**< Target IP/host where you are sending the keepalives */
+    int                     remotePort;        /**< Target port where you are sending the keepalives */
+    int                     keepAliveSecs;     /**< How often keepalives are being sent */
+    const char*             szFeedbackAddress;  /**< This UA's IP address as seen by the remote side (only 
+                                                     valid in FEEDBACK events) */
+    int                     feedbackPort;      /**< This UA's port as seen by the remote side (only valid 
+                                                     in FEEDBACK events) */
 } SIPX_KEEPALIVE_INFO;
 
-/**
-* Enumeration of possible RTP_REDIRECT events (EVENT_CATEGORY_RTP_REDIRECT)
-*/
-typedef enum
-{
-   RTP_REDIRECT_REQUESTED = 0, ///< fired when RTP redirect is initiated, but final result is unknown
-   RTP_REDIRECT_ACTIVE, ///< fired when RTP redirect succeeds. However a failure may be fired later.
-   RTP_REDIRECT_ERROR, ///< fired when RTP redirect fails for some reason after being initiated.
-   RTP_REDIRECT_STOP ///< fired when RTP redirect stops. Will be fired only after SUCCESS event.
-} SIPX_RTP_REDIRECT_EVENT;
-
-/**
-* Enumeration of possible RTP_REDIRECT cause codes (EVENT_CATEGORY_RTP_REDIRECT)
-*/
-typedef enum
-{
-   RTP_REDIRECT_CAUSE_NORMAL = 0,         /**< No error occurred. */
-   RTP_REDIRECT_CAUSE_SDP_CODEC_MISMATCH, /**< SDP codec mismatch occurred during negotiation. */
-   RTP_REDIRECT_CAUSE_CALL_NOT_READY, /**< Used when RTP redirect is requested but call is not ready for RTP redirect.
-                                           Request may be retried at later time. */
-   RTP_REDIRECT_CAUSE_SETUP_FAILED, /**< Setup of RTP redirect failed. RTP redirect could not be coordinated successfully
-                                         between participating calls. */
-} SIPX_RTP_REDIRECT_CAUSE;
-
-/**
-* RTP redirect event information structure. This information is passed as 
-* part of the sipXtapi callback mechanism. Based on the 
-* SIPX_EVENT_CATEGORY, the application developer should cast the pInfo 
-* member of your callback to the appropriate structure.  
-*
-* @see SIPX_EVENT_CALLBACK_PROC
-* @see SIPX_EVENT_CATEGORY
-*/
-typedef struct
-{
-   size_t                  nSize;     /**< Size of the structure */
-   SIPX_RTP_REDIRECT_EVENT event;     /**< RTP redirect event identifier. */
-   SIPX_RTP_REDIRECT_CAUSE cause;     /**< RTP redirect cause  */
-
-   SIPX_CALL               hCall;     /**< Call handle */
-   SIPX_LINE               hLine;     /**< Line handle associated with the event. */
-} SIPX_RTP_REDIRECT_INFO;
-
-/**
-* Enumeration of possible SIPX_CONFERENCE_EVENT events (EVENT_CATEGORY_CONFERENCE)
-*/
-typedef enum
-{
-   CONFERENCE_CREATED = 0, ///< fired when conference is created
-   CONFERENCE_DESTROYED, ///< fired when conference is destroyed
-   CONFERENCE_CALL_ADDED, ///< fired when a new call is added to conference
-   CONFERENCE_CALL_ADD_FAILURE, ///< fired when call failed to be added to conference (join)
-   CONFERENCE_CALL_REMOVED, ///< fired when a call is removed from conference
-   CONFERENCE_CALL_REMOVE_FAILURE ///< fired when call failed to be removed from conference (split)
-} SIPX_CONFERENCE_EVENT;
-
-/**
-* Enumeration of possible SIPX_CONFERENCE_CAUSE cause codes (EVENT_CATEGORY_CONFERENCE)
-*/
-typedef enum
-{
-   CONFERENCE_CAUSE_NORMAL = 0,         /**< No error occurred. */
-   CONFERENCE_CAUSE_INVALID_STATE,       ///< call is in invalid state for requested operation
-   CONFERENCE_CAUSE_NOT_FOUND,           ///< call was not found
-   CONFERENCE_CAUSE_LIMIT_REACHED,       ///< call limit was reached
-   CONFERENCE_CAUSE_UNEXPECTED_ERROR,    ///< some unknown unexpected error occurred
-} SIPX_CONFERENCE_CAUSE;
-
-/**
-* Conference event information structure. This information is passed as 
-* part of the sipXtapi callback mechanism. Based on the 
-* SIPX_EVENT_CATEGORY, the application developer should cast the pInfo 
-* member of your callback to the appropriate structure.
-*/
-typedef struct
-{
-	size_t                  nSize;     /**< Size of the structure */
-	SIPX_CONFERENCE_EVENT   event;     /**< Conference event identifier. */
-	SIPX_CONFERENCE_CAUSE   cause;     /**< Conference event cause */
-
-	SIPX_CONF               hConf;     /**< Conference handle */
-	SIPX_CALL               hCall;     /**< Call handle. Only valid for CONFERENCE_CALL_ADDED, CONFERENCE_CALL_REMOVED */
-} SIPX_CONFERENCE_INFO;
 
 /**
 * Enumeration of possible PIM event types
@@ -768,7 +675,8 @@ typedef struct
     SIPX_CALL           hCall;     /**< Associate call (or SIPX_CALL_NULL if 
                                          not associated with a call). */
     SIPX_CODEC_INFO     codec;     /**< Negotiated codec; only supplied on 
-                                         MEDIA_LOCAL_START. */
+                                         MEDIA_LOCAL_START and MEDIA_REMOTE_START
+                                         events. */
     int                 idleTime;   /**< Idle time (ms) for SILENT events; only 
                                          supplied on MEDIA_REMOTE_SILENT 
                                          events. */
@@ -815,8 +723,6 @@ typedef struct
                                          original call. */
     int sipResponseCode;           ///< SIP response text if available
     const char* szSipResponseText; ///< SIP response text if available
-    const char* szReferredBy; ///< value of Referred-By for transferee side of call transfer
-    const char* szReferTo; ///< value of Refer-To for transferee side of call transfer
 } SIPX_CALLSTATE_INFO; 
 
 
@@ -869,20 +775,20 @@ typedef enum
 typedef struct
 {
     size_t              nSize;             /**< the size of this structure in bytes */
-    SIPX_CALL   hCall;                     /**< Call handle if available */
-    SIPX_LINE   hLine;                     /**< Line handle if available */
-    SIPX_MESSAGE_STATUS status;            /**< Emumerated status for this request acknowledgement. */
-    int                 responseCode;      /**< Numerical status code for this request acknowledgement. */
+    SIPX_INFO           hInfo;             /**< the handle used to make the outbound info request. */ 
+    SIPX_MESSAGE_STATUS status;            /**< Emumerated status for this
+                                                 request acknowledgement. */
+    int                 responseCode;      /**< Numerical status code for this
+                                                 request acknowledgement. */
     const char*         szResponseText;    /**< The text of the request acknowledgement. */
     SIPX_INFOSTATUS_EVENT event;            /**< Event code for this INFO STATUS message */
-    void* pCookie;                          /**< Cookie value passed when sending INFO */
 } SIPX_INFOSTATUS_INFO;
 
 
 /**
  * An INFO event signals the application layer that an INFO message
  * was sent to this user agent.  If the INFO message was sent to a 
- * call context (session) hCall will designate the call session. 
+ * call context (session) hCall will desiginate the call session. 
  *
  * This information is passed as part of the sipXtapi callback mechanism.  
  * Based on the SIPX_EVENT_CATEGORY, the application developer should cast the
@@ -896,7 +802,9 @@ typedef struct
     size_t      nSize;             /**< Size of structure */
     SIPX_CALL   hCall;             /**< Call handle if available */
     SIPX_LINE   hLine;             /**< Line handle if available */
-
+    const char* szFromURL;         /**< the URL of the host that originated
+                                         the INFO message */
+    const char* szUserAgent;        /**< the User Agent string of the source agent */
     const char* szContentType;     /**< string indicating the info content type */
     const char* pContent;          /**< pointer to the INFO message content */
     size_t      nContentLength;    /**< length of the INFO message content */
@@ -969,7 +877,7 @@ typedef struct
     const char* szNotiferUserAgent;/**< The User-Agent header field value from
                                         the SIP NOTIFY response (may be NULL) */
     const char* szContentType;     /**< String indicating the info content type */     
-    const char* pContent;          /**< Pointer to the NOTIFY message content */
+    const void* pContent;          /**< Pointer to the NOTIFY message content */
     size_t      nContentLength;    /**< Length of the NOTIFY message content in bytes */
 } SIPX_NOTIFY_INFO;
 
@@ -995,16 +903,7 @@ typedef struct
     void*             pData;   /**< Pointer to event data -- SEE SIPX_CONFIG_EVENT
                                     for details. */
 } SIPX_CONFIG_INFO;
-
-/**
- * SIPX_STUN_FAILURE_INFO carries additional information for CONFIG_STUN_FAILURE event.
- */
-typedef struct
-{
-   int                 nSize;		           /**< Size of the structure */
-   const char*         szAdapterName;       /**< Adapter name if available */
-   const char*         szInterfaceIp;       ///< interface ip address for which STUN failed
-} SIPX_STUN_FAILURE_INFO;
+					      
 
 /**
  * An SIPX_SECURITY_INFO event informs that application layer of the status
@@ -1217,37 +1116,5 @@ SIPXTAPI_API const char* sipxKeepaliveEventToString(SIPX_KEEPALIVE_EVENT event);
  * @param cause Keepalive cause id
  */
 SIPXTAPI_API const char* sipxKeepaliveCauseToString(SIPX_KEEPALIVE_CAUSE event);
-
-/**
-* Create a printable string version of the designated RTP redirect event.
-* This is generally used for debugging.
-*
-* @param event RTP redirect event id
-*/
-SIPXTAPI_API const char* sipxRtpRedirectEventToString(SIPX_RTP_REDIRECT_EVENT event);
-
-/**
-* Create a printable string version of the designated RTP redirect cause.
-* This is generally used for debugging.
-*
-* @param cause RTP redirect cause id
-*/
-SIPXTAPI_API const char* sipxRtpRedirectCauseToString(SIPX_RTP_REDIRECT_CAUSE cause);
-
-/**
-* Create a printable string version of the designated conference event.
-* This is generally used for debugging.
-*
-* @param event conference event id
-*/
-SIPXTAPI_API const char* sipxConferenceEventToString(SIPX_CONFERENCE_EVENT event);
-
-/**
-* Create a printable string version of the designated conference cause.
-* This is generally used for debugging.
-*
-* @param cause conference cause id
-*/
-SIPXTAPI_API const char* sipxConferenceCauseToString(SIPX_CONFERENCE_CAUSE cause);
 
 #endif /* ifndef _sipXtapiEvents_h_ */

@@ -38,8 +38,8 @@
 #include "net/SipPimClient.h"
 #include "net/SipSubscribeServer.h"
 #include "net/SipDialogMgr.h"
-#include "sdp/SdpCodecList.h"
-#include "cp/XCpCallManager.h"
+#include "net/SdpCodecFactory.h"
+#include "cp/CallManager.h"
 #include "mi/CpMediaInterfaceFactoryFactory.h"
 #include "tapi/SipXCore.h"
 #include "tapi/sipXtapi.h"
@@ -55,12 +55,9 @@
 #include "tapi/SipXPublish.h"
 #include "tapi/SipXSubscribe.h"
 #include "tapi/SipXKeepaliveEventListener.h"
-#include "tapi/SipXRtpRedirectEventListener.h"
-#include "tapi/SipXConferenceEventListener.h"
 #include "tapi/SipXLineEventListener.h"
 #include "tapi/SipXCallEventListener.h"
 #include "tapi/SipXInfoStatusEventListener.h"
-#include "tapi/SipXInfoEventListener.h"
 #include "tapi/SipXSecurityEventListener.h"
 #include "tapi/SipXMediaEventListener.h"
 
@@ -72,6 +69,8 @@ extern SipXHandleMap gPubHandleMap;
 extern SipXHandleMap gLineHandleMap;
 extern SipXHandleMap gCallHandleMap;
 extern SipXHandleMap gConfHandleMap;
+extern SipXHandleMap gInfoHandleMap;
+extern SipXHandleMap gTransportHandleMap;
 
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
@@ -125,8 +124,10 @@ SIPX_RESULT sipxFlushHandles()
    gCallHandleMap.destroyAll();
    gLineHandleMap.destroyAll();
    gConfHandleMap.destroyAll();
+   gInfoHandleMap.destroyAll();
    gPubHandleMap.destroyAll();
    gSubHandleMap.destroyAll();
+   gTransportHandleMap.destroyAll();
 
    return SIPX_RESULT_SUCCESS ;
 }
@@ -160,6 +161,14 @@ SIPX_RESULT sipxCheckForHandleLeaks()
       rc = SIPX_RESULT_FAILURE;
    }
 
+   if (gInfoHandleMap.entries() != 0)
+   {
+      printf("\ngpInfoHandleMap Leaks (%d):\n",
+         (int) gInfoHandleMap.entries());
+      gInfoHandleMap.dump();
+      rc = SIPX_RESULT_FAILURE;
+   }
+
    return rc;
 }
 
@@ -179,12 +188,83 @@ const char* sipxContactTypeToString(SIPX_CONTACT_TYPE type)
    case CONTACT_RELAY:
       szResult = MAKESTR(CONTACT_RELAY);
       break;
+   case CONTACT_CONFIG:
+      szResult = MAKESTR(CONTACT_CONFIG);
+      break;
    default:
       break;
    }
 
    return szResult;
 }
+
+
+// Get the external host and port given the contact preference
+void sipxSelectContact(SIPX_INSTANCE_DATA* pData,
+                       SIPX_CONTACT_TYPE& contactType,
+                       const UtlString& suggestedContactIp,
+                       UtlString& contactIp,
+                       int& contactPort,
+                       SIPX_TRANSPORT_TYPE& transport)
+{
+
+   if (contactType == CONTACT_RELAY)
+   {
+      // Relay is not supported yet -- default to AUTO for now.
+      contactType = CONTACT_AUTO;
+   }
+
+   // Use configured address first. Always selects mSipUdpServer port, ignoring transport.
+   if ((contactType == CONTACT_AUTO) || (contactType == CONTACT_CONFIG))
+   {
+      if (pData->pSipUserAgent->getConfiguredPublicAddress(&contactIp, &contactPort))
+      {
+         if (transport != TRANSPORT_UDP)
+         {
+            OsSysLog::add(FAC_SIPXTAPI, PRI_WARNING,
+               "Ignoring transport %d for selecting line contact port due to incompatibility with contactType %d.",
+               transport, contactType);
+
+            if (transport == TRANSPORT_TLS)
+            {
+               // override transport, since contact port will be of UDP Sip server
+               transport = TRANSPORT_UDP;
+            }
+         }
+         contactType = CONTACT_CONFIG;
+         return;
+      }
+   }
+
+   // Use NAT_MAPPED next. Always selects mSipUdpServer port, ignoring transport.
+   if ((contactType == CONTACT_AUTO) || (contactType == CONTACT_NAT_MAPPED))
+   {
+      if (pData->pSipUserAgent->getNatMappedAddress(&contactIp, &contactPort))
+      {
+         if (transport != TRANSPORT_UDP)
+         {
+            OsSysLog::add(FAC_SIPXTAPI, PRI_WARNING,
+               "Ignoring transport %d for selecting line contact port due to incompatibility with contactType %d.",
+               transport, contactType);
+
+            if (transport == TRANSPORT_TLS)
+            {
+               // override transport, since contact port will be of UDP Sip server
+               transport = TRANSPORT_UDP;
+            }
+         }
+         contactType = CONTACT_NAT_MAPPED;
+         return;
+      }
+   }
+
+   // Lastly, use local. Also takes into account transport to select contactPort.
+   if (pData->pSipUserAgent->getLocalAddress(&contactIp, &contactPort, transport, suggestedContactIp))
+   {
+      contactType = CONTACT_LOCAL; // propagate selected contact type up
+   }
+}
+
 
 SIPX_RESULT validateNetwork()
 {
@@ -316,16 +396,10 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    pInst->pSharedTaskMgr->manage(*pInst->pCallEventListener);
    pInst->pInfoStatusEventListener = new SipXInfoStatusEventListener(pInst);
    pInst->pSharedTaskMgr->manage(*pInst->pInfoStatusEventListener);
-   pInst->pInfoEventListener = new SipXInfoEventListener(pInst);
-   pInst->pSharedTaskMgr->manage(*pInst->pInfoEventListener);
    pInst->pSecurityEventListener = new SipXSecurityEventListener(pInst);
    pInst->pSharedTaskMgr->manage(*pInst->pSecurityEventListener);
    pInst->pMediaEventListener = new SipXMediaEventListener(pInst);
    pInst->pSharedTaskMgr->manage(*pInst->pMediaEventListener);
-   pInst->pRtpRedirectEventListener = new SipXRtpRedirectEventListener(pInst);
-   pInst->pSharedTaskMgr->manage(*pInst->pRtpRedirectEventListener);
-   pInst->pConferenceEventListener = new SipXConferenceEventListener(pInst);
-   pInst->pSharedTaskMgr->manage(*pInst->pConferenceEventListener);
    // create refresh manager
    pInst->pRefreshManager = new SipRefreshMgr(pInst->pLineEventListener);
    // create Line manager
@@ -336,23 +410,23 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    pInst->nLines = 0;
    pInst->nConferences = 0;
 
-   Url defaultIdentity(szIdentity); // used to build default contact for MESSAGE, keepalive OPTIONS etc
-
    // set default bind address, 0.0.0.0 = all IP addresses
    if (szBindToAddr == NULL)
    {
       szBindToAddr = "0.0.0.0";
    }
-   
+
    // Bind the SIP user agent to a port and start it up
    pInst->pSipUserAgent = new SipUserAgent(
       tcpPort,                    // sipTcpPort
       udpPort,                    // sipUdpPort
       iActualTLSPort,             // sipTlsPort
-      szBindToAddr,               // bind IP Address
-      defaultIdentity.getUserId().data(), // default user
+      NULL,                       // publicAddress
+      NULL,                       // defaultUser
+      szBindToAddr,               // default IP Address
       NULL,                       // sipProxyServers
       NULL,                       // sipDirectoryServers
+      NULL,                       // sipRegistryServers
       NULL,                       // authenticationScheme
       NULL,                       // authenicateRealm
       NULL,                       // authenticateDb
@@ -365,15 +439,11 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       OsServerTask::DEF_MAX_MSGS, // queueSize
       bUseSequentialPorts);       // bUseNextAvailablePort
    pInst->pSipUserAgent->allowMethod(SIP_INFO_METHOD);
-   pInst->pSipUserAgent->allowMethod(SIP_PRACK_METHOD);
-   pInst->pSipUserAgent->allowMethod(SIP_UPDATE_METHOD);
-   pInst->pSipUserAgent->allowMethod(SIP_SUBSCRIBE_METHOD);
-   pInst->pSipUserAgent->allowMethod(SIP_NOTIFY_METHOD);
 
    // set bind address on OsSocket
    UtlString defaultBindAddressString;
    int unused;
-   pInst->pSipUserAgent->getLocalAddress(&defaultBindAddressString, &unused, SIP_TRANSPORT_UDP);
+   pInst->pSipUserAgent->getLocalAddress(&defaultBindAddressString, &unused, TRANSPORT_UDP);
    unsigned long defaultBindAddress = inet_addr(defaultBindAddressString.data());
    OsSocket::setDefaultBindAddress(defaultBindAddress);
    // start SipUserAgent server task
@@ -387,7 +457,8 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       pInst->pSipUserAgent->getTlsPort());
 
    // create and start SipPimClient
-   pInst->pSipPimClient = new SipPimClient(*pInst->pSipUserAgent, defaultIdentity);
+   Url pimClientAor(szIdentity);
+   pInst->pSipPimClient = new SipPimClient(*pInst->pSipUserAgent, pimClientAor);
    pInst->pSipPimClient->start();
    pInst->pSipPimClient->setIncomingImTextHandler(&sipxFirePIMEvent, pInst);
 
@@ -412,54 +483,59 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    pInst->pSubscribeClient->start();
 
    // Enable PCMU, PCMA, Tones/RFC2833 codecs
-   pInst->pSelectedCodecList = new SdpCodecList();
+   pInst->pCodecFactory = new SdpCodecFactory();
 
    // Instantiate the call processing subsystem
+   UtlString utlIdentity(szIdentity);
+
    // create call manager
-   pInst->pCallManager = new XCpCallManager(
+   pInst->pCallManager = new CallManager(FALSE,
+      pInst->pLineManager,
+      TRUE, // early media in 180 ringing
+      pInst->pCodecFactory,
+      rtpPortStart, // rtp start
+      rtpPortStart + (2*maxConnections), // rtp end
+      pInst->pSipUserAgent,
+      0, // sipSessionReinviteTimer
       pInst->pCallEventListener,
       pInst->pInfoStatusEventListener,
-      pInst->pInfoEventListener,
       pInst->pSecurityEventListener,
       pInst->pMediaEventListener,
-      pInst->pRtpRedirectEventListener,
-      pInst->pConferenceEventListener,
-      *pInst->pSipUserAgent,
-      *pInst->pSelectedCodecList,
-      pInst->pLineManager,
-      szBindToAddr,
-      FALSE, // doNotDisturb
-      FALSE, // bEnableICE
-      FALSE, // bIsRequiredLineMatch
-      rtpPortStart, // rtpPortStart
-      rtpPortStart + (2 * maxConnections), // rtpPortEnd
+      NULL, // mgcpStackTask
+      Connection::RING, // availableBehavior
+      NULL, // unconditionalForwardUrl
+      -1, // forwardOnNoAnswerSeconds
+      NULL, // forwardOnNoAnswerUrl
+      Connection::BUSY, // busyBehavior
+      NULL, // sipForwardOnBusyUrl
+      NULL, // speedNums
+      CallManager::SIP_CALL, // phonesetOutgoingCallProtocol
+      4, // numDialPlanDigits
+      5000, // offeringDelay
+      "",
       CP_MAXIMUM_RINGING_EXPIRE_SECONDS,
-      maxConnections, // maxCalls - max calls before sending busy. -1 means unlimited
-      *sipXmediaFactoryFactory(NULL));
+      QOS_LAYER3_LOW_DELAY_IP_TOS,
+      maxConnections, // max calls before we start rejecting inbound calls
+      sipXmediaFactoryFactory(NULL));
+   pInst->pCallManager->setBindIPAddress(szBindToAddr);
 
    // Start up the call processing system
    pInst->pCallManager->start();
 
-   pInst->pAvailableCodecList = new SdpCodecList();
-
-   CpMediaInterfaceFactory* pInterfaceFactory = pInst->pCallManager->getMediaInterfaceFactory();
-   if (!pInterfaceFactory)
+   CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+   if (!pInterface)
    {
       OsSysLog::add(FAC_SIPXTAPI, PRI_ERR, "Unable to create global media interface");
    }
-   else
+   else if (szIdentity)
    {
-      pInterfaceFactory->buildAllCodecList(*pInst->pAvailableCodecList);
-      if (szIdentity)
-      {
-         pInterfaceFactory->setRTCPName(szIdentity);
-      }
+      pInterface->setRTCPName(szIdentity);
    }
 
    // init codecs
-   pInst->videoFormat = VIDEO_FORMAT_ANY;
-   sipxConfigSelectAudioCodecByName(pInst, NULL); // select all audio codecs
-   sipxConfigSelectVideoCodecByName(pInst, NULL); // select all video codecs
+   pInst->videoCodecSetting.videoFormat = VIDEO_FORMAT_ANY;
+   sipxConfigSetAudioCodecPreferences(pInst, AUDIO_CODEC_BW_NORMAL);
+   sipxConfigSetVideoBandwidth(pInst, VIDEO_CODEC_BW_NORMAL); // also resets video codecs
 
    initAudioDevices(*pInst);
 
@@ -472,13 +548,15 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    // create the message observer
    pInst->pMessageObserver = new SipXMessageObserver(pInst);
    pInst->pMessageObserver->start();
+   pInst->pSipUserAgent->addMessageObserver(*(pInst->pMessageObserver->getMessageQueue()), SIP_INFO_METHOD, 1, 0, 1, 0, 0, 0, (void*)pInst);
 
    // Enable ICE by default (only makes sense with STUN, TURN or with mulitple nics 
    // (multiple nic support still needs work).
    //sipxConfigEnableIce(pInst);
 
-   pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader,
-      pInst->bShortNames, pInst->szAcceptLanguage, pInst->bSupportedHeader);
+   pInst->bAllowHeader = true;
+   pInst->bDateHeader = true;
+   //sipxConfigEnableSipShortNames(pInst, true);
 
    rc = SIPX_RESULT_SUCCESS;
    //  check for TLS initialization
@@ -520,7 +598,7 @@ SIPXTAPI_API SIPX_RESULT sipxReInitialize(SIPX_INST* phInst,
 
    if (phInst)
    {
-      SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, *phInst);
+      SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)*phInst;
 
       // remember original filename, as it could be lost when uninitializing sipxtapi
       UtlString logfile;
@@ -592,7 +670,7 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
       "sipxUnInitialize hInst=%p",
       hInst);
 
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst)
    {
@@ -616,7 +694,7 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->lock.release();
 
          sessionCallIdList.destroyAll(); // empty the list
-         sipxGetAllAbstractCallIds(hInst, sessionCallIdList);
+         sipxGetAllCallIds(hInst, sessionCallIdList);
          nCallManagerCalls = sessionCallIdList.entries();
 
          if ((nCalls != 0) || (nConferences != 0) || (nLines != 0) || (nCallManagerCalls != 0))
@@ -652,10 +730,8 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->pSubscribeServer->requestShutdown();
          pInst->pSipRefreshManager->requestShutdown();
          pInst->pMessageObserver->requestShutdown();
-         pInst->pSelectedCodecList->clearCodecs();
+         pInst->pCodecFactory->clearCodecs();
 
-         delete pInst->pCallManager;
-         pInst->pCallManager = NULL;
          delete pInst->pSipPimClient;
          pInst->pSipPimClient = NULL;
          delete pInst->pSubscribeClient;
@@ -672,20 +748,16 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->pSipUserAgent = NULL;
          delete pInst->pLineManager;
          pInst->pLineManager = NULL;
-         delete pInst->pSelectedCodecList;
-         pInst->pSelectedCodecList = NULL;
-         delete pInst->pAvailableCodecList;
-         pInst->pAvailableCodecList = NULL;
+         delete pInst->pCallManager;
+         pInst->pCallManager = NULL;
+         delete pInst->pCodecFactory;
          // release all shared server tasks
          pInst->pSharedTaskMgr->release(*pInst->pLineEventListener);
          pInst->pSharedTaskMgr->release(*pInst->pCallEventListener);
          pInst->pSharedTaskMgr->release(*pInst->pInfoStatusEventListener);
-         pInst->pSharedTaskMgr->release(*pInst->pInfoEventListener);
          pInst->pSharedTaskMgr->release(*pInst->pSecurityEventListener);
          pInst->pSharedTaskMgr->release(*pInst->pMediaEventListener);
          pInst->pSharedTaskMgr->release(*pInst->pKeepaliveEventListener);
-         pInst->pSharedTaskMgr->release(*pInst->pRtpRedirectEventListener);
-         pInst->pSharedTaskMgr->release(*pInst->pConferenceEventListener);
          pInst->pSharedTaskMgr->shutdown();
          pInst->pSharedTaskMgr->flushMessages();
          // get rid of listeners
@@ -695,18 +767,15 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->pCallEventListener = NULL;
          delete pInst->pInfoStatusEventListener;
          pInst->pInfoStatusEventListener = NULL;
-         delete pInst->pInfoEventListener;
-         pInst->pInfoEventListener = NULL;
          delete pInst->pSecurityEventListener;
          pInst->pSecurityEventListener = NULL;
          delete pInst->pMediaEventListener;
          pInst->pMediaEventListener = NULL;
-         delete pInst->pRtpRedirectEventListener;
-         pInst->pRtpRedirectEventListener = NULL;
-         delete pInst->pConferenceEventListener;
-         pInst->pConferenceEventListener = NULL;
+         delete pInst->pStunNotification;
+         pInst->pStunNotification = NULL;
          delete pInst->pMessageObserver;
          pInst->pMessageObserver = NULL;
+         sipxTransportDestroyAll(pInst);
          delete pInst->pKeepaliveEventListener;
          pInst->pKeepaliveEventListener = NULL;
 #ifdef _WIN32
@@ -729,6 +798,13 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
             OsSysLog::shutdown();
          }
 
+         // free codecs
+         freeAudioCodecs(*pInst);
+         pInst->audioCodecSetting.bInitialized = false;
+
+         freeVideoCodecs(*pInst);
+         pInst->videoCodecSetting.bInitialized = false;
+
          // free audio devices strings
          freeAudioDevices(*pInst);
 
@@ -748,17 +824,4 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
    }
 
    return rc;
-}
-
-SIPX_CONTACT_ADDRESS getSipxContact(const SipContact& sipContact)
-{
-   SIPX_CONTACT_ADDRESS sipxContact;
-   sipxContact.id = sipContact.getContactId();
-   sipxContact.eContactType = (SIPX_CONTACT_TYPE)sipContact.getContactType();
-   sipxContact.eTransportType = (SIPX_TRANSPORT_TYPE)sipContact.getTransportType();
-   SAFE_STRNCPY(sipxContact.cInterface, sipContact.getAdapterName().data(), MAX_ADAPTER_NAME_LENGTH + 4);
-   SAFE_STRNCPY(sipxContact.cInterfaceIp, sipContact.getAdapterIp().data(), 28);
-   SAFE_STRNCPY(sipxContact.cIpAddress, sipContact.getIpAddress().data(), 28);
-   sipxContact.iPort = sipContact.getPort();
-   return sipxContact;
 }

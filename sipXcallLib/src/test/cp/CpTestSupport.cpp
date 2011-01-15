@@ -12,11 +12,13 @@
 #include <cppunit/TestCase.h>
 
 #include <os/OsDefs.h>
+#include <cp/CallManager.h>
 #include <os/OsSocket.h>
 #include <net/SipUserAgent.h>
-#include <sdp/SdpCodecList.h>
+#include <net/SdpCodecFactory.h>
 #include <cp/CpTestSupport.h>
 #include <mi/CpMediaInterfaceFactoryFactory.h>
+
 
 SipUserAgent *CpTestSupport::newSipUserAgent()
 {
@@ -45,7 +47,47 @@ SipUserAgent *CpTestSupport::newSipUserAgent()
    return ua;
 }
 
-XCpCallManager* CpTestSupport::newCallManager(SipUserAgent* sua)
+CallManager *CpTestSupport::newCallManager(SipUserAgent* sua)
 {
-    return NULL;
+        UtlString localAddress;
+        OsSocket::getHostIp(&localAddress);
+
+        // Enable PCMU, PCMA, Tones/RFC2833
+        UtlString codecList("258 257 128");
+        SdpCodecFactory* pCodecFactory = new SdpCodecFactory();
+        UtlString oneCodec;
+        pCodecFactory->buildSdpCodecFactory(codecList);
+
+    CallManager *callManager =
+       new CallManager(
+          FALSE,
+          NULL,
+          TRUE, // early media in 180 ringing
+          pCodecFactory,
+          9000, //rtp start
+          9999, //rtp end
+          sua,
+          0,//sipSessionReinviteTimer
+          NULL, // pCallEventListener
+          NULL, // pInfoStatusEventListener
+          NULL, // pSecurityEventListener
+          NULL, // pMediaEventListener
+          NULL, // mgcpStackTask
+          Connection::RING, // availableBehavior
+          NULL, // unconditionalForwardUrl
+          -1, // forwardOnNoAnswerSeconds
+          NULL, // forwardOnNoAnswerUrl
+          Connection::BUSY, // busyBehavior
+          NULL, // sipForwardOnBusyUrl
+          NULL, // speedNums
+          CallManager::SIP_CALL, // phonesetOutgoingCallProtocol
+          4, // numDialPlanDigits
+          5000, // offeringDelay
+          "", // pLocal
+          CP_MAXIMUM_RINGING_EXPIRE_SECONDS, //inviteExpireSeconds
+          QOS_LAYER3_LOW_DELAY_IP_TOS, // expeditedIpTos
+          10, //maxCalls
+          sipXmediaFactoryFactory(NULL)); //pMediaFactory
+
+    return callManager;
 }

@@ -18,7 +18,7 @@
 // DEFINES
 #define INPUT_MIXER_INDEX 0
 #define OUTPUT_MIXER_INDEX 0
-#define DEFAULT_LATENCY 0.04
+#define DEFAULT_LATENCY 0.06
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -152,17 +152,17 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
             MpAudioStreamParameters outputParameters;
             outputParameters.setChannelCount(1);
             outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
-            outputParameters.setSuggestedLatency(m_initialOutputStreamLatency);
+            outputParameters.setSuggestedLatency(DEFAULT_LATENCY);
             outputParameters.setDeviceIndex(defaultOutputDeviceIndex);
 
-            // open output stream
+            // open asynchronous output stream
             res = m_pAudioDriver->openStream(&m_outputAudioStream,
                NULL,
                &outputParameters,
-               MpMisc.m_audioSamplesPerSec,
+               MpMisc.m_audioSampleRate,
                MpMisc.m_audioSamplesPerFrame,
-               MP_AUDIO_STREAM_DITHEROFF,
-               TRUE);
+               MP_AUDIO_STREAM_CLIPOFF,
+               FALSE);
             if (res != OS_SUCCESS)
             {
                return OS_FAILED;
@@ -191,7 +191,6 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
          UtlBoolean bDriverReq = !driverName.isNull();
          MpAudioDeviceIndex deviceCount = 0;
          MpAudioDeviceIndex i = 0;
-         UtlString hostApiName;
          m_pAudioDriver->getDeviceCount(deviceCount);
 
          // loop through all devices, and find matching one
@@ -208,7 +207,6 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
                {
                   // we found match, we will select this device
                   bDeviceFound = TRUE;
-                  hostApiName = deviceInfo.getHostApiName();
                   break;
                }
             }
@@ -221,7 +219,6 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
                {
                   // we found match, we will select this device
                   bDeviceFound = TRUE;
-                  hostApiName = deviceInfo.getHostApiName();
                   break;
                }
             }
@@ -236,17 +233,17 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
             MpAudioStreamParameters outputParameters;
             outputParameters.setChannelCount(1);
             outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
-            outputParameters.setSuggestedLatency(m_initialOutputStreamLatency);
+            outputParameters.setSuggestedLatency(DEFAULT_LATENCY);
             outputParameters.setDeviceIndex(i);
 
-            // open output stream
+            // open asynchronous output stream
             res = m_pAudioDriver->openStream(&m_outputAudioStream,
                NULL,
                &outputParameters,
-               MpMisc.m_audioSamplesPerSec,
+               MpMisc.m_audioSampleRate,
                MpMisc.m_audioSamplesPerFrame,
-               MP_AUDIO_STREAM_DITHEROFF,
-               MpAudioDriverManager::useSynchronousStream(hostApiName));
+               MP_AUDIO_STREAM_CLIPOFF,
+               FALSE);
             if (res != OS_SUCCESS)
             {
                return OS_FAILED;
@@ -299,17 +296,17 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
             MpAudioStreamParameters inputParameters;
             inputParameters.setChannelCount(1);
             inputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
-            inputParameters.setSuggestedLatency(m_initialInputStreamLatency);
+            inputParameters.setSuggestedLatency(DEFAULT_LATENCY);
             inputParameters.setDeviceIndex(defaultInputDeviceIndex);
 
             // open asynchronous input stream
             res = m_pAudioDriver->openStream(&m_inputAudioStream,
                &inputParameters,
                NULL,
-               MpMisc.m_audioSamplesPerSec,
+               MpMisc.m_audioSampleRate,
                MpMisc.m_audioSamplesPerFrame,
-               MP_AUDIO_STREAM_DITHEROFF,
-               TRUE);
+               MP_AUDIO_STREAM_CLIPOFF,
+               FALSE);
             if (res != OS_SUCCESS)
             {
                return OS_FAILED;
@@ -339,7 +336,6 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
          UtlBoolean bDriverReq = !driverName.isNull();
          MpAudioDeviceIndex deviceCount = 0;
          MpAudioDeviceIndex i = 0;
-         UtlString hostApiName;
          m_pAudioDriver->getDeviceCount(deviceCount);
 
          // loop through all devices, and find matching one
@@ -356,7 +352,6 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
                {
                   // we found match, we will select this device
                   bDeviceFound = TRUE;
-                  hostApiName = deviceInfo.getHostApiName();
                   break;
                }
             }
@@ -369,7 +364,6 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
                {
                   // we found match, we will select this device
                   bDeviceFound = TRUE;
-                  hostApiName = deviceInfo.getHostApiName();
                   break;
                }
             }
@@ -384,17 +378,17 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
             MpAudioStreamParameters inputParameters;
             inputParameters.setChannelCount(1);
             inputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
-            inputParameters.setSuggestedLatency(m_initialInputStreamLatency);
+            inputParameters.setSuggestedLatency(DEFAULT_LATENCY);
             inputParameters.setDeviceIndex(i);
 
             // open asynchronous input stream
             res = m_pAudioDriver->openStream(&m_inputAudioStream,
                &inputParameters,
                NULL,
-               MpMisc.m_audioSamplesPerSec,
+               MpMisc.m_audioSampleRate,
                MpMisc.m_audioSamplesPerFrame,
-               MP_AUDIO_STREAM_DITHEROFF,
-               MpAudioDriverManager::useSynchronousStream(hostApiName));
+               MP_AUDIO_STREAM_CLIPOFF,
+               FALSE);
             if (res != OS_SUCCESS)
             {
                return OS_FAILED;
@@ -459,30 +453,6 @@ OsStatus MpAudioDriverManager::getOutputDeviceInfo(int deviceIndex, MpAudioDevic
    }
 
    return res;
-}
-
-OsStatus MpAudioDriverManager::getInputStreamInfo(MpAudioStreamInfo& streamInfo)
-{
-   OsLock lock(ms_mutex);
-
-   if (m_inputAudioStream && m_pAudioDriver)
-   {
-      return m_pAudioDriver->getStreamInfo(m_inputAudioStream, streamInfo);
-   }
-
-   return OS_FAILED;
-}
-
-OsStatus MpAudioDriverManager::getOutputStreamInfo(MpAudioStreamInfo& streamInfo)
-{
-   OsLock lock(ms_mutex);
-
-   if (m_outputAudioStream && m_pAudioDriver)
-   {
-      return m_pAudioDriver->getStreamInfo(m_outputAudioStream, streamInfo);
-   }
-
-   return OS_FAILED;
 }
 
 OsStatus MpAudioDriverManager::startInputStream() const
@@ -776,8 +746,6 @@ MpAudioDriverManager::MpAudioDriverManager()
 , m_inputAudioDevices()
 , m_inputAudioMixer(NULL)
 , m_outputAudioMixer(NULL)
-, m_initialInputStreamLatency(DEFAULT_LATENCY)
-, m_initialOutputStreamLatency(DEFAULT_LATENCY)
 {
    m_pAudioDriver = MpAudioDriverFactory::createAudioDriver(MpAudioDriverFactory::AUDIO_DRIVER_PORTAUDIO);
 
@@ -819,10 +787,10 @@ MpAudioDriverManager::MpAudioDriverManager()
 
    inputParameters.setChannelCount(1);
    inputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
-   inputParameters.setSuggestedLatency(m_initialInputStreamLatency);
+   inputParameters.setSuggestedLatency(DEFAULT_LATENCY);
    outputParameters.setChannelCount(1);
    outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
-   outputParameters.setSuggestedLatency(m_initialOutputStreamLatency);
+   outputParameters.setSuggestedLatency(DEFAULT_LATENCY);
 
    m_pAudioDriver->getDefaultInputDevice(m_inputDeviceIndex);
    m_pAudioDriver->getDefaultOutputDevice(m_outputDeviceIndex);
@@ -830,23 +798,23 @@ MpAudioDriverManager::MpAudioDriverManager()
    inputParameters.setDeviceIndex(m_inputDeviceIndex);
    outputParameters.setDeviceIndex(m_outputDeviceIndex);
 
-   // open default input stream
+   // open asynchronous input stream
    m_pAudioDriver->openStream(&m_inputAudioStream,
       &inputParameters,
       NULL,
-      MpMisc.m_audioSamplesPerSec,
+      MpMisc.m_audioSampleRate,
       MpMisc.m_audioSamplesPerFrame,
       MP_AUDIO_STREAM_CLIPOFF,
-      TRUE);
+      FALSE);
 
-   // open default output stream
+   // open asynchronous output stream
    m_pAudioDriver->openStream(&m_outputAudioStream,
       NULL,
       &outputParameters,
-      MpMisc.m_audioSamplesPerSec,
+      MpMisc.m_audioSampleRate,
       MpMisc.m_audioSamplesPerFrame,
       MP_AUDIO_STREAM_CLIPOFF,
-      TRUE);
+      FALSE);
   
    m_pAudioDriver->startStream(m_inputAudioStream);
    m_pAudioDriver->startStream(m_outputAudioStream);
@@ -905,18 +873,6 @@ MpAudioDriverManager::~MpAudioDriverManager(void)
 
       m_pAudioDriver->release();
       m_pAudioDriver = NULL;
-   }
-}
-
-UtlBoolean MpAudioDriverManager::useSynchronousStream(const UtlString& hostApiName)
-{
-   if (hostApiName.compareTo("Windows DirectSound", UtlString::matchCase) == 0)
-   {
-      return FALSE; // direct sound driver doesn't support synchronous streams
-   }
-   else
-   {
-      return TRUE;
    }
 }
 

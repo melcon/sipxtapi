@@ -8,8 +8,6 @@
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
-// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
-// Licensed under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -27,13 +25,16 @@ extern "C" {
 }
 
 const MpCodecInfo MpeIPPG729::smCodecInfo(
-   SdpCodec::SDP_CODEC_G729,    // codecType
-   "Intel IPP 6.0",              // codecVersion
+   SdpCodec::SDP_CODEC_G729A,    // codecType
+   "Intel IPP 5.3",              // codecVersion
+   true,                         // usesNetEq
    8000,                         // samplingRate
    16,                           // numBitsPerSample
    1,                            // numChannels
+   160,                           // interleaveBlockSize
    8000,                         // bitRate
    20*8,                           // minPacketBits
+   20*8,                           // avgPacketBits
    20*8,                          // maxPacketBits
    160);                          // numSamplesPerFrame
 
@@ -102,7 +103,6 @@ OsStatus MpeIPPG729::initEncode(void)
    // instead of SetUSCEncoderParams(...)
    codec->uscParams.pInfo->params.direction = USC_ENCODE;
    codec->uscParams.pInfo->params.law = 0;
-   codec->uscParams.pInfo->params.modes.vad = ms_bEnableVAD ? 1 : 0;
 
    // Alloc memory for the codec
    lCallResult = USCCodecAlloc(&codec->uscParams, NULL);
@@ -123,7 +123,7 @@ OsStatus MpeIPPG729::initEncode(void)
    inputBuffer = 
       (Ipp8s *)ippsMalloc_8s(codec->uscParams.pInfo->params.framesize);
    outputBuffer = 
-      (Ipp8u *)ippsMalloc_8u(codec->uscParams.pInfo->maxbitsize + 10);
+      (Ipp8u *)ippsMalloc_8u(codec->uscParams.pInfo->maxbitsize + 1);
 
    return OS_SUCCESS;
 }
@@ -135,12 +135,10 @@ OsStatus MpeIPPG729::freeEncode(void)
    if (inputBuffer)
    {
       ippsFree(inputBuffer);
-      inputBuffer = NULL;
    }
    if (outputBuffer)
    {
       ippsFree(outputBuffer);
-      outputBuffer = NULL;
    }
 
    return OS_SUCCESS;
@@ -154,14 +152,16 @@ OsStatus MpeIPPG729::encode(const short* pAudioSamples,
                             const int bytesLeft,
                             int& rSizeInBytes,
                             UtlBoolean& sendNow,
-                            MpSpeechType& speechType)
+                            MpAudioBuf::SpeechType& rAudioCategory)
 {
-   assert((codec->uscParams.pInfo->params.framesize / 
-      (codec->uscParams.pInfo->params.pcmType.bitPerSample / 8)) == numSamples);
 
    ippsSet_8u(0, (Ipp8u *)outputBuffer, codec->uscParams.pInfo->maxbitsize + 1);
+
    ippsCopy_8u((unsigned char *)pAudioSamples, (unsigned char *)inputBuffer,
                codec->uscParams.pInfo->params.framesize);     
+
+   assert((codec->uscParams.pInfo->params.framesize / 
+          (codec->uscParams.pInfo->params.pcmType.bitPerSample / 8)) == numSamples);
 
    int frmlen, infrmLen, FrmDataLen;
    USC_PCMStream PCMStream;
@@ -182,9 +182,10 @@ OsStatus MpeIPPG729::encode(const short* pAudioSamples,
    frmlen = USCEncoderPostProcessFrame(&codec->uscParams, inputBuffer,
             (Ipp8s *)outputBuffer, &PCMStream, &Bitstream);
 
+
    ippsSet_8u(0, pCodeBuf, 10); 
 
-   if (Bitstream.nbytes == 10 || Bitstream.nbytes == 2)
+   if (Bitstream.nbytes == 10 || Bitstream.nbytes == 2 )
    {
       for(int k = 0; k < Bitstream.nbytes; ++k)
       {
@@ -193,7 +194,7 @@ OsStatus MpeIPPG729::encode(const short* pAudioSamples,
    }
    else
    {
-      frmlen = 0;
+      frmlen =0;
    }
 
    if (Bitstream.nbytes == 2 || Bitstream.nbytes == 0)
@@ -205,9 +206,11 @@ OsStatus MpeIPPG729::encode(const short* pAudioSamples,
       sendNow = FALSE;
    }
 
-   rSamplesConsumed = FrmDataLen / (codec->uscParams.pInfo->params.pcmType.bitPerSample / 8);
+   rAudioCategory = MpAudioBuf::MP_SPEECH_UNKNOWN;
+   rSamplesConsumed = FrmDataLen / 
+                      (codec->uscParams.pInfo->params.pcmType.bitPerSample / 8);
 
-   if (Bitstream.nbytes <= 10)
+   if (Bitstream.nbytes <= 10 )
    {
       rSizeInBytes = Bitstream.nbytes;
    }

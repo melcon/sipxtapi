@@ -686,7 +686,6 @@ public:
 
     //! Get this request's URI
     void getRequestUri(UtlString* uri) const;
-    void getRequestUri(Url& uri) const;
 
     //! Get this request's application layer protocol type
     void getRequestProtocol(UtlString* protocol) const;

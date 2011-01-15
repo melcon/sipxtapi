@@ -54,9 +54,8 @@
 class OsConfigDb;
 class OsQueuedEvent;
 class OsTimer;
-class SipDialog;
+class SipSession;
 class SipTcpServer;
-class SipContact;
 class SipLineProvider;
 class SipUserAgentBase;
 
@@ -184,8 +183,12 @@ public:
    * \param sipTlsPort - port to listen on for SIP TLS messages.
    *        Specify PORT_DEFAULT to automatically select a port, or
    *        PORT_NONE to disable.
-   * \param bindIpAddress - IP address for binding sockets. 0.0.0.0 binds
-   *        to all local IP addresses.
+   * \param publicAddress - use this address in Via and Contact headers
+   *        instead of the actual adress.  This is useful for address
+   *        spoofing in a UA when behind a NAT
+   * \param defaultUser - default user ID to use in Contacts which get
+   *        inserted when missing on a UA.
+   * \param defaultSipAddress - deprecated
    * \param sipProxyServers - server to which non-routed requests should
    *        be sent for next hop before going to the final destination
    * \param sipDirectoryServers - deprecated
@@ -227,10 +230,12 @@ public:
    SipUserAgent(int sipTcpPort = SIP_PORT,
       int sipUdpPort = SIP_PORT,
       int sipTlsPort = SIP_PORT+1,
-      const char* bindIpAddress = NULL,
-      const UtlString& defaultUser = NULL,
+      const char* publicAddress = NULL,
+      const char* defaultUser = NULL,
+      const char* defaultSipAddress = NULL,
       const char* sipProxyServers = NULL,
       const char* sipDirectoryServers = NULL,
+      const char* sipRegistryServers = NULL,
       const char* authenticationScheme = NULL,
       const char* authenicateRealm = NULL,
       OsConfigDb* authenticateDb = NULL,
@@ -265,11 +270,14 @@ public:
    virtual void enableStun(const char* szStunServer, 
       int iStunPort,
       int refreshPeriodInSecs, 
-      OsMsgQ* pNotificationQueue = NULL,
+      OsNotification* pNotification = NULL,
       const char* szIp = NULL) ;
 
    //! For internal use only
    virtual UtlBoolean handleMessage(OsMsg& eventMessage);
+
+   //! Deprecated (Add a SIP message recipient)
+   virtual void addMessageConsumer(OsServerTask* messageConsumer);
 
    //! Add a SIP message observer for receiving SIP messages meeting the
    //! given filter criteria
@@ -301,7 +309,7 @@ public:
       UtlBoolean wantIncoming = TRUE,
       UtlBoolean wantOutGoing = FALSE,
       const char* eventName = NULL,
-      const SipDialog* pSipDialog = NULL,
+      SipSession* pSession = NULL,
       void* observerData = NULL);
 
 
@@ -336,8 +344,9 @@ public:
    *        with responses
    */
    virtual UtlBoolean send(SipMessage& message,
-                           OsMsgQ* responseListener = NULL,
-                           void* responseListenerData = NULL);
+      OsMsgQ* responseListener = NULL,
+      void* responseListenerData = NULL,
+      SIPX_TRANSPORT_DATA* pTransport = NULL);
 
    //! Dispatch the SIP message to the message consumer(s)
    /*! This is typically only used by the SipUserAgent and its sub-system.
@@ -351,7 +360,8 @@ public:
    *        send messages
    */
    virtual void dispatch(SipMessage* message,
-      int messageType = SipMessageEvent::APPLICATION);
+      int messageType = SipMessageEvent::APPLICATION,
+      SIPX_TRANSPORT_DATA* pData = NULL);
 
    void allowMethod(const char* methodName, const bool bAllow = true);
 
@@ -411,16 +421,19 @@ public:
    //! Is use report set?
    UtlBoolean getUseRport() const ;
 
+   //! Get the manually configured public address
+   UtlBoolean getConfiguredPublicAddress(UtlString* pIpAddress, int* pPort) ;
+
    //! Get the local address and port
    UtlBoolean getLocalAddress(UtlString* pIpAddress,
       int* pPort,
-      SIP_TRANSPORT_TYPE protocol = SIP_TRANSPORT_UDP,
+      SIPX_TRANSPORT_TYPE protocol = TRANSPORT_UDP,
       const UtlString& preferredIp = NULL);
 
    //! Get the NAT mapped address and port
    UtlBoolean getNatMappedAddress(UtlString* pIpAddress,
       int* pPort,
-      SIP_TRANSPORT_TYPE protocol = SIP_TRANSPORT_UDP);
+      SIPX_TRANSPORT_TYPE protocol = TRANSPORT_UDP);
 
    void setIsUserAgent(UtlBoolean isUserAgent);
 
@@ -440,6 +453,14 @@ public:
 
    //! Allow or disallow recursion and forking of 3xx class requests
    void setForking(UtlBoolean enabled);
+
+   void getFromAddress(UtlString* address, int* port, UtlString* protocol);
+
+   void getViaInfo(int         protocol,
+      UtlString&  address,
+      int&        port,
+      const char* pszTargetAddress,
+      const int*  piTargetPort);
 
    void getDirectoryServer(int index, UtlString* address,
       int* port, UtlString* protocol);
@@ -546,11 +567,10 @@ public:
    //! Sets the User Agent name sent with outgoing sip messages.
 
 
-   void setHeaderOptions(UtlBoolean bAllowHeader,
-      UtlBoolean bDateHeader,
-      UtlBoolean bShortNames,
-      const UtlString& acceptLanguage,
-      UtlBoolean bSupportedHeader);                                   
+   void setHeaderOptions(const UtlBoolean bAllowHeader,
+      const UtlBoolean bDateHeader,
+      const UtlBoolean bShortNames,
+      const UtlString& acceptLanguage);                                   
    //! Sets header options - send or not send
 
    UtlBoolean getEnabledShortNames()
@@ -564,8 +584,6 @@ public:
 
    void stopTransactionTimers() { mSipTransactions.stopTransactionTimers(); }
    void startTransactionTimers() { mSipTransactions.startTransactionTimers(); }                                       
-
-   UtlString getDefaultIpAddress() const { return mDefaultIpAddress; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -606,26 +624,31 @@ public:
    SipContactDb& getContactDb() { return mContactDb; }
 
    //! Adds a contact record to the contact db
-   bool addContact(SipContact& sipContact);
+   const bool addContactAddress(SIPX_CONTACT_ADDRESS& contactAddress);
 
    //! Gets all contact addresses for this user agent
-   void getContacts(UtlSList& contacts);
+   void getContactAddresses(SIPX_CONTACT_ADDRESS* pContacts[], int &numContacts);
 
-   void prepareVia(SipMessage& message,
-                   UtlString& branchId, 
-                   OsSocket::IpProtocolSocketType toProtocol,
-                   const UtlString& targetAddress, 
-                   int targetPort);
+   void prepareVia(SipMessage&          message,
+      UtlString&           branchId, 
+      OsSocket::IpProtocolSocketType& toProtocol,
+      const char*          szTargetAddress, 
+      const int*           piTargetPort,
+      SIPX_TRANSPORT_DATA* pTransport = NULL) ;
 
 #ifdef HAVE_SSL    
    SipTlsServer* getTlsServer() { return mSipTlsServer; }
 #endif
 
+   void addExternalTransport(const UtlString tranportName, const SIPX_TRANSPORT_DATA* const pTransport);
+   void removeExternalTransport(const UtlString transportName, const SIPX_TRANSPORT_DATA* const pTransport);
+   const SIPX_TRANSPORT_DATA* const lookupExternalTransport(const UtlString transportName, const UtlString ipAddress) const;
+
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
-   void prepareContact(SipMessage& message,
-                       const UtlString& targetIpAddress,
-                       int targetPort);
+   void prepareContact(SipMessage& message, 
+      const char* szTargetAddress, 
+      const int*  piTargetPort) ;
 
    /// constuct the value to be used in either user-agent or server header.
    void selfHeaderValue(UtlString& self);
@@ -658,6 +681,11 @@ protected:
    UtlBoolean sendUdp(SipMessage* message,
       const char* serverAddress,
       int port);
+
+   UtlBoolean sendCustom(SIPX_TRANSPORT_DATA* pTransport, 
+      SipMessage* message, 
+      const char* sendAddress, 
+      const int sendPort);                       
 
    UtlBoolean sendSymmetricUdp(SipMessage& message,
       const char* serverAddress,
@@ -699,18 +727,23 @@ private:
    SipTlsServer* mSipTlsServer;
 #endif
    SipTransactionList mSipTransactions;
-
-   UtlString mDefaultUser; // default user to use in Contact field
-   UtlString mDefaultIpAddress; // local IP address which may be used to build a contact
-   int mDefaultPort; // local port which may be used to build a contact
-
+   UtlString mDefaultSipUser;
+   UtlString mDefaultSipAddress;
    UtlString m_defaultProxyServers;
    UtlString directoryServers;
+   UtlString registryServers;
+   int registryPeriod;
+   int lastRegisterSeqNum;
+   UtlString registerCallId;
+   UtlString sipIpAddress;
+   UtlString mConfigPublicAddress ;
+   int mSipPort;
    UtlDList allowedSipMethods;
    UtlDList allowedSipExtensions;
    UtlString mUserAgentHeaderProperties;
    UtlHashBag mMyHostAliases;
    UtlHashBag mMessageObservers;
+   UtlHashMap mExternalTransports;
    OsRWMutex mMessageLogRMutex;
    OsRWMutex mMessageLogWMutex;
 
@@ -726,6 +759,7 @@ private:
    int mMaxSrvRecords; // Max num of DNS SRV records to use before giving up
    int mDnsSrvTimeout; // second to give up & try the next DNS SRV record
 
+   SipMessage* mpLastSipMessage;
    UtlString defaultUserAgentName;
    long mLastCleanUpTime;
    UtlString mAuthenticationScheme;
@@ -813,8 +847,7 @@ private:
    UtlBoolean mbShutdownDone;
    UtlBoolean mbBlockingShutdown;
 
-   UtlBoolean mbAllowHeader; ///< whether to send Allow header
-   UtlBoolean mbSupportedHeader; ///< whether to send Supported header
+   UtlBoolean mbAllowHeader;
    UtlBoolean mbDateHeader;
    UtlBoolean mbShortNames;
    UtlString mAcceptLanguage;

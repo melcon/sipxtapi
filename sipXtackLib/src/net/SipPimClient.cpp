@@ -37,10 +37,9 @@
 /* ============================ CREATORS ================================== */
 
 // Constructor
-SipPimClient::SipPimClient(SipUserAgent& userAgent, Url& presentityAor)
-: mpTextHandlerFunction(NULL)
-, mpTextHandlerUserData(NULL)
-, mSipCallIdGenerator("m")
+SipPimClient::SipPimClient(SipUserAgent& userAgent, Url& presentityAor):
+mpTextHandlerFunction(NULL),
+mpTextHandlerUserData(NULL)
 {
     mCallIdIndex = 0;
 
@@ -60,9 +59,8 @@ SipPimClient::SipPimClient(SipUserAgent& userAgent, Url& presentityAor)
 }
 
 // Copy constructor
-SipPimClient::SipPimClient(const SipPimClient& rSipPimClient)
-: mpTextHandlerFunction(NULL)
-, mSipCallIdGenerator("m")
+SipPimClient::SipPimClient(const SipPimClient& rSipPimClient):
+mpTextHandlerFunction(NULL)
 {
 }
 
@@ -110,8 +108,7 @@ SipPimClient::operator=(const SipPimClient& rhs)
 UtlBoolean SipPimClient::sendPagerMessage(Url& destinationAor, 
                                           const char* messageText, const char* subject,
                                           int& responseCode,
-                                          UtlString& responseCodeText,
-                                          SIP_TRANSPORT_TYPE transport)
+                                          UtlString& responseCodeText)
 {
     UtlBoolean returnCode = FALSE;
     responseCode = -1;
@@ -128,14 +125,14 @@ UtlBoolean SipPimClient::sendPagerMessage(Url& destinationAor,
         UtlString toAddress = destinationAor.toString();
         UtlString requestUri;
         destinationAor.getUri(requestUri);
-        UtlString callId(mSipCallIdGenerator.getNewCallId());
+        UtlString callId;
+        getNextCallId(callId);
         SipMessage messageRequest;
         messageRequest.setRequestData(SIP_MESSAGE_METHOD, requestUri,
                          mFromField, toAddress,
                          callId,
                          1, // sequenceNumber
                          NULL); // contactUrl
-        messageRequest.setPreferredTransport(SipTransport::getSipTransport(transport));
 
 
         if (NULL != subject && 0 != strlen(subject))
@@ -332,7 +329,33 @@ UtlBoolean SipPimClient::handleMessage(OsMsg& eventMessage)
 
 /* ============================ INQUIRY =================================== */
 
+
+
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
+
+void SipPimClient::getNextCallId(UtlString& callId)
+{
+    UtlString callIdSeed;
+    mpUserAgent->getContactUri(&callIdSeed);
+
+    char num[20];
+
+    int epochTime = OsDateTime::getSecsSinceEpoch();
+    SNPRINTF(num, sizeof(num), "%d", epochTime);
+    callIdSeed.append(num);
+
+    mCallIdIndex++;
+    SNPRINTF(num, sizeof(num), "%d", mCallIdIndex);
+    callIdSeed.append(num);
+
+    callIdSeed.append(mFromField);
+
+    NetMd5Codec::encode(callIdSeed, callId);
+    callId.append("-pimc");
+    callId.append(num);
+
+
+}
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 

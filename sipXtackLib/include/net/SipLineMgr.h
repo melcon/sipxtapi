@@ -88,7 +88,7 @@ public:
    virtual UtlBoolean getLineProxyServers(const Url& lineUri, UtlString& proxyServers) const;
 
    /** Sets state on given line. */
-   UtlBoolean setStateForLine(const Url& lineUri, SipLine::LineStateEnum state);
+   UtlBoolean setStateForLine(const Url& lineUri, SipLine::LineStates state);
 
    /** Adds new credentials to given line */
    UtlBoolean addCredentialForLine(const Url& lineUri,
@@ -110,13 +110,15 @@ public:
    UtlBoolean deleteAllCredentialsForLine(const Url& lineUri);
 
    /**
-   * Tries to find line according to given parameters. First lookup by identityUri. If
+   * Tries to find line according to given parameters. First try lookup by
+   * lineId if its supplied. If lineId is not supplied, lookup by identityUri. If
    * not found by identityUri, try by userId.
    *
    * If found, then line is copied into line parameter. It is slower than getLineCopy.
    * Line aliases are considered.
    */
-   virtual UtlBoolean findLineCopy(const Url& lineUri,
+   virtual UtlBoolean findLineCopy(const UtlString& lineId,
+                                   const Url& lineUri,
                                    const UtlString& userId,
                                    SipLine& sipLine) const;
 
@@ -140,10 +142,12 @@ public:
    /* ============================ INQUIRY =================================== */
 
    /**
-    * Tries to find line according to given parameters. First lookup by identityUri. If
+    * Tries to find line according to given parameters. First try lookup by
+    * lineId if its supplied. If lineId is not supplied, lookup by identityUri. If
     * not found by identityUri, try by userId.
     */
-   virtual UtlBoolean lineExists(const Url& lineUri,
+   virtual UtlBoolean lineExists(const UtlString& lineId,
+                                 const Url& lineUri,
                                  const UtlString& userId) const;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
@@ -162,13 +166,14 @@ protected:
 private:
 
    /**
-   * Tries to find line according to given parameters. First hash lookup by lineUri.
-   * If not found by identityUri, try slow scan by userId. This method is slow if userId
-   * is provided and lineUri doesn't match.
+   * Tries to find line according to given parameters. First try lookup by
+   * lineId if its supplied. If lineId is not supplied, lookup by identityUri. If
+   * not found by identityUri, try by userId.
    *
    * This function returns direct pointer, and can only be used internally.
    */
-   virtual const SipLine* findLine(const Url& lineUri,
+   virtual const SipLine* findLine(const UtlString& lineId,
+                                   const Url& lineUri,
                                    const UtlString& userId) const;
 
    /** Prints all lines in line manager */

@@ -130,7 +130,7 @@ static const float const_float_dither_scale_ = PA_FLOAT_DITHER_SCALE_;
 
 /* -------------------------------------------------------------------------- */
 
-#if defined(_WIN64) || defined(_WIN32_WCE)
+#ifdef _WIN64
 
 /*
 	-EMT64/AMD64 uses different asm

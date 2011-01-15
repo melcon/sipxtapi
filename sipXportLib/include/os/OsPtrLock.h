@@ -60,7 +60,7 @@ public:
     * Copy constructor for assigning instance of OsPtrLock. Copies the pointer
     * stored in OsPtrLock, and locks it again.
     */
-   OsPtrLock(const OsPtrLock<T>& rhs)
+   OsPtrLock(const OsPtrLock& rhs)
    {
       superclassCheck();
       m_pValue = rhs.m_pValue;
@@ -70,20 +70,20 @@ public:
    /* ============================ MANIPULATORS ============================== */
 
    /** 
-   * Assignment operator for assigning instance of OsPtrLock into OsPtrLock.
-   * Locks the assigned object. Object will get unlocked during destruction or
-   * another assignment.
-   */
-   OsPtrLock<T>& operator=(const OsPtrLock<T>& rhs)
+    * Assignment operator for assigning instance of OsPtrLock into OsPtrLock.
+    * Locks the assigned object. Object will get unlocked during destruction or
+    * another assignment.
+    */
+   OsPtrLock& operator=(const OsPtrLock& rhs)
    {
-      if ((void*)&rhs == (void*)this)
+      if (rhs == this)
       {
          // when self assignment do not lock or unlock anything
          return *this;
       }
 
       release(); // release old lock
-      m_pValue = dynamic_cast<T*>(rhs.m_pValue);
+      m_pValue = rhs.m_pValue;
       acquire(); // acquire new lock
       return *this;
    }
@@ -112,14 +112,6 @@ public:
    /* ============================ ACCESSORS ================================= */
 
    /* ============================ INQUIRY =================================== */
-
-   /**
-    * Returns TRUE if pointer is NULL.
-    */
-   UtlBoolean isNull() const
-   {
-      return m_pValue == NULL ? TRUE : FALSE;
-   }
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:

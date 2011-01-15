@@ -143,10 +143,12 @@ public:
       SipLineList lineList;
       lineList.add(line1);
       
+      // try find by lineID
+      CPPUNIT_ASSERT(lineList.findLine(line1.getLineId(), "xxx", "xxx"));
       // find by uri
-      CPPUNIT_ASSERT(lineList.findLine(lineUri, "xxx"));
+      CPPUNIT_ASSERT(lineList.findLine("xxx", lineUri, "xxx"));
       // find by userID
-      CPPUNIT_ASSERT(lineList.findLine("xxx", USER_ID_1));
+      CPPUNIT_ASSERT(lineList.findLine("xxx", "xxx", USER_ID_1));
    }
 
    void testFindLineByAlias()
@@ -159,13 +161,13 @@ public:
       lineList.addAlias(alias, line1.getLineUri());
 
       // find by uri - fail
-      CPPUNIT_ASSERT(!lineList.findLine("xxx", "xxx"));
+      CPPUNIT_ASSERT(!lineList.findLine("xxx", "xxx", "xxx"));
       // find by alias - pass
-      CPPUNIT_ASSERT(lineList.findLine(alias, "xxx"));
+      CPPUNIT_ASSERT(lineList.findLine("xxx", alias, "xxx"));
       // remove alias
       lineList.removeAlias(alias);
       // this must fail
-      CPPUNIT_ASSERT(!lineList.findLine(alias, "xxx"));
+      CPPUNIT_ASSERT(!lineList.findLine("xxx", alias, "xxx"));
    }
 
    void testGetLineCount()
@@ -189,6 +191,7 @@ public:
       SipLineList lineList;
 
       lineList.add(line1);
+      CPPUNIT_ASSERT(lineList.getLine(line1.getLineId()));
       CPPUNIT_ASSERT(lineList.getLine(line1.getLineUri()));
    }
 

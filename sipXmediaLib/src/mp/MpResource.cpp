@@ -589,15 +589,6 @@ UtlBoolean MpResource::pushBufferDownsream(int outPortIdx, const MpBufPtr &pBuf)
    return TRUE;
 }
 
-// Associates this resource with the indicated flow graph.
-// For now, this method always returns success
-OsStatus MpResource::setFlowGraph(MpFlowGraphBase* pFlowGraph)
-{
-   mpFlowGraph = pFlowGraph;
-
-   return OS_SUCCESS;
-}
-
 // Post a message to this resource.
 // If this resource is not part of a flow graph, then rMsg is
 // immediately passed to the handleMessage() method for this
@@ -704,6 +695,15 @@ UtlBoolean MpResource::disconnectOutput(int outPortIdx)
    mNumActualOutputs--;
 
    return TRUE;
+}
+
+// Associates this resource with the indicated flow graph.
+// For now, this method always returns success
+OsStatus MpResource::setFlowGraph(MpFlowGraphBase* pFlowGraph)
+{
+   mpFlowGraph = pFlowGraph;
+
+   return OS_SUCCESS;
 }
 
 // Sets the name that is associated with this resource.

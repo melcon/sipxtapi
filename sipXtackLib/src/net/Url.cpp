@@ -369,29 +369,6 @@ void Url::setScheme(Url::Scheme scheme)
    mScheme = scheme;
 }
 
-UtlBoolean Url::isNull() const
-{
-
-   if (mDisplayName.isNull() &&
-       mUserId.isNull() &&
-       mPassword.isNull() &&
-       !mPasswordSet &&
-       mHostAddress.isNull() &&
-       mHostPort == PORT_NONE &&
-       mPath.isNull() &&
-       mRawUrlParameters.isNull() &&
-       mRawHeaderOrQueryParameters.isNull() &&
-       mRawFieldParameters.isNull() &&
-       (mpUrlParameters == NULL || mpUrlParameters->entries() == 0) &&
-       (mpHeaderOrQueryParameters == NULL || mpHeaderOrQueryParameters->entries() == 0) &&
-       (mpFieldParameters == NULL || mpFieldParameters->entries() == 0))
-   {
-      return TRUE;
-   }
-
-   return FALSE;
-}
-
 void Url::setUrlType(const char* urlProtocol)
 {
    if (urlProtocol)
@@ -1542,18 +1519,24 @@ void Url::parseString(const char* urlString, UtlBoolean isAddrSpec)
    case SipsUrlScheme:
    {
       // it may have url parameters of the form ";" param "=" value ...
-      LOG_TIME("urlparm   < ");
-      RegEx urlParams(UrlParams);
-      if (   (urlParams.SearchAt(urlString, workingOffset))
-          && (urlParams.MatchStart(0) == workingOffset)
-          )
+      //                if it meets the right conditions:
+      if (   isAddrSpec                          // in addr-spec, any param is a url param
+          || afterAngleBrackets != UTL_NOT_FOUND // inside angle brackets there may be a url param
+          ) 
       {
-         LOG_TIME("urlparm   > ");
-         urlParams.MatchString(&mRawUrlParameters, 1);
-         workingOffset = urlParams.AfterMatch(1);
+         LOG_TIME("urlparm   < ");
+         RegEx urlParams(UrlParams);
+         if (   (urlParams.SearchAt(urlString, workingOffset))
+             && (urlParams.MatchStart(0) == workingOffset)
+             )
+         {
+            LOG_TIME("urlparm   > ");
+            urlParams.MatchString(&mRawUrlParameters, 1);
+            workingOffset = urlParams.AfterMatch(1);
 
-         // actual parsing of the parameters is in parseUrlParameters
-         // so that it only happens if someone asks for them.
+            // actual parsing of the parameters is in parseUrlParameters
+            // so that it only happens if someone asks for them.
+         }
       }
    }
    break;
@@ -1665,10 +1648,6 @@ UtlBoolean Url::isUserHostEqual(const Url &url) const
            && (mUserId.compareTo(url.mUserId) == 0));
 }
 
-UtlBoolean Url::isUserEqual(const Url& url) const
-{
-   return (mUserId.compareTo(url.mUserId) == 0);
-}
 
 void Url::getIdentity(UtlString &identity) const
 {

@@ -39,15 +39,16 @@ UtlBoolean SipLineProvider::getCredentialForMessage(const SipMessage& sipRespons
                                                     SipLineCredential& lineCredential) const
 {
    UtlBoolean result = FALSE;
+   UtlString lineId;
    Url lineUri;
    UtlString userId;
 
-   // get lineUri, userId from SipMessage
-   extractLineData(sipRequest, lineUri, userId);
+   // get LINEID, lineUri, userId from SipMessage
+   extractLineData(sipRequest, lineId, lineUri, userId);
 
    // get copy of SipLine
    SipLine sipLine;
-   UtlBoolean lineFound = findLineCopy(lineUri, userId, sipLine); // slow lookup during authentication is ok
+   UtlBoolean lineFound = findLineCopy(lineId, lineUri, userId, sipLine); // slow lookup during authentication is ok
    if (lineFound)
    {
       // get authentication details from response
@@ -70,8 +71,13 @@ UtlBoolean SipLineProvider::getCredentialForMessage(const SipMessage& sipRespons
       UtlBoolean foundCredential = sipLine.getCredential(scheme, realm, sipCredential);
       if (foundCredential)
       {
-         lineCredential = sipCredential;
-         result = TRUE;
+         // check that credentials are for required userid
+         if (!sipCredential.getUserId().compareTo(userId, UtlString::matchCase))
+         {
+            // userid match, return this credential
+            lineCredential = sipCredential;
+            result = TRUE;
+         }
       }
    }
 
@@ -81,17 +87,19 @@ UtlBoolean SipLineProvider::getCredentialForMessage(const SipMessage& sipRespons
 UtlBoolean SipLineProvider::getProxyServersForMessage(const SipMessage& sipRequest,
                                                       UtlString& proxyServer) const
 {
+   UtlString lineId;
    Url lineUri;
    UtlString userId;
 
-   // get lineUri, userId from SipMessage
-   extractLineData(sipRequest, lineUri, userId);
+   // get LINEID, lineUri, userId from SipMessage
+   extractLineData(sipRequest, lineId, lineUri, userId);
 
    // do fast lookup to get proxy servers
    return getLineProxyServers(lineUri, proxyServer);
 }
 
 void SipLineProvider::extractLineData(const SipMessage& sipMsg,
+                                      UtlString& lineId,
                                       Url& lineUri,
                                       UtlString& userId)
 {
@@ -151,39 +159,22 @@ void SipLineProvider::extractLineData(const SipMessage& sipMsg,
       }
    }
 
+   lineUri.getUrlParameter(SIP_LINE_IDENTIFIER , lineId); // get LINEID from lineUri
    lineUri.getUserId(userId); // get userId from lineUri
-}
-
-void SipLineProvider::getFullLineUrl(const SipMessage& sipRequest, UtlString& sFullLineUrl) const
-{
-   sFullLineUrl.remove(0);
-
-   Url lineUri;
-   UtlString userId;
-   SipLineProvider::extractLineData(sipRequest, lineUri, userId);
-   SipLine sipLine;
-   if (findLineCopy(lineUri, userId, sipLine))
-   {
-      // we found line
-      sFullLineUrl = sipLine.getFullLineUrl().toString();
-      return;
-   }
-
-   // we didn't find line
-   sipRequest.getRequestUri(&sFullLineUrl);
 }
 
 /* ============================ INQUIRY =================================== */
 
 UtlBoolean SipLineProvider::lineExists(const SipMessage& sipMsg) const
 {
+   UtlString lineId;
    Url lineUri;
    UtlString userId;
 
-   // get lineUri, userId
-   extractLineData(sipMsg, lineUri, userId);
+   // get LINEID, lineUri, userId
+   extractLineData(sipMsg, lineId, lineUri, userId);
 
-   return lineExists(lineUri, userId);
+   return lineExists(lineId, lineUri, userId);
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */

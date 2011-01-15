@@ -782,15 +782,11 @@ error:
     return result;
 }
 
-/** Open input and output devices.
- *
- * @param idev: Returned input device file descriptor.
- * @param odev: Returned output device file descriptor.
- */
 static PaError OpenDevices( const char *idevName, const char *odevName, int *idev, int *odev )
 {
     PaError result = paNoError;
     int flags = O_NONBLOCK, duplex = 0;
+    int enableBits = 0;
     *idev = *odev = -1;
 
     if( idevName && odevName )
@@ -810,6 +806,10 @@ static PaError OpenDevices( const char *idevName, const char *odevName, int *ide
     {
         ENSURE_( *idev = open( idevName, flags ), paDeviceUnavailable );
         PA_ENSURE( ModifyBlocking( *idev, 1 ) ); /* Blocking */
+
+        /* Initially disable */
+        enableBits = ~PCM_ENABLE_INPUT;
+        ENSURE_( ioctl( *idev, SNDCTL_DSP_SETTRIGGER, &enableBits ), paUnanticipatedHostError );
     }
     if( odevName )
     {
@@ -817,6 +817,10 @@ static PaError OpenDevices( const char *idevName, const char *odevName, int *ide
         {
             ENSURE_( *odev = open( odevName, flags ), paDeviceUnavailable );
             PA_ENSURE( ModifyBlocking( *odev, 1 ) ); /* Blocking */
+
+            /* Initially disable */
+            enableBits = ~PCM_ENABLE_OUTPUT;
+            ENSURE_( ioctl( *odev, SNDCTL_DSP_SETTRIGGER, &enableBits ), paUnanticipatedHostError );
         }
         else
         {
@@ -969,8 +973,6 @@ static int CalcHigherLogTwo( int n )
     return log2;
 }
 
-/** Configure stream component device parameters.
- */
 static PaError PaOssStreamComponent_Configure( PaOssStreamComponent *component, double sampleRate, unsigned long
         framesPerBuffer, StreamMode streamMode, PaOssStreamComponent *master )
 {
@@ -1432,12 +1434,6 @@ static PaError PaOssStream_Prepare( PaOssStream *stream )
     if( stream->triggered )
         return result;
 
-    /* The OSS reference instructs us to clear direction bits before setting them.*/
-    if( stream->playback )
-        ENSURE_( ioctl( stream->playback->fd, SNDCTL_DSP_SETTRIGGER, &enableBits ), paUnanticipatedHostError );
-    if( stream->capture )
-        ENSURE_( ioctl( stream->capture->fd, SNDCTL_DSP_SETTRIGGER, &enableBits ), paUnanticipatedHostError );
-
     if( stream->playback )
     {
         size_t bufSz = PaOssStreamComponent_BufferSize( stream->playback );
@@ -1511,6 +1507,7 @@ static PaError PaOssStream_Stop( PaOssStream *stream, int abort )
         result = paUnanticipatedHostError;
     }
 
+error:
     return result;
 }
 
@@ -1982,11 +1979,8 @@ static signed long GetStreamWriteAvailable( PaStream* s )
 #endif
     return (PaOssStreamComponent_BufferSize( stream->playback ) - delay) / PaOssStreamComponent_FrameSize( stream->playback );
 
-/* Conditionally compile this to avoid warning about unused label */
-#ifdef SNDCTL_DSP_GETODELAY
 error:
     return result;
-#endif
 }
 
 const char *PaOSS_GetStreamInputDevice( PaStream* s )

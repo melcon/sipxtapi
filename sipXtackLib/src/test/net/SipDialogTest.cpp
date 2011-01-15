@@ -229,15 +229,15 @@ Content-Length: 0\r\n\r\n";
          UtlString localContactString;
          subDialog.getLocalContact(localContactUri);
          localContactUri.toString(localContactString);
-         ASSERT_STR_EQUAL("<sip:10.1.1.10>", localContactString.data());
+         ASSERT_STR_EQUAL("sip:10.1.1.10", localContactString.data());
 
-         Url remoteRequestUri;
-         subDialog.getRemoteRequestUri(remoteRequestUri);
-         ASSERT_STR_EQUAL("sip:sipuaconfig@sipuaconfig.example.com", remoteRequestUri.toString().data());
+         UtlString remoteUriString;
+         subDialog.getRemoteRequestUri(remoteUriString);
+         ASSERT_STR_EQUAL("sip:sipuaconfig@sipuaconfig.example.com", remoteUriString.data());
 
-         Url localRequestUri;
-         subDialog.getLocalRequestUri(localRequestUri);
-         ASSERT_STR_EQUAL("sip:", localRequestUri.toString().data());
+         UtlString localUriString;
+         subDialog.getLocalRequestUri(localUriString);
+         ASSERT_STR_EQUAL("", localUriString.data());
 
          CPPUNIT_ASSERT_EQUAL(7, subDialog.getLastLocalCseq());
          CPPUNIT_ASSERT_EQUAL(-1, subDialog.getLastRemoteCseq());

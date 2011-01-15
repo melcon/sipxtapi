@@ -11,7 +11,6 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <mp/MpDefs.h>
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/TestCase.h>
 #include <sipxunit/TestUtilities.h>
@@ -37,9 +36,9 @@ class MpMediaTaskTest : public CppUnit::TestCase
     CPPUNIT_TEST_SUITE_END();
 
 /// Number of frames in one frame
-#define TEST_SAMPLES_PER_FRAME SAMPLES_PER_FRAME
+#define TEST_SAMPLES_PER_FRAME 80
 /// Number of frames in one second
-#define TEST_SAMPLES_PER_SEC SAMPLES_PER_SECOND
+#define TEST_SAMPLES_PER_SEC 8000
 
 public:
 
@@ -51,7 +50,7 @@ public:
       // enable test mode
       MpMediaTask::enableTestMode(TRUE);
       // Setup media task, and start it
-      res = mpStartUp();
+      res = mpStartUp(TEST_SAMPLES_PER_SEC, TEST_SAMPLES_PER_FRAME);
       mpMediaTask = MpMediaTask::getMediaTask(FALSE);
       CPPUNIT_ASSERT(res == OS_SUCCESS);
    }

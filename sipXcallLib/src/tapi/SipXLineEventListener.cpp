@@ -142,15 +142,14 @@ void SipXLineEventListener::handleLineEvent(const UtlString& lineIdentifier,
                                             int sipResponseCode,
                                             const UtlString& sResponseText)
 {
-   OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG,
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
       "handleLineEvent pSrc=%p szLineIdentifier=%s event=%d cause=%d",
       m_pInst, lineIdentifier.data(), event, cause);
 
    SIPX_LINE_DATA* pLineData = NULL;
    SIPX_LINE hLine = SIPX_LINE_NULL;
 
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, m_pInst);
-   hLine = sipxLineLookupHandleByURI(pInst, lineIdentifier);
+   hLine = sipxLineLookupHandleByURI((SIPX_INSTANCE_DATA*)m_pInst, lineIdentifier);
 
    // fire event even if line doesn't exist anymore - was destroyed, in that case
    // hLine will be SIPX_LINE_NULL, we can not wait with deletion until LINESTATE_UNREGISTERED

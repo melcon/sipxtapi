@@ -1,78 +1,113 @@
-//
-// Copyright (C) 2004-2006 SIPfoundry Inc.
-// Licensed by SIPfoundry under the LGPL license.
-//
-// Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
+// 
+// Copyright (C) 2005-2007 SIPez LLC.
 // Licensed to SIPfoundry under a Contributor Agreement.
-//
-// Copyright (C) 2007 Jaroslav Libak
-// Licensed under the LGPL license.
+// 
+// Copyright (C) 2004-2007 SIPfoundry Inc.
+// Licensed by SIPfoundry under the LGPL license.
+// 
+// Copyright (C) 2004-2007 Pingtel Corp.
+// Licensed to SIPfoundry under a Contributor Agreement.
+// 
 // $$
-///////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 
-#ifndef OsTimerMsg_h__
-#define OsTimerMsg_h__
+
+#ifndef _OsTimerMsg_h_
+#define _OsTimerMsg_h_
 
 // SYSTEM INCLUDES
+
 // APPLICATION INCLUDES
-#include <os/OsMsg.h>
-#include <os/OsTime.h>
+#include "os/OsDefs.h"
+#include "os/OsRpcMsg.h"
 
 // DEFINES
 // MACROS
 // EXTERNAL FUNCTIONS
+// EXTERNAL VARIABLES
 // CONSTANTS
 // STRUCTS
 // TYPEDEFS
-// MACROS
+
 // FORWARD DECLARATIONS
+class OsTimer;
 
-/**
- * OsTimerMsg represents message which gets sent when a timer fires.
- * Never use directly, but subclass to supply msgSubType automatically
- * and transport any user data in subclass.
- */
-class OsTimerMsg : public OsMsg
+//:Messages used to request timer services
+
+class OsTimerMsg : public OsRpcMsg
 {
-   /* //////////////////////////// PUBLIC //////////////////////////////////// */
+/* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
-   /* ============================ CREATORS ================================== */
 
-   /**
-    * Constructor. Creates OsTimerMsg with given sub type and timestamp.
-    */
-   OsTimerMsg(const unsigned char msgSubType);
+   enum MsgSubType
+   {
+      OS_TIMER_UPDATE,          ///< update the status of the timer
+      OS_TIMER_UPDATE_SYNC,     /**< update the status of the timer and signal
+                                 *   an event object
+                                 */
+      OS_TIMER_UPDATE_DELETE,   /**< update the status of the timer and
+                                 *   delete it
+                                 */
+      OS_TIMER_SHUTDOWN         ///< shut down the timer task */
+   };
 
-   /** Copy constructor */
-   OsTimerMsg(const OsTimerMsg& rhs);
+/* ============================ CREATORS ================================== */
 
-   /** Create a copy of this msg object (which may be of a derived type) */
+   OsTimerMsg(const unsigned char subType,
+              OsTimer* pTimer,
+              OsEvent* pEvent);
+     //:Constructor
+
+   OsTimerMsg(const OsTimerMsg& rOsTimerMsg);
+     //:Copy constructor
+
    virtual OsMsg* createCopy(void) const;
+     //:Create a copy of this msg object (which may be of a derived type)
 
-   /** Destructor. */
-   virtual ~OsTimerMsg();
+   virtual
+   ~OsTimerMsg();
+     //:Destructor
 
-   /* ============================ MANIPULATORS ============================== */
+/* ============================ MANIPULATORS ============================== */
 
-   /** Assignment operator */
    OsTimerMsg& operator=(const OsTimerMsg& rhs);
+     //:Assignment operator
 
-   /* ============================ ACCESSORS ================================= */
+/* ============================ ACCESSORS ================================= */
 
-   /** Return the timestamp associated with this event */
-   OsTime getTimestamp() const { return m_timestamp; }
+   virtual int getMsgSize(void) const;
+     //:Return the size of the message in bytes
+     // This is a virtual method so that it will return the accurate size for
+     // the message object even if that object has been upcast to the type of
+     // an ancestor class.
 
-   /** Sets timestamp associated with this event */
-   void setTimestamp(const OsTime& val) { m_timestamp = val; }
+   /// Return the (pointer to the OsTimer object) in this message.
+   inline OsTimer* getTimerP(void) const
+   {
+      return mpTimer;
+   }
 
-   /* ============================ INQUIRY =================================== */
+   /// Return the (pointer to the OsEvent object) in this message.
+   inline OsEvent* getEventP(void) const
+   {
+      return OsRpcMsg::getEvent();
+   }
 
-   /* //////////////////////////// PROTECTED ///////////////////////////////// */
+/* ============================ INQUIRY =================================== */
+
+/* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-   /* //////////////////////////// PRIVATE /////////////////////////////////// */
+/* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   OsTime m_timestamp;
+
+   OsTimer* mpTimer;
+
+   void init(void);
+     //:Initialization common to all constructors
+
 };
 
-#endif // OsTimerMsg_h__
+/* ============================ INLINE METHODS ============================ */
+
+#endif  // _OsTimerMsg_h_

@@ -443,7 +443,7 @@ void sipXtapiTestSuite::testLineAliases()
 
       int connectionId = -1;
 
-      CPPUNIT_ASSERT_EQUAL(sipxCallGetMediaConnectionId(hCall, &connectionId), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL(sipxCallGetConnectionId(hCall, &connectionId), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT(connectionId != -1);
 
       SIPX_CALL hDestroyedCall = hCall;
@@ -497,7 +497,7 @@ void sipXtapiTestSuite::testLineAliases()
 
       connectionId = -1;
 
-      CPPUNIT_ASSERT_EQUAL(sipxCallGetMediaConnectionId(hCall, &connectionId), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL(sipxCallGetConnectionId(hCall, &connectionId), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT(connectionId != -1);
 
       hDestroyedCall = hCall;
@@ -717,6 +717,7 @@ void sipXtapiTestSuite::testReRegistration()
 
 void sipXtapiTestSuite::testReRegistrationFailure()
 {
+   bool bRC;
    EventValidator validatorLine("testReRegistration.line");
 
    for (int iStressFactor = 0; iStressFactor < 1; iStressFactor++)

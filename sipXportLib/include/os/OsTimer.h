@@ -136,11 +136,8 @@ public:
     *  @code
     *  rNotifier.signal((int) this)
     *  @endcode
-    *
-    *  Timer will become manager of the passed object, and is responsible for
-    *  deleting it.
     */
-   OsTimer(OsNotification* pNotification ///< OsNotification object to report event
+   OsTimer(OsNotification& rNotifier ///< OsNotification object to report event
            );
 
    /** Construct a timer that signals by calling
@@ -149,7 +146,7 @@ public:
     *  @endcode
     */
    OsTimer(OsMsgQ* pQueue,      ///< Queue to send OsEventMsg::NOTIFY message
-           intptr_t userData         ///< userData value to store in OsQueuedEvent
+           int userData         ///< userData value to store in OsQueuedEvent
            );
 
    /// @}
@@ -180,9 +177,6 @@ public:
 
    /// Start the timer to fire once at the indicated date/time
    virtual OsStatus oneshotAt(const OsDateTime& when);
-
-   /// Start the timer to fire once at the indicated time since epoch
-   virtual OsStatus oneshotAt(const OsTime& when);
 
    /// Start the timer to fire once at the current time + offset
    virtual OsStatus oneshotAfter(const OsTime& offset);
@@ -247,12 +241,6 @@ public:
     * if stop operation succeeds. It is set to TRUE when timer is fired.
     * Note that stop fails on a stopped timer.
     */
-
-   /// Returns the time when timer expires
-   void getExpiresAt(OsDateTime& dateTime);
-
-   /// Returns the time when timer expires (more accurate than OsDateTime)
-   void getExpiresAt(OsTime& time);
 
 /* ============================ INQUIRY =================================== */
 

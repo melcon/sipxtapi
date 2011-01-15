@@ -135,10 +135,12 @@ public:
             SipUserAgent sipUA( 5090
                               ,5090
                               ,5091
-                              ,"127.0.0.1"     // bind IP address
+                              ,NULL     // default publicAddress
                               ,NULL     // default defaultUser
+                              ,"127.0.0.1"     // default defaultSipAddress
                               ,NULL     // default sipProxyServers
                               ,NULL     // default sipDirectoryServers
+                              ,NULL     // default sipRegistryServers
                               ,NULL     // default authenticationScheme
                               ,NULL     // default authenicateRealm
                               ,NULL     // default authenticateDb
@@ -217,10 +219,12 @@ public:
             SipUserAgent sipUA( 5090
                               ,5090
                               ,5091
-                              ,"127.0.0.1"     // bind IP address
+                              ,NULL     // default publicAddress
                               ,NULL     // default defaultUser
+                              ,"127.0.0.1"     // default defaultSipAddress
                               ,NULL     // default sipProxyServers
                               ,NULL     // default sipDirectoryServers
+                              ,NULL     // default sipRegistryServers
                               ,NULL     // default authenticationScheme
                               ,NULL     // default authenicateRealm
                               ,NULL     // default authenticateDb

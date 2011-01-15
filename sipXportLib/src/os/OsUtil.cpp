@@ -247,41 +247,35 @@ OsStatus OsUtil::checkNetmask(const char* netmask)
 // :Return TRUE if the destIpAddress is on the same logical network as
 //   myIpAddr given the net mask myNetMask.  Returns FALSE otherwise.
 UtlBoolean OsUtil::isSameNetwork(const char* destIpAddr,
-                                 const char* myIpAddr,
-                                 const char* myNetMask)
+                                                        const char* myIpAddr,
+                                                        const char* myNetMask)
 {
-   UtlBoolean     bSame = TRUE;
-   unsigned char octetsDest[4];
-   unsigned char octetsIp[4];
-   unsigned char octetsNetMask[4];
-   int           i;
+        UtlBoolean     bSame = TRUE ;
+        unsigned char octetsDest[4] ;
+        unsigned char octetsIp[4] ;
+        unsigned char octetsNetMask[4] ;
+        int           i ;
 
-   // Sanity Check the input
-   if (OsUtil::convertIpAddressToOctets(destIpAddr, octetsDest) &&
-       OsUtil::convertIpAddressToOctets(myIpAddr, octetsIp) &&
-       OsUtil::convertIpAddressToOctets(myNetMask, octetsNetMask))
-   {
-         // Make sure bits match where the NetMask is set...
-         for (i=0;i<4;i++)
-         {
-            for (int j=7; j>=0; j--)
-            {
-               if (octetsNetMask[i] & (1 << j))
-               {
-                  if ((octetsIp[i] & (1 << j)) != (octetsDest[i] & (1 << j)))
-                  {
-                     return FALSE;
-                  }
-               }
-            }
-         }
-   }
-   else
-   {
-      bSame = FALSE;
-   }
 
-   return bSame;
+        // Sanity Check the input
+        if (    OsUtil::convertIpAddressToOctets(destIpAddr, octetsDest) &&
+                        OsUtil::convertIpAddressToOctets(myIpAddr, octetsIp) &&
+                        OsUtil::convertIpAddressToOctets(myNetMask, octetsNetMask)) {
+
+                // Make sure bits match where the NetMask is set...
+                for (i=0;i<4;i++) {
+                        for (int j=7; j>=0; j--) {
+                                if (octetsNetMask[i] & (1 << j)) {
+                                        if ((octetsIp[i] & (1 << j)) != (octetsDest[i] & (1 << j))) {
+                                                bSame = FALSE ;
+                                        }
+                                }
+                        }
+                }
+        } else
+                bSame = FALSE ;
+
+        return bSame ;
 }
 
 //returns OS_SUCCESS if the host repsonds within timeout

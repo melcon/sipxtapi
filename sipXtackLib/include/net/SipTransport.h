@@ -19,8 +19,6 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <os/OsSocket.h>
-
 // DEFINES
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -34,17 +32,16 @@ class UtlString;
 // TYPEDEFS
 
 /**
- * SIP_TRANSPORT_TYPE defines various protocols use for signaling 
+ * SIPXSTACK_TRANSPORT_TYPE defines various protocols use for signaling 
  * transport.
- * Keep in sync with SIPX_TRANSPORT_TYPE.
  */
 typedef enum
 {
-   SIP_TRANSPORT_AUTO = -1, /**< Automatic transport (we don't care) */
-   SIP_TRANSPORT_UDP = 0,  /**< Indicator for a UDP socket type. */
-   SIP_TRANSPORT_TCP = 1,  /**< Indicator for a TCP socket type. */ 
-   SIP_TRANSPORT_TLS = 2,  /**< Indicator for a TLS socket type. */
-} SIP_TRANSPORT_TYPE;
+   SIPXSTACK_TRANSPORT_UDP = 1,  /**< Indicator for a UDP socket type. */
+   SIPXSTACK_TRANSPORT_TCP = 0,  /**< Indicator for a TCP socket type. */ 
+   SIPXSTACK_TRANSPORT_TLS = 3,  /**< Indicator for a TLS socket type. */
+   SIPXSTACK_TRANSPORT_CUSTOM = 4 /**< Indicator for a custom external transport. */
+} SIPXSTACK_TRANSPORT_TYPE;
 
 // MACROS
 // GLOBAL VARIABLES
@@ -58,18 +55,9 @@ public:
 
    /* ============================ MANIPULATORS ============================== */
 
-   static SIP_TRANSPORT_TYPE getSipTransport(const Url& url);
-   static SIP_TRANSPORT_TYPE getSipTransport(const UtlString& strUrl);
-   static SIP_TRANSPORT_TYPE getSipTransport(const char* szUrl);
-   static SIP_TRANSPORT_TYPE getSipTransport(OsSocket::IpProtocolSocketType protocolType);
-   static OsSocket::IpProtocolSocketType getSipTransport(SIP_TRANSPORT_TYPE transport);
-
-   /**
-    * Returns string identifier for given transport. For automatic or unknown transport
-    * empty string is returned.
-    */
-   static UtlString getSipTransportString(OsSocket::IpProtocolSocketType protocolType);
-   static UtlString getSipTransportString(SIP_TRANSPORT_TYPE transport);
+   static SIPXSTACK_TRANSPORT_TYPE getSipTransport(const Url& url);
+   static SIPXSTACK_TRANSPORT_TYPE getSipTransport(const UtlString& strUrl);
+   static SIPXSTACK_TRANSPORT_TYPE getSipTransport(const char* szUrl);
 
    /* ============================ INQUIRY =================================== */
 

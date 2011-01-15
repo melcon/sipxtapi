@@ -8,12 +8,13 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
+
 // SYSTEM INCLUDES
 #include <assert.h>
 
 // APPLICATION INCLUDES
 #include <net/SipObserverCriteria.h>
-#include <net/SipDialog.h>
+#include <net/SipSession.h>
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -33,7 +34,7 @@ SipObserverCriteria::SipObserverCriteria(void* observerData,
                                           UtlBoolean wantIncoming,
                                           UtlBoolean wantOutGoing,
                                           const char* eventName,
-                                          const SipDialog* pSipDialog
+                                          SipSession* pSession
                                           ) :
 UtlString(sipMethod ? sipMethod : "")
 {
@@ -45,11 +46,11 @@ UtlString(sipMethod ? sipMethod : "")
    mWantsOutGoing = wantOutGoing;
    mEventName = eventName ? eventName : "";
 
-   // Make a copy of the sip dialog
-   if (pSipDialog != NULL)
-      m_pSipDialog = new SipDialog(*pSipDialog);
+   // Make a copy of the session
+   if (pSession != NULL)
+      mpSession = new SipSession(*pSession) ;
    else
-      m_pSipDialog = NULL ;
+      mpSession = NULL ;
 }
 
 // Copy constructor
@@ -61,10 +62,10 @@ SipObserverCriteria::SipObserverCriteria(const SipObserverCriteria& rSipObserver
 // Destructor
 SipObserverCriteria::~SipObserverCriteria()
 {
-   if (m_pSipDialog != NULL)
+   if (mpSession != NULL)
    {
-      delete m_pSipDialog ;
-      m_pSipDialog = NULL ;
+      delete mpSession ;
+      mpSession = NULL ;
    }
 }
 
@@ -91,34 +92,34 @@ void* SipObserverCriteria::getObserverData()
     return(mObserverData);
 }
 
-void SipObserverCriteria::getEventName(UtlString& eventName) const
+void SipObserverCriteria::getEventName(UtlString& eventName)
 {
     eventName = mEventName;
 }
 
-const SipDialog* SipObserverCriteria::getSipDialog() const
+SipSession* SipObserverCriteria::getSession()
 {
-    return (m_pSipDialog);
+    return (mpSession);
 }
 
 /* ============================ INQUIRY =================================== */
 
-UtlBoolean SipObserverCriteria::wantsRequests() const
+UtlBoolean SipObserverCriteria::wantsRequests()
 {
     return(mWantsRequests);
 }
 
-UtlBoolean SipObserverCriteria::wantsResponses() const
+UtlBoolean SipObserverCriteria::wantsResponses()
 {
     return(mWantsResponses);
 }
 
-UtlBoolean SipObserverCriteria::wantsIncoming() const
+UtlBoolean SipObserverCriteria::wantsIncoming()
 {
     return(mWantsIncoming);
 }
 
-UtlBoolean SipObserverCriteria::wantsOutGoing() const
+UtlBoolean SipObserverCriteria::wantsOutGoing()
 {
     return(mWantsOutGoing);
 }

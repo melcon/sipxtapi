@@ -17,6 +17,10 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include "os/OsServerTask.h"
+#include "net/SipMessage.h"
+#include "net/SipMessageEvent.h"
+#include "sipXtapi.h"
+
 
 // DEFINES
 #define SIPXMO_NOTIFICATION_STUN    1
@@ -26,22 +30,20 @@
 // STRUCTS
 // TYPEDEFS
 // MACROS
+
 // FORWARD DECLARATIONS
 class OsEventMsg;
-class SIPX_INSTANCE_DATA;
-class OsStunResultMsg;
-class OsStunResultSuccessMsg;
-class OsStunResultFailureMsg;
 
 /**
  *  Class that is an OsServerTask, and has a message queue that observes SIP messages.
+ *  For example, it is used for looking for message responses, like the INFO response.
  */
 class SipXMessageObserver : public OsServerTask
 {
 public:
 /* ============================ CREATORS ================================== */
 
-    SipXMessageObserver(SIPX_INSTANCE_DATA* pInst);
+    SipXMessageObserver(const SIPX_INST hInst);
     virtual ~SipXMessageObserver(void);
     
 /* ============================ MANIPULATORS ============================== */
@@ -49,16 +51,23 @@ public:
     /**
      * Implementation of OsServerTask's pure virtual method
      */
-    virtual UtlBoolean handleMessage(OsMsg& rMsg);
-      
+    UtlBoolean handleMessage(OsMsg& rMsg);
+    
+    /**
+     * FOR TEST PURPOSES ONLY - a response code to send back to the client
+     */
+    void setTestResponseCode(int code) { m_iTestResponseCode = code; }    
+    
 private:
-    UtlBoolean handleStunOutcome(const OsStunResultMsg& pResultMsg);
+    UtlBoolean handleIncomingInfoMessage(SipMessage* pMessage);
+    UtlBoolean handleIncomingInfoStatus(SipMessage* pMessage);
+    UtlBoolean handleStunOutcome(OsEventMsg* pMsg);
 
-    UtlBoolean handleStunSuccess(const OsStunResultSuccessMsg& pResultMsg);
-
-    UtlBoolean handleStunFailure(const OsStunResultFailureMsg& pResultMsg);
-
-    SIPX_INSTANCE_DATA* m_pInst;
+    /** 
+     * Special response code - for test purposes only.
+     */
+    int m_iTestResponseCode;    
+    SIPX_INST m_hInst;
 };
 
 #endif

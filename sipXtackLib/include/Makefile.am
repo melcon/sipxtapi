@@ -37,16 +37,16 @@ nobase_include_HEADERS =  \
     net/PidfBody.h \
     net/QoS.h \
     net/SdpBody.h \
+    net/SdpCodecFactory.h \
+    net/SdpHelper.h \
     net/SipCallIdGenerator.h \
     net/SipClient.h \
-    net/SipContact.h \
+    net/SipConfigServerAgent.h \
     net/SipContactDb.h \
-    net/SipContactSelector.h \
     net/SipDialog.h \
     net/SipDialogEvent.h \
     net/SipDialogMgr.h \
     net/SipDialogMonitor.h \
-    net/SipInfoEventListener.h \
     net/SipInfoStatusEventListener.h \
     net/SipLine.h \
     net/SipLineAlias.h \
@@ -76,14 +76,13 @@ nobase_include_HEADERS =  \
     net/SipServerBase.h \
     net/SipServerBroker.h \
     net/SipServerBrokerListener.h \
+    net/SipSession.h \
     net/SipSrvLookup.h \
     net/SipSubscribeClient.h \
     net/SipSubscribeServer.h \
     net/SipSubscribeServerEventHandler.h \
     net/SipSubscriptionMgr.h \
-    net/SipTagGenerator.h \
     net/SipTcpServer.h \
-    net/msg/SipTimerMsg.h \
     net/SipTlsServer.h \
     net/SipTransaction.h \
     net/SipTransactionList.h \
@@ -91,6 +90,7 @@ nobase_include_HEADERS =  \
     net/SipUdpServer.h \
     net/SipUserAgent.h \
     net/SipUserAgentBase.h \
+    net/SipUserAgentStateless.h \
     net/SmimeBody.h \
     net/StateChangeNotifier.h \
     net/Url.h \

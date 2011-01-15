@@ -42,6 +42,8 @@ SIPX_INST g_hInst5 = NULL;
 
 SIPX_CALL ghCallHangup = 0;
 
+SIPX_TRANSPORT ghTransport = 0;
+
 TestStunServerTask* g_pPrimaryStunServer;
 TestStunServerTask* g_pPrimaryStunServer2;
 TestStunServerTask* g_pSecondaryStunServer;
@@ -395,7 +397,7 @@ void sipXtapiTestSuite::checkForCallLeaks(SIPX_INST hInst)
    SIPX_RESULT rc;
    UtlSList callIDs;
 
-   rc = sipxGetAllAbstractCallIds(hInst, callIDs);
+   rc = sipxGetAllCallIds(hInst, callIDs);
    CPPUNIT_ASSERT_EQUAL(rc, SIPX_RESULT_SUCCESS);
    if (rc == SIPX_RESULT_SUCCESS)
    {

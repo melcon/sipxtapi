@@ -19,7 +19,7 @@
 // APPLICATION INCLUDES
 #include "os/OsEvent.h"
 #include "os/OsTimer.h"
-#include "os/OsTimerTaskCommandMsg.h"
+#include "os/OsTimerMsg.h"
 #include "os/OsTimerTask.h"
 #include "os/OsLock.h"
 
@@ -61,7 +61,7 @@ void OsTimerTask::destroyTimerTask(void)
     if (sInstance.isStarted())
     {
        OsEvent event;
-       OsTimerTaskCommandMsg msg(OsTimerTaskCommandMsg::OS_TIMER_SHUTDOWN, NULL, &event);
+       OsTimerMsg msg(OsTimerMsg::OS_TIMER_SHUTDOWN, NULL, &event);
        // Send the OS_TIMER_SHUTDOWN message.
        OsStatus res = OsTimerTask::getTimerTask()->postMessage(msg);
        assert(res == OS_SUCCESS);
@@ -77,7 +77,7 @@ OsTimerTask::~OsTimerTask()
    {
       // Shut down the task.
       OsEvent event;
-      OsTimerTaskCommandMsg msg(OsTimerTaskCommandMsg::OS_TIMER_SHUTDOWN, NULL, &event);
+      OsTimerMsg msg(OsTimerMsg::OS_TIMER_SHUTDOWN, NULL, &event);
       // Send the OS_TIMER_SHUTDOWN message.
       OsStatus res = OsTimerTask::getTimerTask()->postMessage(msg);
       assert(res == OS_SUCCESS);
@@ -206,19 +206,19 @@ UtlBoolean OsTimerTask::handleMessage(OsMsg& rMsg)
 {
    // Process a message.
 
-   // If not an OS_TIMERTASK_COMMAND message, return FALSE to indicate it should be
+   // If not an OS_TIMER message, return FALSE to indicate it should be
    // passed to our superclass.
-   if (rMsg.getMsgType() != OsMsg::OS_TIMERTASK_COMMAND)
+   if (rMsg.getMsgType() != OsMsg::OS_TIMER)
    {
       return FALSE;
    }
 
-   // Process an OS_TIMERTASK_COMMAND message.
+   // Process an OS_TIMER message.
 
-   OsTimerTaskCommandMsg& message = dynamic_cast <OsTimerTaskCommandMsg&> (rMsg);
+   OsTimerMsg& message = dynamic_cast <OsTimerMsg&> (rMsg);
 
    // Process a OS_TIMER_SHUTDOWN message, which is special
-   if (message.getMsgSubType() == OsTimerTaskCommandMsg::OS_TIMER_SHUTDOWN)
+   if (message.getMsgSubType() == OsTimerMsg::OS_TIMER_SHUTDOWN)
    {
       OsSysLog::add(FAC_KERNEL, PRI_INFO,
                     "OsTimerTask::handleMessage OS_TIMER_SHUTDOWN seen, mState = %d",
@@ -314,16 +314,16 @@ UtlBoolean OsTimerTask::handleMessage(OsMsg& rMsg)
 
    switch (message.getMsgSubType())
    {
-   case OsTimerTaskCommandMsg::OS_TIMER_UPDATE:
+   case OsTimerMsg::OS_TIMER_UPDATE:
       // No further processing is needed.
       break;
 
-   case OsTimerTaskCommandMsg::OS_TIMER_UPDATE_SYNC:
+   case OsTimerMsg::OS_TIMER_UPDATE_SYNC:
       // If it is an UPDATE_SYNC message, signal the event.
       message.getEventP()->signal(0);
       break;
 
-   case OsTimerTaskCommandMsg::OS_TIMER_UPDATE_DELETE:
+   case OsTimerMsg::OS_TIMER_UPDATE_DELETE:
       // If it is an UPDATE_DELETE, delete the timer.
 
       // Timer will not be accessed by any other thread, so we

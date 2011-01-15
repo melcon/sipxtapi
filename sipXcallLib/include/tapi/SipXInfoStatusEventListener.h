@@ -56,6 +56,12 @@ public:
 
    virtual UtlBoolean handleMessage(OsMsg& rRawMsg);
 
+   void sipxFireInfoStatusEvent(SIPX_INFO hInfo,
+                                SIPX_MESSAGE_STATUS status,
+                                int responseCode,
+                                const UtlString& sResponseText,
+                                SIPX_INFOSTATUS_EVENT event);
+
    /* ============================ ACCESSORS ================================= */
 
    /* ============================ INQUIRY =================================== */
@@ -69,12 +75,11 @@ private:
 
    SipXInfoStatusEventListener& operator=(const SipXInfoStatusEventListener& rhs);
   
-   void handleInfoStatusEvent(const UtlString& sAbstractCallId,
+   void handleInfoStatusEvent(SIPX_INFO hInfo,
                               SIPX_MESSAGE_STATUS status,
                               int responseCode,
                               const UtlString& sResponseText,
-                              SIPX_INFOSTATUS_EVENT event,
-                              void* pCookie);
+                              SIPX_INFOSTATUS_EVENT event);
 
    SIPX_INST m_pInst;
 };

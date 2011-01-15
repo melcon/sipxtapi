@@ -30,7 +30,7 @@ public:
 //@{
 
      /// Constructor
-   MpeSipxILBC(int payloadType, int mode = 30);
+   MpeSipxILBC(int payloadType);
      /**<
      *  @param payloadType - (in) RTP payload type associated with this encoder
      */
@@ -66,7 +66,7 @@ public:
                            const int bytesLeft,
                            int& rSizeInBytes,
                            UtlBoolean& sendNow,
-                           MpSpeechType& speechType);
+                           MpAudioBuf::SpeechType& rAudioCategory);
      /**<
      *  Processes the array of audio samples.  If sufficient samples to encode
      *  a frame are now available, the encoded data will be written to the
@@ -80,7 +80,7 @@ public:
      *  @param bytesLeft - (in) number of bytes available at pCodeBuf
      *  @param rSizeInBytes - (out) Number of bytes written to the <i>pCodeBuf</i> array
      *  @param sendNow - (out) if true, the packet is complete, send it.
-     *  @param speechType - (in, out) Audio type (e.g., unknown, silence, comfort noise)
+     *  @param rAudioCategory - (out) Audio type (e.g., unknown, silence, comfort noise)
      *
      *  @returns <b>OS_SUCCESS</b> - Success
      */
@@ -105,15 +105,11 @@ protected:
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   static const MpCodecInfo smCodecInfo20ms; ///< static information about the 20ms codec version
-   static const MpCodecInfo smCodecInfo30ms; ///< static information about the 30ms codec version
+   static const MpCodecInfo smCodecInfo; ///< Static information about the codec
 
    MpAudioSample mpBuffer[240]; ///< Buffer used to store input samples
-   unsigned int mBufferLoad;             ///< How much data there is in the buffer
+   int mBufferLoad;             ///< How much data there is in the byffer
    iLBC_Enc_Inst_t_* mpState;   ///< Internal iLBC decoder state.
-   int m_mode; ///< iLBC mode. 20 or 30 is a valid value.
-   unsigned int m_samplesPerFrame;
-   unsigned int m_packetBytes; ///< RTP packet bytes
 };
 
 #endif // HAVE_ILBC ]

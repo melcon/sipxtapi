@@ -30,7 +30,7 @@
 
 // FORWARD DECLARATIONS
 class OsTimer;
-class OsTimerTaskCommandMsg;
+class OsTimerMsg;
 
 //:Timer service request manager (runs as a separate task)
 // This task is responsible for managing timer service requests. Timer

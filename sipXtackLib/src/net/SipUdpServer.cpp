@@ -59,6 +59,7 @@ public:
     UtlString   m_method ;
     int         m_iKeepAlive ;
     OsTimer*    m_pTimer ;
+    OsCallback* m_pCallback ;
     SipMessage* m_pSipMessage ;
     OsNatKeepaliveListener* m_pListener ;
 
@@ -78,6 +79,7 @@ public:
         m_method = method ;
         m_iKeepAlive = iKeepAlive ;
         m_pTimer = NULL ;
+        m_pCallback = NULL ;
         m_pSipMessage = NULL ;
         m_pListener = pListener ;
 
@@ -109,10 +111,9 @@ public:
     void start(SipUdpServer* pServer) 
     {
         if (m_pTimer == NULL)
-        {
-            OsCallback* pCallback = new OsCallback((intptr_t) pServer, SipUdpServer::SipKeepAliveCallback) ;
-            // timer manages callback deletion
-            m_pTimer = new OsTimer(pCallback) ;        
+        {            
+            m_pCallback = new OsCallback((int) pServer, SipUdpServer::SipKeepAliveCallback) ;
+            m_pTimer = new OsTimer(*m_pCallback) ;        
         }
 
         // Fire off event
@@ -163,6 +164,7 @@ public:
     {
         stop() ;
         delete m_pTimer ;
+        delete m_pCallback ;
         delete m_pSipMessage ;
     }
 } ;
@@ -178,13 +180,12 @@ SipUdpServer::SipUdpServer(int port,
                            SipUserAgent* userAgent,
                            int udpReadBufferSize,
                            UtlBoolean bUseNextAvailablePort,
-                           const char* szBoundIp)
-: SipProtocolServerBase(userAgent, "UDP", "SipUdpServer-%d")
-, mSipCallIdGenerator("k")
-, mStunRefreshSecs(28)
-, mStunPort(PORT_NONE)
-, mKeepAliveMutex(OsRWMutex::Q_FIFO)
-, mMapLock(OsMutex::Q_FIFO)   
+                           const char* szBoundIp) :
+   SipProtocolServerBase(userAgent, "UDP", "SipUdpServer-%d"),
+   mStunRefreshSecs(28), 
+   mStunPort(PORT_NONE),
+        mKeepAliveMutex(OsRWMutex::Q_FIFO),
+   mMapLock(OsMutex::Q_FIFO)   
 {
     OsSysLog::add(FAC_SIP, PRI_DEBUG,
                   "SipUdpServer::_ port = %d, bUseNextAvailablePort = %d, szBoundIp = '%s'",
@@ -204,7 +205,7 @@ SipUdpServer::SipUdpServer(int port,
     {
         int numAddresses = MAX_IP_ADDRESSES;
         const HostAdapterAddress* adapterAddresses[MAX_IP_ADDRESSES];
-        OsNetwork::getAllLocalHostIps(adapterAddresses, numAddresses);
+        getAllLocalHostIps(adapterAddresses, numAddresses);
 
         for (int i = 0; i < numAddresses; i++)
         {
@@ -306,13 +307,17 @@ OsStatus SipUdpServer::createServerSocket(const char* szBoundIp,
     {     
         pSocket->enableTransparentReads(false);  
         port = pSocket->getLocalHostPort();
+        SIPX_CONTACT_ADDRESS contact;
+        SAFE_STRNCPY(contact.cIpAddress, szBoundIp, sizeof(contact.cIpAddress));
+        contact.iPort = port;
+        contact.eContactType = CONTACT_LOCAL;
+        UtlString adapterName;
+        
+        getContactAdapterName(adapterName, contact.cIpAddress);
 
-        UtlString adapterName;        
-        OsNetwork::getAdapterName(adapterName, szBoundIp);
-
-        SipContact sipContact(-1, SIP_CONTACT_LOCAL, SIP_TRANSPORT_UDP,
-           szBoundIp, port, adapterName, szBoundIp);
-        mSipUserAgent->addContact(sipContact);
+        SAFE_STRNCPY(contact.cInterface, adapterName.data(), sizeof(contact.cInterface));
+        contact.eTransportType = TRANSPORT_UDP;
+        mSipUserAgent->addContactAddress(contact);
    
         // add address and port to the maps
         mServerSocketMap.insertKeyAndValue(new UtlString(szBoundIp),
@@ -374,77 +379,85 @@ void SipUdpServer::enableStun(const char* szStunServer,
                               int iStunPort,
                               const char* szLocalIp, 
                               int refreshPeriodInSecs, 
-                              OsMsgQ* pNotificationQueue) 
+                              OsNotification* pNotification) 
 {
     OsLock lock(mMapLock);
     // Store settings
-    mStunPort = iStunPort;
-    mStunRefreshSecs = refreshPeriodInSecs;
+    mStunPort = iStunPort ;
+    mStunRefreshSecs = refreshPeriodInSecs ;   
     if (szStunServer)
     {
-        mStunServer = szStunServer;
+        mStunServer = szStunServer ;
     }
     else
     {
-        mStunServer.clear();
+        mStunServer.remove(0) ;
     }
     
-    UtlBoolean bStunAll = FALSE;
     UtlHashMapIterator iterator(mServerSocketMap);
-    UtlString* pMapKey = NULL;
-    UtlString sIpToStun;
+    UtlString* pKey = NULL;
+
+    char szIpToStun[256];
+    memset((void*)szIpToStun, 0, sizeof(szIpToStun));
     
     if (szLocalIp)
     {
-       sIpToStun.append(szLocalIp);
+        strcpy(szIpToStun, szLocalIp);
     }
-    if (sIpToStun.isNull() || sIpToStun.compareTo("0.0.0.0") == 0)
+    bool bStunAll = false;
+    if (0 == strcmp(szIpToStun, "") || 0 == strcmp(szIpToStun, "0.0.0.0"))
     {
         bStunAll = true;
         // if no ip specified, start on the first one
-        pMapKey = dynamic_cast<UtlString*>(iterator());
-        if (pMapKey)
+        pKey = (UtlString*) iterator();
+        if (pKey)
         {
-           sIpToStun = *pMapKey;
+            strcpy(szIpToStun, pKey->data());
         }
     }
     
-    while (!sIpToStun.isNull())
+    while (0 != strcmp(szIpToStun, ""))
     {
-        const UtlPtr<OsNatDatagramSocket>* pSocketContainer = (UtlPtr<OsNatDatagramSocket>*)mServerSocketMap.findValue(&sIpToStun);
+        UtlPtr<OsNatDatagramSocket>* pSocketContainer;
+        UtlString key(szIpToStun);
+        
+        pSocketContainer = (UtlPtr<OsNatDatagramSocket>*)this->mServerSocketMap.findValue(&key);
+        OsNatDatagramSocket* pSocket = NULL;
         
         if (pSocketContainer)
         {
-           OsNatDatagramSocket* pSocket = pSocketContainer->getValue();
-           if (pSocket)
-           {
-              pSocket->disableStun();
-              // Update server client
-              if (!mStunServer.isNull()) 
-              {
-                 pSocket->setStunNotificationQueue(pNotificationQueue);
-                 pSocket->enableStun(mStunServer, mStunPort, refreshPeriodInSecs, 0, false);
-              }
-           }
+            pSocket = pSocketContainer->getValue();
+        }                                                                  
+        if (pSocket)
+        {
+            pSocket->disableStun() ;
+            
+            // Update server client
+            if (pSocket && mStunServer.length()) 
+            {
+                pSocket->setNotifier(pNotification) ;
+                pSocket->enableStun(mStunServer,  mStunPort, refreshPeriodInSecs, 0, false) ;
+            }  
         }
         if (bStunAll)
         {
             // get the next address to stun
-            pMapKey = dynamic_cast<UtlString*>(iterator());
-            if (pMapKey)
+            pKey = (UtlString*) iterator();
+            if (pKey)
             {
-                sIpToStun = *pMapKey;
+                strcpy(szIpToStun, pKey->data());
             }
             else
             {
-                break; // no more server sockets
+                strcpy(szIpToStun, "");
             }
         }
         else
         {
             break;
         }
-    } // end while
+    } // end while  
+    
 }
 
 UtlBoolean SipUdpServer::startListener()
@@ -569,16 +582,29 @@ UtlBoolean SipUdpServer::sendTo(const SipMessage& message,
 OsSocket* SipUdpServer::buildClientSocket(int hostPort, const char* hostAddress, const char* localIp)
 {
     OsNatDatagramSocket* pSocket = NULL;
-    UtlPtr<OsNatDatagramSocket>* pSocketContainer = NULL;
 
-    assert(localIp != NULL);
-    UtlString sLocalIp(localIp);
-     
-    pSocketContainer = (UtlPtr<OsNatDatagramSocket>*)mServerSocketMap.findValue(&sLocalIp);
-    assert(pSocketContainer);
-     
-    pSocket = pSocketContainer->getValue();
-    assert(pSocket);
+    if (mSipUserAgent && mSipUserAgent->getUseRport())
+    {
+        UtlPtr<OsNatDatagramSocket>* pSocketContainer = NULL;
+
+        assert(localIp != NULL);
+        UtlString localKey(localIp);
+        
+        pSocketContainer = (UtlPtr<OsNatDatagramSocket>*)mServerSocketMap.findValue(&localKey);
+        assert(pSocketContainer);
+        
+        pSocket = pSocketContainer->getValue();
+        assert(pSocket);
+    }
+    else
+    {
+        pSocket = new OsNatDatagramSocket(0, NULL, 0, localIp) ;
+        pSocket->enableTransparentReads(false);  
+        if (mStunServer.length() != 0)
+        {
+            pSocket->enableStun(mStunServer, mStunPort, mStunRefreshSecs, 0, true) ;
+        }
+    }
 
     return pSocket ;
 }
@@ -1057,7 +1083,7 @@ void SipUdpServer::sendSipKeepAlive(OsTimer* pTimer)
 
                 // Setup From Field
                 UtlString from;
-                mSipUserAgent->getDefaultContactUri(&from);
+                mSipUserAgent->getContactUri(&from);
                 char fromTag[80];
                 SNPRINTF(fromTag, sizeof(fromTag), ";tag=%d%d", rand(), rand());
                 from.append(fromTag);
@@ -1105,10 +1131,14 @@ void SipUdpServer::sendSipKeepAlive(OsTimer* pTimer)
                 delete[] dnsSrvRecords;
 
                 // Generate CallId
-                UtlString callId(mSipCallIdGenerator.getNewCallId());
+                UtlString callId(mDefaultIp) ;
+                long epochTime = OsDateTime::getSecsSinceEpoch();
+                char callIdPrefix[80];
+                SNPRINTF(callIdPrefix, sizeof(callIdPrefix), "%ld%d-ping-", epochTime, rand());
+                callId.insert(0,callIdPrefix);                
 
                 pBinding->m_pSipMessage->setRequestData(pBinding->m_method, 
-                        to, from, to, callId, rand() % 32768);
+                        to, from, to, callId, rand() % 32768) ;
 
                 // Set User Agent header
                 mSipUserAgent->setUserAgentHeader(*pBinding->m_pSipMessage) ;

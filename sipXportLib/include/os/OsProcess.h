@@ -28,8 +28,7 @@
 // CONSTANTS
 // STRUCTS
 // TYPEDEFS
-typedef int PID; ///< process id
-typedef int TID; ///< thread id
+typedef int PID;
 
 typedef struct OS_PROCESS_STRUCT
 {
@@ -130,9 +129,6 @@ public:
      // This Id is unique within the entire host, in that any two simultaneous
      // executions that do not share their memory space will have different
      // values from getCurrentPID().
-
-    /** Gets current thread id */
-    static TID getCurrentTID();
 
     virtual PID getPID();
     //: Returns the process id contained by this object

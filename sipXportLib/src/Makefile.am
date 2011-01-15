@@ -74,9 +74,10 @@ libsipXport_la_SOURCES =  \
     os/OsNameDb.cpp \
     os/OsNameDbInit.cpp \
     os/OsNatAgentTask.cpp \
+    os/OsNatConnectionSocket.cpp \
     os/OsNatDatagramSocket.cpp \
+    os/OsNatServerSocket.cpp \
     os/OsNatSocketBaseImpl.cpp \
-    os/OsNetworkAdapterInfo.cpp \
     os/OsPathBase.cpp \
     os/OsProcessBase.cpp \
     os/OsProcessIteratorBase.cpp \
@@ -86,15 +87,11 @@ libsipXport_la_SOURCES =  \
     os/OsProtectEventMgrInit.cpp \
     os/OsPtrMsg.cpp \
     os/OsQueuedEvent.cpp \
-    os/OsQueuedNotification.cpp \
     os/OsRWMutex.cpp \
     os/OsRpcMsg.cpp \
     os/OsSSL.cpp \
     os/OsSSLConnectionSocket.cpp \
     os/OsSSLServerSocket.cpp \
-    os/OsStunResultFailureMsg.cpp \
-    os/OsStunResultMsg.cpp \
-    os/OsStunResultSuccessMsg.cpp \
     os/OsServerSocket.cpp \
     os/OsServerTask.cpp \
     os/OsSharedLibMgr.cpp \
@@ -113,14 +110,13 @@ libsipXport_la_SOURCES =  \
     os/OsTimeLog.cpp \
     os/OsTimer.cpp \
     os/OsTimerMsg.cpp \
-    os/OsTimerNotification.cpp \
-    os/OsTimerTaskCommandMsg.cpp \
     os/OsTimerTask.cpp \
     os/OsTokenizer.cpp \
     os/OsUtil.cpp \
     os/StunMessage.cpp \
     os/StunUtils.cpp \
     os/TurnMessage.cpp \
+    os/linux/AdapterInfo.cpp \
     os/linux/OsBSemLinux.cpp \
     os/linux/OsCSemLinux.cpp \
     os/linux/OsDateTimeLinux.cpp \
@@ -130,7 +126,6 @@ libsipXport_la_SOURCES =  \
     os/linux/OsFileLinux.cpp \
     os/linux/OsMutexLinux.cpp \
     os/linux/OsMutexLinuxC.c \
-    os/linux/OsNetworkLinux.cpp \
     os/linux/OsPathLinux.cpp \
     os/linux/OsProcessIteratorLinux.cpp \
     os/linux/OsProcessLinux.cpp \

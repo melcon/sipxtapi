@@ -10,8 +10,8 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef GenericClass_h__
-#define GenericClass_h__
+#ifndef Template_h__
+#define Template_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
@@ -47,4 +47,4 @@ private:
 
 };
 
-#endif // GenericClass_h__
+#endif // Template_h__

@@ -932,7 +932,7 @@ public:
 
             bytesRead = fread(buffer, 1, sampleSize * frames, file);
 
-            res = m_pDriver->writeStream(stream, buffer, frames);
+            res = m_pDriver->writeStreamSync(stream, buffer, frames);
 //            CPPUNIT_ASSERT(res == OS_SUCCESS);
          }
          fclose(file);
@@ -994,7 +994,7 @@ public:
 
       for (int i = 0; i < duration; i++)
       {
-         res = m_pDriver->readStream(stream, pBuffer, frames);
+         res = m_pDriver->readStreamSync(stream, pBuffer, frames);
          pBuffer += (sampleSize * frames);
       }
       
@@ -1003,7 +1003,7 @@ public:
       // now play back what we recorded
       for (int i = 0; i < duration; i++)
       {
-         res = m_pDriver->writeStream(stream, pBuffer, frames);
+         res = m_pDriver->writeStreamSync(stream, pBuffer, frames);
          pBuffer += (sampleSize * frames);
       }
 
@@ -1074,7 +1074,7 @@ public:
 
             bytesRead = fread(buffer, 1, sampleSize * realFrames, file);
 
-            res = m_pDriver->writeStream(stream, buffer, realFrames);
+            res = m_pDriver->writeStreamSync(stream, buffer, realFrames);
             cnt++;
          }
          fclose(file);
@@ -1149,7 +1149,7 @@ public:
             realFrames = realFrames * 2;
          }
 
-         res = m_pDriver->readStream(stream, pBuffer, realFrames);
+         res = m_pDriver->readStreamSync(stream, pBuffer, realFrames);
          pBuffer += (sampleSize * realFrames);
          cnt++;
       }
@@ -1170,7 +1170,7 @@ public:
             realFrames = realFrames * 2;
          }
 
-         res = m_pDriver->writeStream(stream, pBuffer, realFrames);
+         res = m_pDriver->writeStreamSync(stream, pBuffer, realFrames);
          pBuffer += (sampleSize * realFrames);
          cnt++;
       }
@@ -1231,8 +1231,8 @@ public:
 
          // get timer task to start it
          OsTimerTask::getTimerTask();
-         OsEvent* pEvent = new OsEvent(0); // even managed by timer
-         OsTimer timer(pEvent);
+         OsEvent event(0);
+         OsTimer timer(event);
          // for 8000 samples per sec, 160 frames per buffer, we need to signal every 20ms
          timer.periodicEvery(OsTime(100), OsTime(20));
          char* pBuffer = buffer;
@@ -1241,11 +1241,11 @@ public:
          while ((pBuffer + frames * sampleSize) < bufferEnd)
          {
             // wait until timer signals us
-            pEvent->wait();
-            pEvent->reset();
+            event.wait();
+            event.reset();
             
             // now copy data to stream
-            m_pDriver->writeStream(stream, pBuffer, frames);
+            m_pDriver->writeStreamAsync(stream, pBuffer, frames);
 
             // repeat until we run out of buffer
             pBuffer += sampleSize * frames;
@@ -1317,8 +1317,8 @@ public:
 
          // get timer task to start it
          OsTimerTask::getTimerTask();
-         OsEvent* pEvent = new OsEvent(0); // event managed by timer
-         OsTimer timer(pEvent);
+         OsEvent event(0);
+         OsTimer timer(event);
          // for 8000 samples per sec, 160 frames per buffer, we need to signal every 20ms
          timer.periodicEvery(OsTime(100), OsTime(20));
          char* pBuffer = buffer;
@@ -1329,11 +1329,11 @@ public:
          while ((pBuffer + realFrames * sampleSize) < bufferEnd)
          {
             // wait until timer signals us
-            pEvent->wait();
-            pEvent->reset();
+            event.wait();
+            event.reset();
 
             // now copy data to stream
-            m_pDriver->writeStream(stream, pBuffer, realFrames);
+            m_pDriver->writeStreamAsync(stream, pBuffer, realFrames);
           
             // repeat until we run out of buffer
             pBuffer += sampleSize * realFrames;
@@ -1420,8 +1420,8 @@ public:
 
       // get timer task to start it
       OsTimerTask::getTimerTask();
-      OsEvent* pEvent = new OsEvent(0); // event managed by timer
-      OsTimer timer(pEvent);
+      OsEvent event(0);
+      OsTimer timer(event);
       // for 8000 samples per sec, 160 frames per buffer, we need to signal every 20ms
       timer.periodicEvery(OsTime(100), OsTime(20));
       char* bufferEnd = buffer + bufferSize;
@@ -1429,11 +1429,11 @@ public:
       while ((pBuffer + frames * sampleSize) < bufferEnd)
       {
          // wait until timer signals us
-         pEvent->wait();
-         pEvent->reset();
+         event.wait();
+         event.reset();
 
          // now copy data to stream
-         res = m_pDriver->readStream(stream, pBuffer, frames);
+         res = m_pDriver->readStreamAsync(stream, pBuffer, frames);
          CPPUNIT_ASSERT(res == OS_SUCCESS || res == OS_UNDERFLOW || res == OS_PREFETCH);
 
          if (res == OS_SUCCESS || res == OS_UNDERFLOW)
@@ -1450,11 +1450,11 @@ public:
       while ((pBuffer + frames * sampleSize) < bufferEnd)
       {
          // wait until timer signals us
-         pEvent->wait();
-         pEvent->reset();
+         event.wait();
+         event.reset();
 
          // now copy data to stream
-         res = m_pDriver->writeStream(stream, pBuffer, frames);
+         res = m_pDriver->writeStreamAsync(stream, pBuffer, frames);
          CPPUNIT_ASSERT(res == OS_SUCCESS || res == OS_OVERFLOW);
 
          pBuffer += sampleSize * frames;
@@ -1529,8 +1529,8 @@ public:
 
       // get timer task to start it
       OsTimerTask::getTimerTask();
-      OsEvent* pEvent = new OsEvent(0);
-      OsTimer timer(pEvent);
+      OsEvent event(0);
+      OsTimer timer(event);
       // for 8000 samples per sec, 160 frames per buffer, we need to signal every 20ms
       timer.periodicEvery(OsTime(100), OsTime(20));
       char* bufferEnd = buffer + bufferSize;
@@ -1540,11 +1540,11 @@ public:
       while ((pBuffer + realFrames * sampleSize) < bufferEnd)
       {
          // wait until timer signals us
-         pEvent->wait();
-         pEvent->reset();
+         event.wait();
+         event.reset();
 
          // now copy data to stream
-         res = m_pDriver->readStream(stream, pBuffer, realFrames);
+         res = m_pDriver->readStreamAsync(stream, pBuffer, realFrames);
          CPPUNIT_ASSERT(res == OS_SUCCESS || res == OS_UNDERFLOW || res == OS_PREFETCH);
 
          if (res == OS_SUCCESS || res == OS_UNDERFLOW)
@@ -1574,11 +1574,11 @@ public:
       while ((pBuffer + realFrames * sampleSize) < bufferEnd)
       {
          // wait until timer signals us
-         pEvent->wait();
-         pEvent->reset();
+         event.wait();
+         event.reset();
 
          // now copy data to stream
-         res = m_pDriver->writeStream(stream, pBuffer, realFrames);
+         res = m_pDriver->writeStreamAsync(stream, pBuffer, realFrames);
          CPPUNIT_ASSERT(res == OS_SUCCESS || res == OS_OVERFLOW);
 
          pBuffer += sampleSize * realFrames;

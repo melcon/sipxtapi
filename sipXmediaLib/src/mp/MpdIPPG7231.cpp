@@ -8,8 +8,6 @@
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
-// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
-// Licensed under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -29,14 +27,18 @@ extern "C" {
 
 const MpCodecInfo MpdIPPG7231::smCodecInfo(
    SdpCodec::SDP_CODEC_G723,    // codecType
-   "Intel IPP 6.0",             // codecVersion
+   "Intel IPP 5.3",             // codecVersion
+   true,                        // usesNetEq
    8000,                        // samplingRate
    16,                          // numBitsPerSample (not used)
    1,                           // numChannels
+   160,                          // interleaveBlockSize
    8000,                        // bitRate
    20*8,                         // minPacketBits
-   24*8,                         // maxPacketBits
-   240);                          // numSamplesPerFrame
+   20*8,                         // avgPacketBits
+   192,                         // maxPacketBits
+   160,                          // numSamplesPerFrame
+   6);                          // preCodecJitterBufferSize (should be adjusted)
 
 MpdIPPG7231::MpdIPPG7231(int payloadType)
 : MpDecoderBase(payloadType, &smCodecInfo)
@@ -190,63 +192,52 @@ OsStatus MpdIPPG7231::freeDecode(void)
 
 int MpdIPPG7231::decode(const MpRtpBufPtr &rtpPacket,
                        unsigned int decodedBufferLength,
-                       MpAudioSample *samplesBuffer,
-                       UtlBoolean bIsPLCFrame) 
+                       MpAudioSample *samplesBuffer) 
 {
-   if (!rtpPacket.isValid())
-      return 0;
 
-   unsigned payloadSize = rtpPacket->getPayloadSize();
-   unsigned maxPayloadSize = smCodecInfo.getMaxPacketBits()/8;
+   int infrmLen, FrmDataLen;
+   unsigned int decodedSamples;
 
-   assert(payloadSize <= maxPayloadSize);
-   if (payloadSize > maxPayloadSize || payloadSize <= 1)
-   {
-      return 0;
-   }
+   infrmLen = rtpPacket->getPayloadSize();
 
    // Prepare encoded buffer parameters
-   if (payloadSize == G723_PATTERN_LENGTH_6300)
+   if (infrmLen == G723_PATTERN_LENGTH_6300)
    {
       Bitstream.bitrate = 6300;
       Bitstream.frametype = 0;
       Bitstream.nbytes = 24;
+      decodedSamples = 240;
    }
-   else if (payloadSize == G723_PATTERN_LENGTH_5300)
+   else if (infrmLen == G723_PATTERN_LENGTH_5300)
    {
       Bitstream.bitrate = 5300;
       Bitstream.frametype = 0;
       Bitstream.nbytes = 20;
-   }
-   else if (!bIsPLCFrame)
+      decodedSamples = 240;
+   } else return 0; // we ignore SID frames 4 bytes long, should generate comfort noise
+
+   if (decodedBufferLength < decodedSamples)
    {
-      // MpDecodeBuffer will generate comfort noise
+      osPrintf("MpdIPPG723::decode: Jitter buffer overloaded. Glitch!\n");
       return 0;
    }
 
    Bitstream.pBuffer = const_cast<char*>(rtpPacket->getDataPtr());
    PCMStream.pBuffer = reinterpret_cast<char*>(samplesBuffer);
 
-   unsigned int decodedSamples = 0;
-   USC_Status uscStatus;
-
    // Decode one frame
-   if (payloadSize == G723_PATTERN_LENGTH_6300)
+   if (infrmLen == G723_PATTERN_LENGTH_6300)
    {
-      uscStatus = codec6300->uscParams.USC_Fns->Decode(codec6300->uscParams.uCodec.hUSCCodec,
-         bIsPLCFrame ? NULL : &Bitstream, &PCMStream);
-      assert(uscStatus == USC_NoError);
-      decodedSamples = PCMStream.nbytes / sizeof(MpAudioSample);
+      FrmDataLen = USCCodecDecode(&codec6300->uscParams, &Bitstream,
+                                  &PCMStream, 0);
    }
    else
    {
-      uscStatus = codec5300->uscParams.USC_Fns->Decode(codec5300->uscParams.uCodec.hUSCCodec,
-         bIsPLCFrame ? NULL : &Bitstream, &PCMStream);
-      assert(uscStatus == USC_NoError);
-      decodedSamples = PCMStream.nbytes / sizeof(MpAudioSample);
+      FrmDataLen = USCCodecDecode(&codec5300->uscParams, &Bitstream,
+                                  &PCMStream, 0);
    }
 
-   if (uscStatus != USC_NoError)
+   if (FrmDataLen < 0)
    {
       return 0;
    }
@@ -254,5 +245,22 @@ int MpdIPPG7231::decode(const MpRtpBufPtr &rtpPacket,
    // Return number of decoded samples
    return decodedSamples;
 }
+
+int MpdIPPG7231::decodeIn(const MpRtpBufPtr &rtpPacket)
+{
+   unsigned payloadSize = rtpPacket->getPayloadSize();
+
+   if (payloadSize == G723_PATTERN_LENGTH_6300 ||
+       payloadSize == G723_PATTERN_LENGTH_5300)
+   {
+      return payloadSize;
+   }
+   else
+   {
+      osPrintf("MpdIPPG723: Rejecting rtpPacket of size %i\n", payloadSize);
+      return -1;
+   }
+}
+
 
 #endif /* !HAVE_INTEL_IPP ] */

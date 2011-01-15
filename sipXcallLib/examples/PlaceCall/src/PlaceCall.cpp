@@ -29,6 +29,7 @@ DWORD WINAPI ConsoleStart(LPVOID lpParameter);
 
 #include "tapi/sipXtapi.h"
 #include "tapi/sipXtapiEvents.h"
+#include "ExternalTransport.h"
 
 #define MAX_RECORD_EVENTS       16
 #define portIsValid(p) ((p) >= 1 && (p) <= 65535)
@@ -36,6 +37,9 @@ DWORD WINAPI ConsoleStart(LPVOID lpParameter);
 SIPX_INST g_hInst1 = NULL ;      // Handle to the sipXtapi instanance
 SIPX_LINE g_hLine = 0 ;         // Line Instance (id, auth, etc)
 SIPX_CALL g_hCall = 0 ;         // Handle to a call
+bool bUseCustomTransportReliable = false;
+bool bUseCustomTransportUnreliable = false;
+SIPX_TRANSPORT ghTransport = SIPX_TRANSPORT_NULL;
 
 SIPX_CALLSTATE_EVENT    g_eRecordEvents[MAX_RECORD_EVENTS] ;    // List of last N events
 int                     g_iNextEvent ;      // Index for g_eRecordEvents ringer buffer
@@ -48,7 +52,29 @@ extern HWND hMain;
 static bool bVideo = false;
 #endif
 
+
+void startTribbleListener(const char* szIp);
+int tribbleProc(SIPX_TRANSPORT hTransport,
+                 const char* szDestinationIp,
+                 const int   iDestPort,
+                 const char* szLocalIp,
+                 const int   iLocalPort,
+                 const void* pData,
+                 const size_t nData,
+                 const void* pUserData) ;
+                            
+void startFlibbleListener(const char* szIp);
+int flibbleProc(SIPX_TRANSPORT hTransport,
+                 const char* szDestinationIp,
+                 const int   iDestPort,
+                 const char* szLocalIp,
+                 const int   iLocalPort,
+                 const void* pData,
+                 const size_t nData,
+                 const void* pUserData) ;
+FlibbleTask* gpFlibbleTask = NULL;
 SIPX_CONTACT_ID gContactId = CONTACT_AUTO;
+SIPX_CONTACT_ADDRESS*   gpExternalTransportContactRecord;
 
 // Print usage message
 void usage(const char* szExecutable)
@@ -71,8 +97,7 @@ void usage(const char* szExecutable)
     printf("   -B ip address to bind to\n");
     printf("   -u username (for authentication)\n") ;
     printf("   -a password  (for authentication)\n") ;
-    printf("   -m realm  (for authentication, optional)\n") ;
-    printf("   -register registers line with sip proxy\n") ;
+    printf("   -m realm  (for authentication)\n") ;
     printf("   -i from identity\n") ;
     printf("   -S stun server\n") ;
     printf("   -x proxy (outbound proxy)\n");
@@ -85,6 +110,8 @@ void usage(const char* szExecutable)
     printf("   -aec enable acoustic echo cancelation\n");
     printf("   -agc enable automatic gain control\n");
     printf("   -denoise enable speex denoiser\n");
+    printf("   -E use bogus custom external transport, reliable (transport=tribble)\n");
+    printf("   -e use bogus custom external transport, unreliable (transport=flibble)\n");
 #if defined(_WIN32) && defined(VIDEO)
     printf("   -V place a video call\n");
 #endif
@@ -118,7 +145,8 @@ bool parseArgs(int argc,
                bool*  bAEC,
                bool*  bAGC,
                bool*  bDenoise,
-               bool*  bRegisterLine)
+               bool*  bUseCustomTransportReliable,
+               bool*  bUseCustomTransportUnreliable)
 {
     bool bRC = false ;
     char szBuffer[64];
@@ -147,15 +175,10 @@ bool parseArgs(int argc,
     *bAEC = false;
     *bAGC = false;
     *bDenoise = false;
-    *bRegisterLine = false;
 
     for (int i=1; i<argc; i++)
     {
-       if (strcmp(argv[i], "-register") == 0)
-       {
-          *bRegisterLine = true;
-       }
-        else if (strcmp(argv[i], "-d") == 0)
+        if (strcmp(argv[i], "-d") == 0)
         {
             if ((i+1) < argc)
             {
@@ -376,6 +399,14 @@ bool parseArgs(int argc,
         {
             *bDenoise = true;
         }
+        else if (strcmp(argv[i], "-E") == 0)
+        {
+            *bUseCustomTransportReliable = true;            
+        }
+        else if (strcmp(argv[i], "-e") == 0)
+        {
+            *bUseCustomTransportUnreliable = true;            
+        }
         else
         {
             if ((i+1) == argc)
@@ -408,7 +439,7 @@ bool EventCallBack(SIPX_EVENT_CATEGORY category,
         // ::TODO:: Fix w/ update media events
         //if (pCallInfo->cause == CALLSTATE_CAUSE_AUDIO_START)
         //{
-        //    printf("* Negotiated codec: %s, payload type %d\n", pCallInfo->codecs.audioCodec.cCodecName, pCallInfo->codecs.audioCodec.iPayloadType);
+        //    printf("* Negotiated codec: %s, payload type %d\n", pCallInfo->codecs.audioCodec.cName, pCallInfo->codecs.audioCodec.iPayloadType);
         //}
         g_eRecordEvents[g_iNextEvent] = pCallInfo->event;
         g_iNextEvent = (g_iNextEvent + 1) % MAX_RECORD_EVENTS ;
@@ -417,7 +448,7 @@ bool EventCallBack(SIPX_EVENT_CATEGORY category,
 }
 
 // Wait for the designated event for at worst ~iTimeoutInSecs seconds
-bool WaitForSipXEvent(SIPX_CALLSTATE_EVENT event, int iTimeoutInSecs, bool bQuitOnCallDestroyed = false)
+bool WaitForSipXEvent(SIPX_CALLSTATE_EVENT event, int iTimeoutInSecs)
 {
     bool bFound = false ;
     int  tries = 0;
@@ -430,7 +461,7 @@ bool WaitForSipXEvent(SIPX_CALLSTATE_EVENT event, int iTimeoutInSecs, bool bQuit
     {
         for (int i=0;i<MAX_RECORD_EVENTS; i++)
         {
-            if (g_eRecordEvents[i] == event || (bQuitOnCallDestroyed && g_eRecordEvents[i] == CALLSTATE_DESTROYED))
+            if (g_eRecordEvents[i] == event)
             {
                 bFound = true ;
                 break ;
@@ -483,6 +514,9 @@ void dumpLocalContacts(SIPX_CALL hCall)
                 case CONTACT_RELAY:
                     szType = "RELAY" ;
                     break ;
+                case CONTACT_CONFIG:
+                    szType = "CONFIG" ;
+                    break ;
                 default:
                     assert(false) ;
                     break ;
@@ -500,7 +534,7 @@ void dumpLocalContacts(SIPX_CALL hCall)
 
 
 // Place a call to szSipUrl as szFromIdentity
-bool placeCall(char* szSipUrl, char* szFromIdentity, char* szUsername, char* szPassword, char *szRealm, bool bRegisterLine)
+bool placeCall(char* szSipUrl, char* szFromIdentity, char* szUsername, char* szPassword, char *szRealm)
 {
     bool bRC = false ;
 
@@ -513,15 +547,9 @@ bool placeCall(char* szSipUrl, char* szFromIdentity, char* szUsername, char* szP
     printf("<-> Username: %s, passwd: %s, realm: %s (all required for auth)\n", szUsername, szPassword, szRealm) ;
 
     sipxLineAdd(g_hInst1, szFromIdentity, &g_hLine) ;
-    if (szUsername && szPassword)
+    if (szUsername && szPassword && szRealm)
     {
         sipxLineAddCredential(g_hLine, szUsername, szPassword, szRealm) ;
-    }
-    if (bRegisterLine)
-    {
-       sipxLineRegister(g_hLine, TRUE);
-       // give it time to register
-       SLEEP(1000);
     }
 #if defined(_WIN32) && defined(VIDEO)
     if (bVideo)
@@ -544,6 +572,35 @@ bool placeCall(char* szSipUrl, char* szFromIdentity, char* szUsername, char* szP
                                &numAddresses);
     
 
+
+    if (bUseCustomTransportReliable)
+    {
+        sipxConfigExternalTransportAdd(g_hInst1,
+                                       &ghTransport,
+                                       true,
+                                       "tribble",
+                                       address.cIpAddress,
+                                       -1,
+                                       tribbleProc,
+                                       "tribble");
+        startTribbleListener(address.cIpAddress);
+    }
+    
+    if (bUseCustomTransportUnreliable)
+    {
+        startFlibbleListener(address.cIpAddress);
+        sipxConfigExternalTransportAdd(g_hInst1,
+                                       &ghTransport,
+                                       true,
+                                       "flibble",
+                                       address.cIpAddress,
+                                       -1,
+                                       flibbleProc,
+                                       address.cIpAddress);
+                                               
+        gContactId = lookupContactId(address.cIpAddress, "flibble", ghTransport);
+    }
+
 #if defined(_WIN32) && defined(VIDEO)
     if (bVideo)
     {
@@ -556,7 +613,7 @@ bool placeCall(char* szSipUrl, char* szFromIdentity, char* szUsername, char* szP
     {
         sipxCallConnect(g_hCall, szSipUrl);
     }
-    bRC = WaitForSipXEvent(CALLSTATE_CONNECTED, 30, true) ;
+    bRC = WaitForSipXEvent(CALLSTATE_CONNECTED, 30) ;
 
     return bRC ;
 }
@@ -597,11 +654,13 @@ bool playTones(char* szPlayTones)
             else
             {
                 printf("<-> Playtone: %c\n", toneId) ;
+                SLEEP(250) ;
                 if (sipxCallStartTone(g_hCall, (SIPX_TONE_ID) toneId, true, true) != SIPX_RESULT_SUCCESS)
                 {
                     printf("Playtone returned error\n");
-                    SLEEP(500) ;
                 }
+                SLEEP(500) ;
+                sipxCallStopTone(g_hCall) ;
             }
         }
         else
@@ -718,14 +777,13 @@ int local_main(int argc, char* argv[])
     bool bAEC;
     bool bAGC;
     bool bDenoise;
-    bool bRegisterLine;
 
     // Parse Arguments
     if (parseArgs(argc, argv, &iDuration, &iSipPort, &iRtpPort, &szPlayTones,
             &szFile, &szFileBuffer, &szSipUrl, &bUseRport, &szUsername, 
             &szPassword, &szRealm, &szFromIdentity, &szStunServer, &szProxy, 
             &szBindAddr, &iRepeatCount, &szInDevice, &szOutDevice, &szCodec, &bCList,
-            &bAEC, &bAGC, &bDenoise, &bRegisterLine) 
+            &bAEC, &bAGC, &bDenoise, &bUseCustomTransportReliable, &bUseCustomTransportUnreliable) 
             && (iDuration > 0) && (portIsValid(iSipPort)) && (portIsValid(iRtpPort)))
     {
         // initialize sipx TAPI-like API
@@ -760,13 +818,13 @@ int local_main(int argc, char* argv[])
             SIPX_VIDEO_CODEC videoCodec;
 
             printf("Audio codecs:\n");
-            if (sipxConfigGetNumSelectedAudioCodecs(g_hInst1, &numAudioCodecs) == SIPX_RESULT_SUCCESS)
+            if (sipxConfigGetNumAudioCodecs(g_hInst1, &numAudioCodecs) == SIPX_RESULT_SUCCESS)
             {
                 for (index=0; index<numAudioCodecs; ++index)
                 {
-                    if (sipxConfigGetSelectedAudioCodec(g_hInst1, index, &audioCodec) == SIPX_RESULT_SUCCESS)
+                    if (sipxConfigGetAudioCodec(g_hInst1, index, &audioCodec) == SIPX_RESULT_SUCCESS)
                     {
-                        printf("  audio %02d : %s\n", index, audioCodec.cCodecName);
+                        printf("  audio %02d : %s\n", index, audioCodec.cName);
                     }
                     else
                     {
@@ -780,13 +838,13 @@ int local_main(int argc, char* argv[])
             }
 #ifdef VIDEO
             printf("Video codecs:\n");
-            if (sipxConfigGetNumSelectedVideoCodecs(g_hInst1, &numVideoCodecs) == SIPX_RESULT_SUCCESS)
+            if (sipxConfigGetNumVideoCodecs(g_hInst1, &numVideoCodecs) == SIPX_RESULT_SUCCESS)
             {
                 for (index=0; index<numVideoCodecs; ++index)
                 {
-                    if (sipxConfigGetSelectedVideoCodec(g_hInst1, index, &videoCodec) == SIPX_RESULT_SUCCESS)
+                    if (sipxConfigGetVideoCodec(g_hInst1, index, &videoCodec) == SIPX_RESULT_SUCCESS)
                     {
-                        printf("  video %02d : %s\n", index, videoCodec.cCodecName);
+                        printf("  video %02d : %s\n", index, videoCodec.cName);
                     }
                     else
                     {
@@ -827,17 +885,10 @@ int local_main(int argc, char* argv[])
         }
         if (szCodec)
         {
-            if (sipxConfigSelectAudioCodecByName(g_hInst1, szCodec) == SIPX_RESULT_FAILURE)
+            if (sipxConfigSetAudioCodecByName(g_hInst1, szCodec) == SIPX_RESULT_FAILURE)
             {
                 printf("!! Setting audio codec to %s failed !!\n", szCodec);
             };
-        }
-        else
-        {
-           if (sipxConfigSelectAudioCodecByName(g_hInst1, "PCMU PCMA") == SIPX_RESULT_FAILURE)
-           {
-              printf("!! Setting audio codecs to PCMU PCMA failed !!\n");
-           };
         }
         // Wait for a STUN response (should actually look for the STUN event status
         // (config event) ;
@@ -851,7 +902,7 @@ int local_main(int argc, char* argv[])
             printf("<-> Attempt %d of %d\n", i+1, iRepeatCount) ;
 
             // Place a call to designed URL
-            if (placeCall(szSipUrl, szFromIdentity, szUsername, szPassword, szRealm, bRegisterLine))
+            if (placeCall(szSipUrl, szFromIdentity, szUsername, szPassword, szRealm))
             {
                 bError = false ;
 
@@ -978,3 +1029,15 @@ void JNI_LightButton(long)
 }
 
 #endif /* !defined(_WIN32) */
+
+
+void startTribbleListener(const char* szIp)
+{
+    
+}
+
+void startFlibbleListener(const char* szIp)
+{
+    gpFlibbleTask = new  FlibbleTask(szIp);
+    gpFlibbleTask->start();
+}

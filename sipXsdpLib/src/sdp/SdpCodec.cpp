@@ -24,9 +24,7 @@
 
 // Constructor
 SdpCodec::SdpCodec(enum SdpCodecTypes sdpCodecType,
-                   int payloadId,
-                   const UtlString& sCodecName,
-                   const UtlString& sDisplayCodecName,
+                   int payloadFormat,
                    const char* mimeType,
                    const char* mimeSubtype,
                    int sampleRate,
@@ -36,29 +34,345 @@ SdpCodec::SdpCodec(enum SdpCodecTypes sdpCodecType,
                    const int CPUCost,
                    const int BWCost,
                    const int videoFormat,
-                   const int videoFmtp)
-: mCodecPayloadId(payloadId)
-, mMimeType(mimeType)
-, mMimeSubtype(mimeSubtype)
-, mSampleRate(sampleRate)
-, mPacketLength(preferredPacketLength)
-, mNumChannels(numChannels)
-, mFormatSpecificData(formatSpecificData)
-, mCPUCost(CPUCost)
-, mBWCost(BWCost)
-, mVideoFormat(videoFormat)
-, mVideoFmtp(videoFmtp)
-, m_sCodecName(sCodecName)
-, m_sDisplayCodecName(sDisplayCodecName)
+                   const int videoFmtp) :
+   mCodecPayloadFormat(payloadFormat),
+   mMimeType(mimeType),
+   mMimeSubtype(mimeSubtype),
+   mSampleRate(sampleRate),
+   mPacketLength(preferredPacketLength),
+   mNumChannels(numChannels),
+   mFormatSpecificData(formatSpecificData),
+   mCPUCost(CPUCost),
+   mBWCost(BWCost),
+   mVideoFormat(videoFormat),
+   mVideoFmtp(videoFmtp)
 {
+   mMimeSubtype.toLower();
+   mMimeType.toLower();
    setValue(sdpCodecType);
+}
+
+SdpCodec::SdpCodec(int payloadFormat,
+                   const char* mimeType,
+                   const char* mimeSubtype,
+                   int sampleRate, // samples per second
+                   int preferredPacketLength, // micro seconds
+                   int numChannels,
+                   const char* formatSpecificData) :
+   mCodecPayloadFormat(payloadFormat),
+   mMimeType(mimeType),
+   mMimeSubtype(mimeSubtype),
+   mSampleRate(sampleRate),
+   mPacketLength(preferredPacketLength),
+   mNumChannels(numChannels),
+   mFormatSpecificData(formatSpecificData),
+   mCPUCost(SDP_CODEC_CPU_LOW),
+   mBWCost(SDP_CODEC_BANDWIDTH_NORMAL),
+   mVideoFormat(SDP_VIDEO_FORMAT_QCIF),
+   mVideoFmtp(0)
+{
+   mMimeSubtype.toLower();
+   mMimeType.toLower();
+
+   // !slg! Note:  CPU and BW Costs copied from SdpCodecFactory
+   if(mMimeType.compareTo("audio") == 0)
+   {
+      if(mMimeSubtype.compareTo("pcmu") == 0)
+      {
+         //setValue(SDP_CODEC_PCMU);
+         setValue(SDP_CODEC_GIPS_PCMU); // ?slg? Use GIPS?
+      }
+      else if(mMimeSubtype.compareTo("pcma") == 0)
+      {
+         //setValue(SDP_CODEC_PCMA);
+         setValue(SDP_CODEC_GIPS_PCMA); // ?slg? Use GIPS?
+      }
+      else if(mMimeSubtype.compareTo("gsm") == 0)
+      {
+         setValue(SDP_CODEC_GSM);
+         mCPUCost = SDP_CODEC_CPU_HIGH;
+         mBWCost = SDP_CODEC_BANDWIDTH_LOW;
+      }
+      else if(mMimeSubtype.compareTo("g723") == 0)
+      {
+         setValue(SDP_CODEC_G723);
+         mCPUCost = SDP_CODEC_CPU_HIGH;
+         mBWCost = SDP_CODEC_BANDWIDTH_LOW;
+      }
+      else if(mMimeSubtype.compareTo("l16") == 0)
+      {
+         if(mNumChannels == 2)
+         {
+            setValue(SDP_CODEC_L16_STEREO);
+         }
+         else
+         {
+            setValue(SDP_CODEC_L16_MONO);
+         }
+      }
+      else if(mMimeSubtype.compareTo("pcm") == 0)
+      {
+         setValue(SDP_CODEC_L16_8K);
+      }
+      else if(mMimeSubtype.compareTo("G729a") == 0)
+      {
+         setValue(SDP_CODEC_G729ACISCO7960);
+         mCPUCost = SDP_CODEC_CPU_HIGH;
+         mBWCost = SDP_CODEC_BANDWIDTH_LOW;
+      }
+      else if(mMimeSubtype.compareTo("g729") == 0)
+      {
+         if(mFormatSpecificData.compareTo("annexb=no", UtlString::ignoreCase) == 0)
+         {
+            setValue(SDP_CODEC_G729A);
+            mCPUCost = SDP_CODEC_CPU_HIGH;
+            mBWCost = SDP_CODEC_BANDWIDTH_LOW;
+         }
+         else
+         {
+            setValue(SDP_CODEC_G729AB);
+            mCPUCost = SDP_CODEC_CPU_HIGH;
+            mBWCost = SDP_CODEC_BANDWIDTH_LOW;
+         }
+      }
+      else if(mMimeSubtype.compareTo("telephone-event") == 0)
+      {
+         setValue(SDP_CODEC_TONES);
+         mBWCost = SDP_CODEC_BANDWIDTH_LOW;
+      }
+      else if(mMimeSubtype.compareTo("g7221") == 0)
+      {
+         setValue(SDP_CODEC_G7221);
+      }
+      else if(mMimeSubtype.compareTo("eg711a") == 0)
+      {
+         setValue(SDP_CODEC_GIPS_IPCMA);
+      }
+      else if(mMimeSubtype.compareTo("eg711u") == 0)
+      {
+         setValue(SDP_CODEC_GIPS_IPCMU);
+      }
+      else if(mMimeSubtype.compareTo("ipcmwb") == 0)
+      {
+         setValue(SDP_CODEC_GIPS_IPCMWB);
+         mBWCost = SDP_CODEC_BANDWIDTH_HIGH;
+      }
+      else if(mMimeSubtype.compareTo("ilbc") == 0)
+      {
+         setValue(SDP_CODEC_ILBC);
+         mCPUCost = SDP_CODEC_CPU_HIGH;
+         mBWCost = SDP_CODEC_BANDWIDTH_LOW;
+      }
+      else if(mMimeSubtype.compareTo("isac") == 0)
+      {
+         setValue(SDP_CODEC_GIPS_ISAC);
+         mCPUCost = SDP_CODEC_CPU_HIGH;
+         mBWCost = SDP_CODEC_BANDWIDTH_VARIABLE;
+      }
+      else if(mMimeSubtype.compareTo("speex") == 0)
+      {
+         if(mFormatSpecificData.compareTo("mode=2", UtlString::ignoreCase) == 0)
+         {
+            setValue(SDP_CODEC_SPEEX_5);  // Speex Profile 1
+            mBWCost = SDP_CODEC_BANDWIDTH_LOW;
+         }
+         else if(mFormatSpecificData.compareTo("mode=5", UtlString::ignoreCase) == 0)
+         {
+            setValue(SDP_CODEC_SPEEX_15);  // Speex Profile 2
+            mBWCost = SDP_CODEC_BANDWIDTH_NORMAL;
+         }
+         else if(mFormatSpecificData.compareTo("mode=7", UtlString::ignoreCase) == 0)
+         {
+            setValue(SDP_CODEC_SPEEX_24);  // Speex Profile 3
+            mBWCost = SDP_CODEC_BANDWIDTH_NORMAL;
+         }
+         else
+         {
+            // mode = 3
+            setValue(SDP_CODEC_SPEEX);
+            mBWCost = SDP_CODEC_BANDWIDTH_LOW;
+         }
+      }
+      else
+      {
+         setValue(SDP_CODEC_UNKNOWN);
+      }
+   }
+   else if(mMimeType.compareTo("video") == 0)
+   {
+       unsigned int index = 0;
+       unsigned int start = 0;
+       UtlString temp;
+       const char* formatSpecificData = mFormatSpecificData.data();
+       // !slg! logic taken from SdpBody.cpp - but logic in SdpBody doesn't look complete
+       for(index = 0; index <= mFormatSpecificData.length(); index++)
+       {
+          if(formatSpecificData[index] == ' ' ||
+             formatSpecificData[index] == '\t' ||
+             formatSpecificData[index] == '/' ||
+             formatSpecificData[index] == ':' ||
+             formatSpecificData[index] == '=' ||
+             formatSpecificData[index] == '\0')
+          {
+             if(start != index)
+             {
+                temp.resize(0);
+                temp.append(&formatSpecificData[start], index-start);
+                if (temp.compareTo("CIF", UtlString::ignoreCase) == 0)
+                {
+                   if(mVideoFmtp == 0)
+                   {
+                      mVideoFormat = SDP_VIDEO_FORMAT_CIF;
+                   }
+                   mVideoFmtp |= SDP_VIDEO_FORMAT_CIF;
+                }
+                else if (temp.compareTo("QCIF", UtlString::ignoreCase) == 0)
+                {
+                   if(mVideoFmtp == 0)
+                   {
+                      mVideoFormat = SDP_VIDEO_FORMAT_QCIF;
+                   }
+                   mVideoFmtp |= SDP_VIDEO_FORMAT_QCIF;
+                }
+                else if (temp.compareTo("SQCIF", UtlString::ignoreCase) == 0)
+                {
+                   if(mVideoFmtp == 0)
+                   {
+                      mVideoFormat = SDP_VIDEO_FORMAT_SQCIF;
+                   }
+                   mVideoFmtp |= SDP_VIDEO_FORMAT_SQCIF;
+                }
+             }
+             start = index+1;
+          }
+       }  
+
+      if(mMimeSubtype.compareTo("vp71") == 0)
+      {
+         switch(mVideoFormat)
+         {
+         case SDP_VIDEO_FORMAT_CIF:
+            setValue(SDP_CODEC_VP71_CIF);
+            break;
+         case SDP_VIDEO_FORMAT_QCIF:
+            setValue(SDP_CODEC_VP71_QCIF);
+            break;
+         case SDP_VIDEO_FORMAT_SQCIF:
+            setValue(SDP_CODEC_VP71_SQCIF);
+            break;
+         case SDP_VIDEO_FORMAT_QVGA:
+            setValue(SDP_CODEC_VP71_QVGA);
+            break;
+         default:
+            setValue(SDP_CODEC_VP71_CIF);
+            break;
+         }
+         mBWCost = SDP_CODEC_BANDWIDTH_NORMAL;
+      }
+      else if(mMimeSubtype.compareTo("iyuv") == 0)
+      {
+         switch(mVideoFormat)
+         {
+         case SDP_VIDEO_FORMAT_CIF:
+            setValue(SDP_CODEC_IYUV_CIF);
+            break;
+         case SDP_VIDEO_FORMAT_QCIF:
+            setValue(SDP_CODEC_IYUV_QCIF);
+            break;
+         case SDP_VIDEO_FORMAT_SQCIF:
+            setValue(SDP_CODEC_IYUV_SQCIF);
+            break;
+         case SDP_VIDEO_FORMAT_QVGA:
+            setValue(SDP_CODEC_IYUV_QVGA);
+            break;
+         default:
+            setValue(SDP_CODEC_IYUV_CIF);
+            break;
+         }
+         mBWCost = SDP_CODEC_BANDWIDTH_HIGH;
+      }
+      else if(mMimeSubtype.compareTo("i420") == 0)
+      {
+         switch(mVideoFormat)
+         {
+         case SDP_VIDEO_FORMAT_CIF:
+            setValue(SDP_CODEC_I420_CIF);
+            break;
+         case SDP_VIDEO_FORMAT_QCIF:
+            setValue(SDP_CODEC_I420_QCIF);
+            break;
+         case SDP_VIDEO_FORMAT_SQCIF:
+            setValue(SDP_CODEC_I420_SQCIF);
+            break;
+         case SDP_VIDEO_FORMAT_QVGA:
+            setValue(SDP_CODEC_I420_QVGA);
+            break;
+         default:
+            setValue(SDP_CODEC_I420_CIF);
+            break;
+         }
+         mBWCost = SDP_CODEC_BANDWIDTH_HIGH;
+      }
+      else if(mMimeSubtype.compareTo("rgb24") == 0)
+      {
+         switch(mVideoFormat)
+         {
+         case SDP_VIDEO_FORMAT_CIF:
+            setValue(SDP_CODEC_RGB24_CIF);
+            break;
+         case SDP_VIDEO_FORMAT_QCIF:
+            setValue(SDP_CODEC_RGB24_QCIF);
+            break;
+         case SDP_VIDEO_FORMAT_SQCIF:
+            setValue(SDP_CODEC_RGB24_SQCIF);
+            break;
+         case SDP_VIDEO_FORMAT_QVGA:
+            setValue(SDP_CODEC_RGB24_QVGA);
+            break;
+         default:
+            setValue(SDP_CODEC_RGB24_CIF);
+            break;
+         }
+         mBWCost = SDP_CODEC_BANDWIDTH_HIGH;
+      }
+      else if(mMimeSubtype.compareTo("h263") == 0)
+      {
+         switch(mVideoFormat)
+         {
+         case SDP_VIDEO_FORMAT_CIF:
+            setValue(SDP_CODEC_H263_CIF);
+            break;
+         case SDP_VIDEO_FORMAT_QCIF:
+            setValue(SDP_CODEC_H263_QCIF);
+            break;
+         case SDP_VIDEO_FORMAT_SQCIF:
+            setValue(SDP_CODEC_H263_SQCIF);
+            break;
+         case SDP_VIDEO_FORMAT_QVGA:
+            setValue(SDP_CODEC_H263_QVGA);
+            break;
+         default:
+            setValue(SDP_CODEC_H263_CIF);
+            break;
+         }
+         mBWCost = SDP_CODEC_BANDWIDTH_NORMAL;
+      }
+      else
+      {
+         setValue(SDP_CODEC_UNKNOWN);
+      }
+   }
+   else
+   {
+      setValue(SDP_CODEC_UNKNOWN);
+   }
 }
 
 // Copy constructor
 SdpCodec::SdpCodec(const SdpCodec& rSdpCodec)
 {
     setValue(rSdpCodec.getValue());
-    mCodecPayloadId = rSdpCodec.mCodecPayloadId;
+    mCodecPayloadFormat = rSdpCodec.mCodecPayloadFormat;
     mSampleRate = rSdpCodec.mSampleRate;
     mPacketLength = rSdpCodec.mPacketLength;
     mNumChannels = rSdpCodec.mNumChannels;
@@ -70,8 +384,6 @@ SdpCodec::SdpCodec(const SdpCodec& rSdpCodec)
     mVideoFormat = rSdpCodec.mVideoFormat;
     mVideoFmtp = rSdpCodec.mVideoFmtp;
     mVideoFmtpString = rSdpCodec.mVideoFmtpString;
-    m_sCodecName = rSdpCodec.m_sCodecName;
-    m_sDisplayCodecName = rSdpCodec.m_sDisplayCodecName;
 }
 
 // Destructor
@@ -89,7 +401,7 @@ SdpCodec::operator=(const SdpCodec& rhs)
    if (this == &rhs)            // handle the assignment to self case
       return *this;
     setValue(rhs.getValue());
-    mCodecPayloadId = rhs.mCodecPayloadId;
+    mCodecPayloadFormat = rhs.mCodecPayloadFormat;
     mSampleRate = rhs.mSampleRate;
     mPacketLength = rhs.mPacketLength;
     mNumChannels = rhs.mNumChannels;
@@ -101,8 +413,6 @@ SdpCodec::operator=(const SdpCodec& rhs)
     mVideoFormat = rhs.mVideoFormat;
     mVideoFmtp = rhs.mVideoFmtp;
     mVideoFmtpString = rhs.mVideoFmtpString;
-    m_sCodecName = rhs.m_sCodecName;
-    m_sDisplayCodecName = rhs.m_sDisplayCodecName;
 
    return *this;
 }
@@ -114,14 +424,14 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType() const
    return((enum SdpCodecTypes) getValue());
 }
 
-int SdpCodec::getCodecPayloadId() const
+int SdpCodec::getCodecPayloadFormat() const
 {
-    return(mCodecPayloadId);
+    return(mCodecPayloadFormat);
 }
 
-void SdpCodec::setCodecPayloadId(int formatId)
+void SdpCodec::setCodecPayloadFormat(int formatId)
 {
-    mCodecPayloadId = formatId;
+    mCodecPayloadFormat = formatId;
 }
 
 void SdpCodec::getSdpFmtpField(UtlString& formatSpecificData) const
@@ -134,7 +444,7 @@ void SdpCodec::getMediaType(UtlString& mimeType) const
     mimeType = mMimeType;
 }
 
-void SdpCodec::getMimeSubType(UtlString& mimeSubtype) const
+void SdpCodec::getEncodingName(UtlString& mimeSubtype) const
 {
     mimeSubtype = mMimeSubtype;
 }
@@ -211,7 +521,7 @@ void SdpCodec::toString(UtlString& sdpCodecContents) const
 {
     char stringBuffer[256];
     SNPRINTF(stringBuffer, sizeof(stringBuffer), "SdpCodec: codecId=%d, payloadId=%d, mime=\'%s/%s\', rate=%d, pktLen=%d, numCh=%d, fmtData=\'%s\'\n",
-            getValue(), mCodecPayloadId,
+            getValue(), mCodecPayloadFormat,
             mMimeType.data(), mMimeSubtype.data(),
             mSampleRate, mPacketLength, mNumChannels,
             mFormatSpecificData.data());
@@ -232,302 +542,12 @@ int SdpCodec::getBWCost() const
 
 /* ============================ INQUIRY =================================== */
 
-UtlBoolean SdpCodec::isSameDefinition(const SdpCodec& codec) const
+UtlBoolean SdpCodec::isSameDefinition(SdpCodec& codec) const
 {
     return(mSampleRate == codec.mSampleRate &&
            mNumChannels == codec.mNumChannels &&
            mMimeType.compareTo(codec.mMimeType, UtlString::ignoreCase) == 0 &&
            mMimeSubtype.compareTo(codec.mMimeSubtype, UtlString::ignoreCase) == 0);
-}
-
-UtlBoolean SdpCodec::isCodecCompatible(const UtlString& mimeType, 
-                                       const UtlString& mimeSubType,
-                                       int sampleRate,
-                                       int numChannels,
-                                       const UtlString& fmtp,
-                                       UtlBoolean bStrictMatch) const
-{
-   // If the mime type matches
-   if(mMimeType.compareTo(mimeType, UtlString::ignoreCase) == 0)
-   {
-      // and if the mime subtype, sample rate, number of channels
-      // and fmtp match.
-      if ((mMimeSubtype.compareTo(mimeSubType, UtlString::ignoreCase) == 0) &&
-         (sampleRate == -1 || mSampleRate == sampleRate) &&
-         (numChannels == -1 || mNumChannels == numChannels))
-      {
-         SdpCodec::SdpCodecTypes codecType = getCodecType();
-
-         if (codecType == SDP_CODEC_AMR_10200 || codecType == SDP_CODEC_AMR_4750)
-         {
-            bStrictMatch = TRUE; // always use strict match for AMR
-         }
-
-         if (bStrictMatch)
-         {
-            if (codecType == SDP_CODEC_ILBC_20MS) // iLBC with 20ms frame
-            {
-               if (fmtp.contains("mode=20"))
-               {
-                  return TRUE;
-               }
-               else
-               {
-                  return FALSE; // internally 30ms mode is not compatible with 20ms mode in strict match
-               }
-            }
-            else if (codecType == SDP_CODEC_ILBC_30MS) // iLBC with 30ms frame
-            {
-               // check if the other codec is not 20ms
-               if (!fmtp.contains("mode=20"))
-               {
-                  return TRUE;
-               }
-               else
-               {
-                  return FALSE; // internally 30ms mode is not compatible with 20ms mode in strict match
-               }
-            }
-         }
-
-         if ((bStrictMatch && fmtp.compareTo(mFormatSpecificData) == 0) || !bStrictMatch)
-         {
-            // we found a match
-            return TRUE;
-         }
-      }
-   }
-
-   return FALSE;
-}
-
-UtlBoolean SdpCodec::hasDynamicPayloadId() const
-{
-   if (mCodecPayloadId == -1 || mCodecPayloadId >= SDP_MIN_DYNAMIC_PAYLOAD_ID)
-   {
-      return TRUE;
-   }
-   else
-   {
-      return FALSE;
-   }
-}
-
-SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
-{
-    SdpCodec::SdpCodecTypes retType = SdpCodec::SDP_CODEC_UNKNOWN;
-    UtlString compareString(shortCodecName);
-    compareString.toUpper();
-
-    if (strcmp(compareString,"TELEPHONE-EVENT") == 0)
-       retType = SdpCodec::SDP_CODEC_TONES;
-    else if (strcmp(compareString,"PCMU") == 0)
-       retType = SdpCodec::SDP_CODEC_PCMU;
-    else if (strcmp(compareString,"PCMA") == 0)
-       retType = SdpCodec::SDP_CODEC_PCMA;
-#ifdef HAVE_INTEL_IPP
-    // G.723.1
-    else if (strcmp(compareString,"G723.1") == 0)
-       retType = SdpCodec::SDP_CODEC_G723;
-    // G.728
-    else if (strcmp(compareString,"G728") == 0)
-       retType = SdpCodec::SDP_CODEC_G728;
-    // G.729
-    else if (strcmp(compareString,"G729") == 0)
-       retType = SdpCodec::SDP_CODEC_G729;
-    else if (strcmp(compareString,"G729D") == 0)
-       retType = SdpCodec::SDP_CODEC_G729D;
-    else if (strcmp(compareString,"G729E") == 0)
-       retType = SdpCodec::SDP_CODEC_G729E;
-    // amr
-    else if (strcmp(compareString,"AMR_4750") == 0)
-       retType = SdpCodec::SDP_CODEC_AMR_4750;
-    else if (strcmp(compareString,"AMR_10200") == 0)
-       retType = SdpCodec::SDP_CODEC_AMR_10200;
-#ifdef ENABLE_WIDEBAND_AUDIO
-    // G.722.1 wideband codec
-    else if (strcmp(compareString,"G722.1_16") == 0)
-       retType = SdpCodec::SDP_CODEC_G7221_16;
-    else if (strcmp(compareString,"G722.1_24") == 0)
-       retType = SdpCodec::SDP_CODEC_G7221_24;
-    else if (strcmp(compareString,"G722.1_32") == 0)
-       retType = SdpCodec::SDP_CODEC_G7221_32;
-    // G.729.1
-    else if (strcmp(compareString,"G729.1_8000") == 0)
-       retType = SdpCodec::SDP_CODEC_G7291_8000;
-    else if (strcmp(compareString,"G729.1_12000") == 0)
-       retType = SdpCodec::SDP_CODEC_G7291_12000;
-    else if (strcmp(compareString,"G729.1_14000") == 0)
-       retType = SdpCodec::SDP_CODEC_G7291_14000;
-    else if (strcmp(compareString,"G729.1_16000") == 0)
-       retType = SdpCodec::SDP_CODEC_G7291_16000;
-    else if (strcmp(compareString,"G729.1_18000") == 0)
-       retType = SdpCodec::SDP_CODEC_G7291_18000;
-    else if (strcmp(compareString,"G729.1_20000") == 0)
-       retType = SdpCodec::SDP_CODEC_G7291_20000;
-    else if (strcmp(compareString,"G729.1_22000") == 0)
-       retType = SdpCodec::SDP_CODEC_G7291_22000;
-    else if (strcmp(compareString,"G729.1_24000") == 0)
-       retType = SdpCodec::SDP_CODEC_G7291_24000;
-    else if (strcmp(compareString,"G729.1_26000") == 0)
-       retType = SdpCodec::SDP_CODEC_G7291_26000;
-    else if (strcmp(compareString,"G729.1_28000") == 0)
-       retType = SdpCodec::SDP_CODEC_G7291_28000;
-    else if (strcmp(compareString,"G729.1_30000") == 0)
-       retType = SdpCodec::SDP_CODEC_G7291_30000;
-    else if (strcmp(compareString,"G729.1_32000") == 0)
-       retType = SdpCodec::SDP_CODEC_G7291_32000;
-    // amr wb
-    else if (strcmp(compareString,"AMR_WB_12650") == 0)
-       retType = SdpCodec::SDP_CODEC_AMR_WB_12650;
-    else if (strcmp(compareString,"AMR_WB_23850") == 0)
-       retType = SdpCodec::SDP_CODEC_AMR_WB_23850;
-#endif // ENABLE_WIDEBAND_AUDIO ]
-#endif // HAVE_INTEL_IPP ]
-#ifdef HAVE_ILBC
-    // ILBC
-    else if (strcmp(compareString,"ILBC_30MS") == 0)
-       retType = SdpCodec::SDP_CODEC_ILBC_30MS;
-    else if (strcmp(compareString,"ILBC_20MS") == 0)
-       retType = SdpCodec::SDP_CODEC_ILBC_20MS;
-#endif // HAVE_ILBC ]
-#ifdef HAVE_SPAN_DSP
-    // G.726
-    else if (strcmp(compareString,"G726_16") == 0)
-       retType = SdpCodec::SDP_CODEC_G726_16;
-    else if (strcmp(compareString,"G726_24") == 0)
-       retType = SdpCodec::SDP_CODEC_G726_24;
-    else if (strcmp(compareString,"G726_32") == 0)
-       retType = SdpCodec::SDP_CODEC_G726_32;
-    else if (strcmp(compareString,"G726_40") == 0)
-       retType = SdpCodec::SDP_CODEC_G726_40;
-#ifdef ENABLE_WIDEBAND_AUDIO
-    // G.722 codec
-    else if (strcmp(compareString,"G722") == 0)
-       retType = SdpCodec::SDP_CODEC_G722;
-#endif // ENABLE_WIDEBAND_AUDIO ]
-#endif // HAVE_SPAN_DSP ]
-#ifdef HAVE_GSM
-    // gsm full rate
-    else if (strcmp(compareString,"GSM") == 0)
-       retType = SdpCodec::SDP_CODEC_GSM;
-#endif // HAVE_GSM ]
-#ifdef HAVE_SPEEX
-    // speex narrowband codecs
-    else if (strcmp(compareString,"SPEEX_5") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_5;
-    else if (strcmp(compareString,"SPEEX_8") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_8;
-    else if (strcmp(compareString,"SPEEX_11") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_11;
-    else if (strcmp(compareString,"SPEEX_15") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_15;
-    else if (strcmp(compareString,"SPEEX_18") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_18;
-    else if (strcmp(compareString,"SPEEX_24") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_24;
-#ifdef ENABLE_WIDEBAND_AUDIO
-    // speex wideband codecs
-    else if (strcmp(compareString,"SPEEX_WB_9") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_WB_9;
-    else if (strcmp(compareString,"SPEEX_WB_12") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_WB_12;
-    else if (strcmp(compareString,"SPEEX_WB_16") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_WB_16;
-    else if (strcmp(compareString,"SPEEX_WB_20") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_WB_20;
-    else if (strcmp(compareString,"SPEEX_WB_23") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_WB_23;
-    else if (strcmp(compareString,"SPEEX_WB_27") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_WB_27;
-    else if (strcmp(compareString,"SPEEX_WB_34") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_WB_34;
-    else if (strcmp(compareString,"SPEEX_WB_42") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_WB_42;
-    // speex ultra wideband codecs
-    else if (strcmp(compareString,"SPEEX_UWB_11") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_11;
-    else if (strcmp(compareString,"SPEEX_UWB_14") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_14;
-    else if (strcmp(compareString,"SPEEX_UWB_18") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_18;
-    else if (strcmp(compareString,"SPEEX_UWB_22") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_22;
-    else if (strcmp(compareString,"SPEEX_UWB_25") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_25;
-    else if (strcmp(compareString,"SPEEX_UWB_29") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_29;
-    else if (strcmp(compareString,"SPEEX_UWB_36") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_36;
-    else if (strcmp(compareString,"SPEEX_UWB_44") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_44;
-#endif // ENABLE_WIDEBAND_AUDIO ]
-#endif // HAVE_SPEEX ]
-#ifdef ENABLE_WIDEBAND_AUDIO
-    // L16 codec
-    else if (strcmp(compareString,"L16_8000_MONO") == 0)
-       retType = SdpCodec::SDP_CODEC_L16_8000_MONO;
-    else if (strcmp(compareString,"L16_11025_MONO") == 0)
-       retType = SdpCodec::SDP_CODEC_L16_11025_MONO;
-    else if (strcmp(compareString,"L16_16000_MONO") == 0)
-       retType = SdpCodec::SDP_CODEC_L16_16000_MONO;
-    else if (strcmp(compareString,"L16_22050_MONO") == 0)
-       retType = SdpCodec::SDP_CODEC_L16_22050_MONO;
-    else if (strcmp(compareString,"L16_24000_MONO") == 0)
-       retType = SdpCodec::SDP_CODEC_L16_24000_MONO;
-    else if (strcmp(compareString,"L16_32000_MONO") == 0)
-       retType = SdpCodec::SDP_CODEC_L16_32000_MONO;
-    else if (strcmp(compareString,"L16_44100_MONO") == 0)
-       retType = SdpCodec::SDP_CODEC_L16_44100_MONO;
-    else if (strcmp(compareString,"L16_48000_MONO") == 0)
-       retType = SdpCodec::SDP_CODEC_L16_48000_MONO;
-#endif // ENABLE_WIDEBAND_AUDIO ]
-#ifdef VIDEO
-    // video codecs
-    else if (strcmp(compareString,"VP71-CIF") == 0)
-       retType = SdpCodec::SDP_CODEC_VP71_CIF;
-    else if (strcmp(compareString,"VP71-QCIF") == 0)
-       retType = SdpCodec::SDP_CODEC_VP71_QCIF;
-    else if (strcmp(compareString,"VP71-SQCIF") == 0)
-       retType = SdpCodec::SDP_CODEC_VP71_SQCIF;
-    else if (strcmp(compareString,"VP71-QVGA") == 0)
-       retType = SdpCodec::SDP_CODEC_VP71_QVGA;
-    else if (strcmp(compareString,"IYUV-CIF") == 0)
-       retType = SdpCodec::SDP_CODEC_IYUV_CIF;
-    else if (strcmp(compareString,"IYUV-QCIF") == 0)
-       retType = SdpCodec::SDP_CODEC_IYUV_QCIF;
-    else if (strcmp(compareString,"IYUV-SQCIF") == 0)
-       retType = SdpCodec::SDP_CODEC_IYUV_SQCIF;
-    else if (strcmp(compareString,"IYUV-QVGA") == 0)
-       retType = SdpCodec::SDP_CODEC_IYUV_QVGA;
-    else if (strcmp(compareString,"I420-CIF") == 0)
-       retType = SdpCodec::SDP_CODEC_I420_CIF;
-    else if (strcmp(compareString,"I420-QCIF") == 0)
-       retType = SdpCodec::SDP_CODEC_I420_QCIF;
-    else if (strcmp(compareString,"I420-SQCIF") == 0)
-       retType = SdpCodec::SDP_CODEC_I420_SQCIF;
-    else if (strcmp(compareString,"I420-QVGA") == 0)
-       retType = SdpCodec::SDP_CODEC_I420_QVGA;
-    else if (strcmp(compareString,"H263-CIF") == 0)
-       retType = SdpCodec::SDP_CODEC_H263_CIF;
-    else if (strcmp(compareString,"H263-QCIF") == 0)
-       retType = SdpCodec::SDP_CODEC_H263_QCIF;
-    else if (strcmp(compareString,"H263-SQCIF") == 0)
-       retType = SdpCodec::SDP_CODEC_H263_SQCIF;
-    else if (strcmp(compareString,"H263-QVGA") == 0)
-       retType = SdpCodec::SDP_CODEC_H263_QVGA;
-    else if (strcmp(compareString,"RGB24-CIF") == 0)
-       retType = SdpCodec::SDP_CODEC_RGB24_CIF;
-    else if (strcmp(compareString,"RGB24-QCIF") == 0)
-       retType = SdpCodec::SDP_CODEC_RGB24_QCIF;
-    else if (strcmp(compareString,"RGB24-SQCIF") == 0)
-       retType = SdpCodec::SDP_CODEC_RGB24_SQCIF;
-    else if (strcmp(compareString,"RGB24-QVGA") == 0)
-       retType = SdpCodec::SDP_CODEC_RGB24_QVGA;
-#endif // VIDEO ]
-    else
-       retType = SdpCodec::SDP_CODEC_UNKNOWN;
-    return retType;
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */

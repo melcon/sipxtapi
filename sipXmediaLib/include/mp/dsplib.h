@@ -14,13 +14,15 @@
 #ifndef __INCdsplib_h /* [ */
 #define __INCdsplib_h
 
-#include <mp/MpDefs.h>
 #include "mp/MpBuf.h"
 #include "mp/MpTypes.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* comfort noise generator assume the max size of processing frame is 80 */
+#define SAMPLES_PER_FRAME 80
 
 // -----------------------------------------------------
 // Comfort Noise Generator module used by MprDecode

@@ -25,6 +25,7 @@
 // EXTERNAL VARIABLES
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
+int CpMediaInterface::sInvalidConnectionId = -1;
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -59,6 +60,11 @@ OsStatus CpMediaInterface::enableRtpReadNotification(int connectionId,
    return OS_NOT_SUPPORTED;
 };
 
+OsStatus CpMediaInterface::recordMic(UtlString* pAudioBuf) 
+{ 
+   return OS_NOT_SUPPORTED; 
+};
+
 OsStatus CpMediaInterface::muteInput(int connectionId, UtlBoolean bMute) 
 { 
    return OS_NOT_SUPPORTED;
@@ -66,11 +72,16 @@ OsStatus CpMediaInterface::muteInput(int connectionId, UtlBoolean bMute)
 
 /* ============================ ACCESSORS ================================= */
 
+int CpMediaInterface::getInvalidConnectionId()
+{
+    return(sInvalidConnectionId);
+}
+
 /* ============================ INQUIRY =================================== */
 
 UtlBoolean CpMediaInterface::isConnectionIdValid(int connectionId)
 {
-    return connectionId > CpMediaInterface::INVALID_CONNECTION_ID;
+    return(connectionId > sInvalidConnectionId);
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */

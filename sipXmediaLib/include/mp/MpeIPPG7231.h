@@ -8,8 +8,6 @@
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
-// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
-// Licensed under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -37,7 +35,7 @@ extern "C" {
 // STRUCTS
 // TYPEDEFS
 
-/// Derived class for G.7231 encoder. Produces 30ms frame every 10ms. We encode in 5.3kbit/s mode.
+/// Derived class for G.7231 encoder.
 class MpeIPPG7231: public MpEncoderBase
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
@@ -84,7 +82,7 @@ public:
                            const int bytesLeft,
                            int& rSizeInBytes,
                            UtlBoolean& sendNow,
-                           MpSpeechType& speechType);
+                           MpAudioBuf::SpeechType& rAudioCategory);
      /**<
      *  Processes the array of audio samples.  If sufficient samples to encode
      *  a frame are now available, the encoded data will be written to the
@@ -98,7 +96,7 @@ public:
      *  @param bytesLeft - (in) number of bytes available at pCodeBuf
      *  @param rSizeInBytes - (out) Number of bytes written to the <i>pCodeBuf</i> array
      *  @param sendNow - (out) if true, the packet is complete, send it.
-     *  @param speechType - (in, out) Audio type (e.g., unknown, silence, comfort noise)
+     *  @param rAudioCategory - (out) Audio type (e.g., unknown, silence, comfort noise)
      *
      *  @returns <b>OS_SUCCESS</b> - Success
      */
@@ -125,10 +123,9 @@ private:
    static const MpCodecInfo smCodecInfo;  // static information about the codec
 
    int   mStoredFramesCount;   ///< Number of stored frames.
-
-   Ipp8s *m_pInputBuffer; ///< Buffer for stored frames - we could encode
+   Ipp8s *mpStoredFramesBuffer; ///< Buffer for stored frames - we could encode
                                ///< only 20ms frames.
-   Ipp8s *m_pOutputBuffer; ///< Encoded buffer. It is allocated in
+   Ipp8s *mEncodedBuffer; ///< Encoded buffer. It is allocated in
    LoadedCodec *codec6300;      ///< Loaded codec info.
    LoadedCodec *codec5300;      ///< Loaded codec info.
 };

@@ -11,9 +11,6 @@
 
 #include "mp/MpEncoderBase.h"
 
-// must be the same as default VAD setting in sipXSdpLib codec factory
-UtlBoolean MpEncoderBase::ms_bEnableVAD = TRUE;
-
 /* ============================ CREATORS ================================== */
 
 // Constructor
@@ -44,14 +41,4 @@ const MpCodecInfo* MpEncoderBase::getInfo(void) const
 int MpEncoderBase::getPayloadType(void)
 {
    return(mPayloadType);
-}
-
-UtlBoolean MpEncoderBase::isVADEnabled()
-{
-   return ms_bEnableVAD;
-}
-
-void MpEncoderBase::enableVAD(UtlBoolean bEnable)
-{
-   ms_bEnableVAD = bEnable;
 }

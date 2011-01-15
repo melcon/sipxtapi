@@ -1617,23 +1617,23 @@ public:
          UtlString component;
 
          // Url tries to parse even unknown strings, if it succeeds with parsing hostname and port it sets scheme to sip
-         CPPUNIT_ASSERT(bigschemeUrl.getScheme() == Url::UnknownUrlScheme);
+         CPPUNIT_ASSERT(bigschemeUrl.getScheme() == Url::SipUrlScheme);
 
          bigschemeUrl.getUserId(component);
          CPPUNIT_ASSERT(component.isNull()); 
          
          bigschemeUrl.getHostAddress(component);
-         CPPUNIT_ASSERT(component.isNull());
+         CPPUNIT_ASSERT(!component.isNull());
          
          Url bigSchemeAddrType(bigscheme, TRUE /* as addr-type */);
 
-         CPPUNIT_ASSERT(bigSchemeAddrType.getScheme() == Url::UnknownUrlScheme); // ?
+         CPPUNIT_ASSERT(bigSchemeAddrType.getScheme() == Url::SipUrlScheme); // ?
 
          bigSchemeAddrType.getUserId(component);
          CPPUNIT_ASSERT(component.isNull()); // bigtoken
          
          bigSchemeAddrType.getHostAddress(component);
-         CPPUNIT_ASSERT(component.isNull());        
+         CPPUNIT_ASSERT(!component.isNull());        
       }
 
    void testBigUriUser()
@@ -1708,7 +1708,7 @@ public:
          
          PARSE(bighost);
 
-         CPPUNIT_ASSERT(bighostUrl.getScheme() == Url::UnknownUrlScheme);
+         CPPUNIT_ASSERT(bighostUrl.getScheme() == Url::SipUrlScheme);
       }
 
     /////////////////////////

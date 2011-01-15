@@ -24,11 +24,8 @@
 #endif /* _WIN32 */
 
 // APPLICATION INCLUDES
-#include <tapi/sipXtapi.h>
 #include "tapi/SipXAudio.h"
-#include <tapi/SipXCore.h>
-#include "cp/XCpCallManager.h"
-#include <sdp/SdpCodecFactory.h>
+#include "cp/CallManager.h"
 #include "mi/CpMediaInterfaceFactory.h"
 #include "mi/CpMediaInterfaceFactoryFactory.h"
 #include <mi/CpAudioDeviceInfo.h>
@@ -97,7 +94,7 @@ void freeAudioDevices(SIPX_INSTANCE_DATA& pInst)
 SIPXTAPI_API SIPX_RESULT sipxAudioGetInputMixerName(const SIPX_INST hInst, char* name, int buffSize)
 {
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst && name && buffSize > 0)
    {
@@ -124,7 +121,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetInputMixerName(const SIPX_INST hInst, char*
 SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputMixerName(const SIPX_INST hInst, char* name, int buffSize)
 {
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst && name && buffSize > 0)
    {
@@ -152,7 +149,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetMasterVolume(const SIPX_INST hInst,
                                                   int* iLevel)
 {
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst && iLevel)
    {
@@ -177,7 +174,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetMasterVolume(const SIPX_INST hInst,
                                                   int iLevel)
 {
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst)
    {
@@ -210,7 +207,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputBalance(const SIPX_INST hInst,
                                                    int* iBalance)
 {
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst && iBalance)
    {
@@ -235,7 +232,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputBalance(const SIPX_INST hInst,
                                                    int iBalance)
 {
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst)
    {
@@ -274,7 +271,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetInputVolume(const SIPX_INST hInst,
       hInst, iLevel);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst)
    {
@@ -313,11 +310,12 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetInputVolume(const SIPX_INST hInst,
       hInst);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
-   if (pInst && iLevel)
+   if (pInst)
    {
-      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -343,7 +341,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioMuteInput(const SIPX_INST hInst,
       hInst, bMute);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst)
    {
@@ -374,7 +372,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioMuteOutput(const SIPX_INST hInst,
       hInst, bMute);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst)
    {
@@ -405,9 +403,9 @@ SIPXTAPI_API SIPX_RESULT sipxAudioIsInputMuted(const SIPX_INST hInst,
       hInst);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
-   if (pInst && bMuted)
+   if (pInst)
    {
       CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
       if (pInterface)
@@ -433,9 +431,9 @@ SIPXTAPI_API SIPX_RESULT sipxAudioIsOutputMuted(const SIPX_INST hInst,
    OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioIsOutputMuted hInst=%p", hInst);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
-   if (pInst && bMuted)
+   if (pInst)
    {
       CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
       if (pInterface)
@@ -463,7 +461,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputVolume(const SIPX_INST hInst,
       hInst, iLevel);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst)
    {
@@ -495,9 +493,9 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputVolume(const SIPX_INST hInst,
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO, "sipxAudioGetOutputVolume hInst=%p", hInst);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
-   if (pInst && iLevel)
+   if (pInst)
    {
       CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
@@ -519,9 +517,9 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetInputEnergy(const SIPX_INST hInst,
                                                  double* level)
 {
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
-   if (pInst && level)
+   if (pInst)
    {
       CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
@@ -544,9 +542,9 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputEnergy(const SIPX_INST hInst,
                                                   double* level)
 {
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
-   if (pInst && level)
+   if (pInst)
    {
       CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
@@ -575,11 +573,12 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetAECMode(const SIPX_INST hInst,
       hInst, mode);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst)
    {
-      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -604,11 +603,12 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetAECMode(const SIPX_INST hInst,
       hInst);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
-   if (pInst && mode)
+   if (pInst)
    {
-      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -635,11 +635,12 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetAGCMode(const SIPX_INST hInst,
       hInst, bEnable);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst)
    {
-      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -664,11 +665,12 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetAGCMode(const SIPX_INST hInst,
       hInst);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
-   if (pInst && bEnabled)
+   if (pInst)
    {
-      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -695,11 +697,12 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetNoiseReductionMode(const SIPX_INST hInst,
       hInst, mode);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst)
    {
-      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -724,11 +727,12 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetNoiseReductionMode(const SIPX_INST hInst,
       hInst);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
-   if (pInst && mode)
+   if (pInst)
    {
-      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -744,65 +748,12 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetNoiseReductionMode(const SIPX_INST hInst,
    return sr;
 }
 
-SIPXTAPI_API SIPX_RESULT sipxAudioSetVADMode(const SIPX_INST hInst,
-                                             int bEnabled) 
-{
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxAudioSetVADMode hInst=%p bEnabled=%d",
-      hInst, bEnabled);
-
-   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
-
-   if (pInst)
-   {
-      CpMediaInterfaceFactory* pInterfaceFactory = pInst->pCallManager->getMediaInterfaceFactory();
-
-      if (pInterfaceFactory)
-      {
-         if (pInterfaceFactory->setVADMode(bEnabled) == OS_SUCCESS)
-         {
-            SdpCodecFactory::enableCodecVAD(bEnabled); // also enable in SDP codec factory
-            sr = SIPX_RESULT_SUCCESS;
-         }
-      }
-   }
-
-   return sr;
-}
-
-
-SIPXTAPI_API SIPX_RESULT sipxAudioGetVADMode(const SIPX_INST hInst,
-                                             int* bEnabled) 
-{
-   OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG,
-      "sipxAudioGetVADMode hInst=%p",
-      hInst);
-
-   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
-
-   if (pInst && bEnabled)
-   {
-      CpMediaInterfaceFactory* pInterfaceFactory = pInst->pCallManager->getMediaInterfaceFactory();
-
-      if (pInterfaceFactory)
-      {
-         if (pInterfaceFactory->getVADMode(*bEnabled) == OS_SUCCESS)
-         {
-            sr = SIPX_RESULT_SUCCESS;
-         }
-      }
-   }
-
-   return sr;
-}
 
 SIPXTAPI_API SIPX_RESULT sipxAudioGetNumInputDevices(const SIPX_INST hInst,
                                                      int* numDevices)
 {
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst)
    {
@@ -827,7 +778,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDeviceInfo(const SIPX_INST hInst,
                                                      SIPX_AUDIO_DEVICE* deviceInfo)
 {
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst && deviceInfo && index >= 0)
    {
@@ -857,7 +808,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetNumOutputDevices(const SIPX_INST hInst,
                                                       int* numDevices)
 {
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst)
    {
@@ -882,7 +833,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDeviceInfo(const SIPX_INST hInst,
                                                       SIPX_AUDIO_DEVICE* deviceInfo)
 {
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst && deviceInfo && index >= 0)
    {
@@ -918,7 +869,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetInputDevice(const SIPX_INST hInst,
       hInst, szDevice ? szDevice : "null");
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst)
    {
@@ -946,7 +897,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDevice(const SIPX_INST hInst,
       "sipxAudioGetInputDevice hInst=%p", hInst);
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst && deviceInfo)
    {
@@ -982,7 +933,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputDevice(const SIPX_INST hInst,
       hInst, szDevice ? szDevice : "null");
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst)
    {
@@ -1010,7 +961,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDevice(const SIPX_INST hInst,
       "sipxAudioGetOutputDevice hInst=%p", hInst);
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst && deviceInfo)
    {
@@ -1028,66 +979,6 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDevice(const SIPX_INST hInst,
             deviceInfo->defaultSampleRate = cpDeviceInfo.m_defaultSampleRate;
             deviceInfo->maxChannels = cpDeviceInfo.m_maxChannels;
             rc = SIPX_RESULT_SUCCESS;
-         }
-      }
-   }
-
-   return rc;
-}
-
-SIPXTAPI_API SIPX_RESULT sipxAudioSetDriverLatency(const SIPX_INST hInst,
-                                                   double inputLatency,
-                                                   double outputLatency)
-{
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO, "sipxAudioSetDriverLatency hInst=%p", hInst);
-
-   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
-
-   if (pInst)
-   {
-      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
-
-      if (pInterface)
-      {
-         OsStatus res = pInterface->setAudioDriverLatency(inputLatency, outputLatency);
-         if (res == OS_SUCCESS)
-         {
-            rc = SIPX_RESULT_SUCCESS;
-         }
-         else
-         {
-            rc= SIPX_RESULT_FAILURE;
-         }
-      }
-   }
-
-   return rc;
-}
-
-SIPXTAPI_API SIPX_RESULT sipxAudioGetDriverLatency(const SIPX_INST hInst,
-                                                   double* inputLatency,
-                                                   double* outputLatency)
-{
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO, "sipxAudioGetDriverLatency hInst=%p", hInst);
-
-   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
-
-   if (pInst && inputLatency && outputLatency)
-   {
-      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
-
-      if (pInterface)
-      {
-         OsStatus res = pInterface->getAudioDriverLatency(*inputLatency, *outputLatency);
-         if (res == OS_SUCCESS)
-         {
-            rc = SIPX_RESULT_SUCCESS;
-         }
-         else
-         {
-            rc= SIPX_RESULT_FAILURE;
          }
       }
    }

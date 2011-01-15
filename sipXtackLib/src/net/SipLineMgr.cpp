@@ -127,9 +127,7 @@ void SipLineMgr::deleteAllLines()
 UtlBoolean SipLineMgr::registerLine(const Url& lineURI)
 {
    Url preferredContact;
-   UtlBoolean bAllowContactOverride;
    Url fullLineUrl;
-   SIP_TRANSPORT_TYPE preferredTransport;
 
    {
       OsLock lock(m_mutex); // scoped lock
@@ -146,13 +144,10 @@ UtlBoolean SipLineMgr::registerLine(const Url& lineURI)
       pLine->setState(SipLine::LINE_STATE_TRYING);
       preferredContact = pLine->getPreferredContactUri();
       fullLineUrl = pLine->getFullLineUrl();
-      bAllowContactOverride = pLine->getAllowContactOverride();
-      preferredTransport = pLine->getPreferredTransport();
       pLine = NULL;
    }
 
-   if (!m_pRefreshMgr->newRegisterMsg(fullLineUrl, preferredContact, bAllowContactOverride,
-      preferredTransport, -1))
+   if (!m_pRefreshMgr->newRegisterMsg(fullLineUrl, preferredContact, -1))
    {
       //duplicate ...call reregister
       m_pRefreshMgr->reRegister(fullLineUrl);
@@ -165,7 +160,7 @@ UtlBoolean SipLineMgr::registerLine(const Url& lineURI)
 
 UtlBoolean SipLineMgr::unregisterLine(const Url& lineURI)
 {
-   SipLine::LineStateEnum lineState = SipLine::LINE_STATE_UNKNOWN;
+   SipLine::LineStates lineState = SipLine::LINE_STATE_UNKNOWN;
 
    Url fullLineUrl;
    {
@@ -229,17 +224,19 @@ size_t SipLineMgr::getNumLines() const
 }
 
 // requires external m_mutex lock
-const SipLine* SipLineMgr::findLine(const Url& lineUri,
+const SipLine* SipLineMgr::findLine(const UtlString& lineId,
+                                    const Url& lineUri,
                                     const UtlString& userId) const
 {
-   return m_listList.findLine(lineUri, userId);
+   return m_listList.findLine(lineId, lineUri, userId);
 }
 
-UtlBoolean SipLineMgr::lineExists(const Url& lineUri,
+UtlBoolean SipLineMgr::lineExists(const UtlString& lineId,
+                                  const Url& lineUri,
                                   const UtlString& userId) const
 {
    OsLock lock(m_mutex); // scoped lock
-   return findLine(lineUri, userId) != NULL; // if we found something, then line exists
+   return findLine(lineId, lineUri, userId) != NULL; // if we found something, then line exists
 }
 
 UtlBoolean SipLineMgr::addCredentialForLine(const Url& lineUri,
@@ -302,13 +299,14 @@ UtlBoolean SipLineMgr::deleteAllCredentialsForLine(const Url& lineUri)
    return FALSE;
 }
 
-UtlBoolean SipLineMgr::findLineCopy(const Url& lineUri,
+UtlBoolean SipLineMgr::findLineCopy(const UtlString& lineId,
+                                    const Url& lineUri,
                                     const UtlString& userId,
                                     SipLine& sipLine) const
 {
    OsLock lock(m_mutex); // scoped lock
 
-   const SipLine *pLine = findLine(lineUri, userId);
+   const SipLine *pLine = findLine(lineId, lineUri, userId);
    if (pLine)
    {
       // if line was found, copy contents into sipLine
@@ -349,7 +347,7 @@ UtlBoolean SipLineMgr::getLineProxyServers(const Url& lineUri,
 }
 
 UtlBoolean SipLineMgr::setStateForLine(const Url& lineUri,
-                                       SipLine::LineStateEnum state)
+                                       SipLine::LineStates state)
 {
    OsLock lock(m_mutex); // scoped lock
 

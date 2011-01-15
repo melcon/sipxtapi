@@ -17,7 +17,6 @@
 #include <os/OsNatKeepaliveListener.h>
 #include <utl/UtlSList.h>
 #include <os/OsRWMutex.h>
-#include <net/SipCallIdGenerator.h>
 
 // DEFINES
 // MACROS
@@ -81,7 +80,7 @@ public:
                     int iStunPort,
                     const char* szLocalIp, 
                     int refreshPeriodInSecs, 
-                    OsMsgQ* pNotificationQueue);
+                    OsNotification* pNotification) ;
       //:Enable stun lookups for UDP signaling
       // Use a NULL szStunServer to disable
 
@@ -162,10 +161,6 @@ public:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-   /**
-    * For UDP sockets returns an existing socket for given localIp.
-    * null will be returned if no socket is bound to given localIp.
-    */
     OsSocket* buildClientSocket(int hostPort,
                                 const char* hostAddress,
                                 const char* localIp);
@@ -175,7 +170,6 @@ protected:
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
-    SipCallIdGenerator mSipCallIdGenerator;
     UtlString mStunServer ;
     int mStunRefreshSecs ;
     int mStunPort ;

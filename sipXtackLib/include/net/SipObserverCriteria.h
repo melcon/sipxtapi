@@ -27,7 +27,7 @@
 // STRUCTS
 // TYPEDEFS
 // FORWARD DECLARATIONS
-class SipDialog;
+class SipSession;
 
 //:Class short description which may consist of multiple lines (note the ':')
 // Class detailed description which may extend to multiple lines
@@ -46,7 +46,7 @@ public:
                       UtlBoolean wantIncoming = TRUE,
                       UtlBoolean wantOutGoing = TRUE,
                       const char* eventName = NULL,
-                      const SipDialog* pSipDialog = NULL);
+                      SipSession* pSession = NULL);
      //:Default constructor
 
    virtual
@@ -60,15 +60,15 @@ public:
 
    OsMsgQ* getObserverQueue();
    void* getObserverData();
-   void getEventName(UtlString& eventName) const;
-   const SipDialog* getSipDialog() const;
+   void getEventName(UtlString& eventName);
+   SipSession* getSession();
 
 /* ============================ INQUIRY =================================== */
 
-   UtlBoolean wantsRequests() const;
-   UtlBoolean wantsResponses() const;
-   UtlBoolean wantsIncoming() const;
-   UtlBoolean wantsOutGoing() const;
+   UtlBoolean wantsRequests();
+   UtlBoolean wantsResponses();
+   UtlBoolean wantsIncoming();
+   UtlBoolean wantsOutGoing();
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
@@ -83,7 +83,7 @@ private:
    UtlBoolean mWantsOutGoing;
    OsMsgQ* mpMessageObserverQueue;
    UtlString mEventName;
-   SipDialog* m_pSipDialog;
+   SipSession* mpSession ;
 
    SipObserverCriteria& operator=(const SipObserverCriteria& rhs);
      //:Assignment operator (not implemented)

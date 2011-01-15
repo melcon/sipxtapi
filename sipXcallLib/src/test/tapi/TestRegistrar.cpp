@@ -41,10 +41,12 @@ mbPaused(false)
       5070,                    // sipTcpPort
       5070,                    // sipUdpPort
       5071,                    // sipTlsPort
-      "127.0.0.1",                // defaultSipAddress
+      NULL,                       // publicAddress
       NULL,                       // defaultUser
+      "127.0.0.1",                       // defaultSipAddress
       NULL,                       // sipProxyServers
       NULL,                       // sipDirectoryServers
+      NULL,                       // sipRegistryServers
       NULL,                       // authenticationScheme
       NULL,                       // authenicateRealm
       NULL,                       // authenticateDb

@@ -56,8 +56,6 @@
 #include <functiondiscoverykeys.h>  // PKEY_Device_FriendlyName
 #endif
 
-#include <process.h>
-
 #include "pa_util.h"
 #include "pa_allocation.h"
 #include "pa_hostapi.h"
@@ -75,12 +73,7 @@
 #define PORTAUDIO_SHAREMODE     AUDCLNT_SHAREMODE_SHARED
 //#define PORTAUDIO_SHAREMODE   AUDCLNT_SHAREMODE_EXCLUSIVE
 
-/* use CreateThread for CYGWIN, _beginthreadex for all others */
-#ifndef __CYGWIN__
-#define CREATE_THREAD (HANDLE) _beginthreadex(NULL, 0, (unsigned (_stdcall *)(void *))ProcThread, (LPVOID) stream, 0, (unsigned *)&stream->dwThreadId)
-#else
-#define CREATE_THREAD CreateThread(NULL, 0, ProcThread, (LPVOID) stream, 0, &stream->dwThreadId)
-#endif
+
 
 /* prototypes for functions declared in this file */
 
@@ -518,7 +511,7 @@ PaError PaWinWasapi_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApi
 					if (value.pwszVal)
 						wcstombs(deviceName,   value.pwszVal,MAX_STR_LEN-1); //todo proper size	
 					else{
-						_snprintf_s(deviceName,MAX_STR_LEN-1,MAX_STR_LEN-1,"baddev%d",i);
+						sprintf(deviceName,"baddev%d",i);
 					}
 
                     deviceInfo->name = deviceName;
@@ -956,9 +949,9 @@ GetClosestFormat(IAudioClient * myClient, double sampleRate,const  PaStreamParam
 	HRESULT hResult=!S_OK;
 
 	if (*shareMode == AUDCLNT_SHAREMODE_EXCLUSIVE)
-		hResult = myClient->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE,&outWavex->Format,NULL);
+		hResult = myClient->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE,(WAVEFORMATEX*)outWavex,NULL);
 	else
-		hResult = myClient->IsFormatSupported(AUDCLNT_SHAREMODE_SHARED,   &outWavex->Format,&sharedClosestMatch);
+		hResult = myClient->IsFormatSupported(AUDCLNT_SHAREMODE_SHARED,   (WAVEFORMATEX*)&outWavex,&sharedClosestMatch);
 
 	if (hResult == S_OK)
 		answer = paFormatIsSupported;
@@ -990,9 +983,9 @@ GetClosestFormat(IAudioClient * myClient, double sampleRate,const  PaStreamParam
 			WAVEFORMATEXTENSIBLE ext;
 			wasapiFillWFEXT(&ext,BestToWorst[i],sampleRate,params->channelCount);		
 			if (*shareMode == AUDCLNT_SHAREMODE_EXCLUSIVE)
-				hResult = myClient->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE,&ext.Format,NULL);
+				hResult = myClient->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE,(WAVEFORMATEX*)&ext,NULL);
 			else
-				hResult = myClient->IsFormatSupported(AUDCLNT_SHAREMODE_SHARED,   &ext.Format,&sharedClosestMatch);
+				hResult = myClient->IsFormatSupported(AUDCLNT_SHAREMODE_SHARED,   (WAVEFORMATEX*)&ext,&sharedClosestMatch);
 
 			if (hResult == S_OK){
 				memcpy(outWavex,&ext,sizeof(WAVEFORMATEXTENSIBLE));
@@ -1015,9 +1008,9 @@ GetClosestFormat(IAudioClient * myClient, double sampleRate,const  PaStreamParam
 			pcm16WaveFormat.cbSize = 0;
 
 			if (*shareMode == AUDCLNT_SHAREMODE_EXCLUSIVE)
-				hResult = myClient->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE,&pcm16WaveFormat,NULL);
+				hResult = myClient->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE,(WAVEFORMATEX*)&pcm16WaveFormat,NULL);
 			else
-				hResult = myClient->IsFormatSupported(AUDCLNT_SHAREMODE_SHARED,   &pcm16WaveFormat,&sharedClosestMatch);
+				hResult = myClient->IsFormatSupported(AUDCLNT_SHAREMODE_SHARED,   (WAVEFORMATEX*)&pcm16WaveFormat,&sharedClosestMatch);
 
 			if (hResult == S_OK){
 				memcpy(outWavex,&pcm16WaveFormat,sizeof(WAVEFORMATEX));
@@ -1524,8 +1517,14 @@ static PaError StartStream( PaStream *s )
 	}
 
     // Create a thread for this client.
-    stream->hThread = CREATE_THREAD;
-        
+    stream->hThread = CreateThread(
+        NULL,              // no security attribute
+        0,                 // default stack size
+        ProcThread,
+        (LPVOID) stream,    // thread parameter
+        0,                 // not suspended
+        &stream->dwThreadId);      // returns thread ID
+
     if (stream->hThread == NULL)
         return paUnanticipatedHostError;
 

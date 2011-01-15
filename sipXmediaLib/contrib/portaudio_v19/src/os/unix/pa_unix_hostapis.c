@@ -52,23 +52,9 @@ PaError PaAsiHpi_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiInd
 PaError PaMacCore_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex index );
 PaError PaSkeleton_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex index );
 
-/** Note that on Linux, ALSA is placed before OSS so that the former is preferred over the latter.
- */
 
 PaUtilHostApiInitializer *paHostApiInitializers[] =
     {
-#ifdef __linux__
-
-#ifdef PA_USE_ALSA
-        PaAlsa_Initialize,
-#endif
-
-#ifdef PA_USE_OSS
-        PaOSS_Initialize,
-#endif
-
-#else   /* __linux__ */
-
 #ifdef PA_USE_OSS
         PaOSS_Initialize,
 #endif
@@ -76,8 +62,6 @@ PaUtilHostApiInitializer *paHostApiInitializers[] =
 #ifdef PA_USE_ALSA
         PaAlsa_Initialize,
 #endif
-
-#endif  /* __linux__ */
 
 #ifdef PA_USE_JACK
         PaJack_Initialize,

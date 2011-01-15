@@ -15,7 +15,6 @@
 #include <cppunit/TestCase.h>
 #include <sipxunit/TestUtilities.h>
 
-#include <mp/MpDefs.h>
 #include <mp/MpFlowGraphBase.h>
 #include <mp/MpTestResource.h>
 #include <mp/MpMisc.h>
@@ -236,9 +235,9 @@ public:
         MpTestResource*  pResource3 = NULL;
         OsStatus         res;
 
-        mpStartUp();
+        mpStartUp(8000, 80);
 
-        pFlowGraph = new MpFlowGraphBase(SAMPLES_PER_FRAME, SAMPLES_PER_SECOND);
+        pFlowGraph = new MpFlowGraphBase(80, 8000);
         pResource1 = new MpTestResource("resource1", 4, 4, 4, 4);
         pResource2 = new MpTestResource("resource2", 4, 4, 4, 4);
         pResource3 = new MpTestResource("resource3", 4, 4, 4, 4);
@@ -461,9 +460,9 @@ public:
        MpTestResource*  pResource1 = NULL;
        OsStatus         res;
 
-       mpStartUp();
+       mpStartUp(8000, 80);
 
-       pFlowGraph = new MpFlowGraphBase(SAMPLES_PER_FRAME, SAMPLES_PER_SECOND);
+       pFlowGraph = new MpFlowGraphBase(80, 8000);
        pResource1 = new MpTestResource("resource1", 4, 4, 4, 4);
 
        res = pFlowGraph->addResource(*pResource1);
@@ -529,11 +528,11 @@ public:
        OsStatus         res;
 
        // Setup media task
-       res = mpStartUp();
+       res = mpStartUp(8000, 80);
        CPPUNIT_ASSERT(res == OS_SUCCESS);
 
-       pFlowGraph = new MpFlowGraphBase(SAMPLES_PER_FRAME, SAMPLES_PER_SECOND);
-       pToneGen1  = new MprToneGen("toneGen1", SAMPLES_PER_FRAME, SAMPLES_PER_SECOND, "");
+       pFlowGraph = new MpFlowGraphBase(80, 8000);
+       pToneGen1  = new MprToneGen("toneGen1", 80, 8000, "");
 
        // TODO: START HERE
 

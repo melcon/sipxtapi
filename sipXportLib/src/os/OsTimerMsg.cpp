@@ -5,73 +5,90 @@
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
-// Copyright (C) 2007 Jaroslav Libak
-// Licensed under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-// SYSTEM INCLUDES
-// APPLICATION INCLUDES
-#include <os/OsTimerMsg.h>
 
-// DEFINES
+// SYSTEM INCLUDES
+#include <assert.h>
+
+// APPLICATION INCLUDES
+#include "os/OsTimerMsg.h"
+
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
-// MACROS
-// GLOBAL VARIABLES
-// GLOBAL FUNCTIONS
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
 /* ============================ CREATORS ================================== */
 
-OsTimerMsg::OsTimerMsg(const unsigned char msgSubType)
-: OsMsg(OS_TIMER_MSG, msgSubType)
-, m_timestamp()
+// Constructor
+OsTimerMsg::OsTimerMsg(const unsigned char subType,
+                       OsTimer* pTimer,
+                       OsEvent* pEvent)
+: OsRpcMsg(OsMsg::OS_TIMER, subType, *pEvent),
+  mpTimer(pTimer)
 {
-
+   init();
 }
 
-OsTimerMsg::OsTimerMsg(const OsTimerMsg& rhs)
-: OsMsg(rhs)
-, m_timestamp(rhs.m_timestamp)
+// Copy constructor
+OsTimerMsg::OsTimerMsg(const OsTimerMsg& rOsTimerMsg)
+: OsRpcMsg(rOsTimerMsg)
 {
+   mpTimer = rOsTimerMsg.mpTimer;
 }
 
+// Create a copy of this msg object (which may be of a derived type)
 OsMsg* OsTimerMsg::createCopy(void) const
 {
    return new OsTimerMsg(*this);
 }
 
+// Destructor
 OsTimerMsg::~OsTimerMsg()
 {
-
+   // no work required
 }
 
 /* ============================ MANIPULATORS ============================== */
 
-OsTimerMsg& OsTimerMsg::operator=(const OsTimerMsg& rhs)
+// Assignment operator
+OsTimerMsg& 
+OsTimerMsg::operator=(const OsTimerMsg& rhs)
 {
-   if (this == &rhs)
-   {
+   if (this == &rhs)            // handle the assignment to self case
       return *this;
-   }
 
-   OsMsg::operator=(rhs); // assign fields for parent class
+   OsMsg::operator=(rhs);       // assign fields for parent class
 
-   m_timestamp = rhs.m_timestamp;
+   mpTimer = rhs.mpTimer;
 
    return *this;
 }
 
 /* ============================ ACCESSORS ================================= */
 
+// Return the size of the message in bytes.
+// This is a virtual method so that it will return the accurate size for
+// the message object even if that object has been upcast to the type of
+// an ancestor class.
+int OsTimerMsg::getMsgSize(void) const
+{
+   return sizeof(*this);
+}
+
 /* ============================ INQUIRY =================================== */
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+// Initialization common to all constructors
+void OsTimerMsg::init(void)
+{
+}
 
 /* ============================ FUNCTIONS ================================= */

@@ -14,7 +14,7 @@
 #ifdef INCLUDE_RTCP /* [ */
 
 //  Constants
-#define MAX_CONNECTIONS 100
+const int MAX_CONNECTIONS  = 64;
 
 //  Static Declarations
 static unsigned long ulMasterSessionCount = 1;

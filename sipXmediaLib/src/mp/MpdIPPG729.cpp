@@ -8,24 +8,17 @@
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
-// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
-// Licensed under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifdef HAVE_INTEL_IPP /* [ */
 
 #ifdef WIN32 // [
+#   pragma comment(lib, "usc.lib")
 #   pragma comment(lib, "ipps.lib")
 #   pragma comment(lib, "ippsc.lib")
 #   pragma comment(lib, "ippcore.lib")
 #   pragma comment(lib, "ippsr.lib")
-#   pragma comment(lib, "libircmt.lib")
-#   pragma comment(lib, "speech.lib")
-#   pragma comment(lib, "speech_rtp.lib")
-#   pragma comment(lib, "usc_speech_codec.lib")
-#   pragma comment(lib, "umc.lib")
-#   pragma comment(lib, "vm.lib")
 #endif // WIN32 ]
 
 // APPLICATION INCLUDES
@@ -40,15 +33,19 @@ extern "C" {
 #define G729_PATTERN_LENGTH 20
 
 const MpCodecInfo MpdIPPG729::smCodecInfo(
-   SdpCodec::SDP_CODEC_G729,    // codecType
-   "Intel IPP 6.0",             // codecVersion
+   SdpCodec::SDP_CODEC_G729A,   // codecType
+   "Intel IPP 5.3",             // codecVersion
+   true,                        // usesNetEq
    8000,                        // samplingRate
    16,                          // numBitsPerSample (not used)
    1,                           // numChannels
+   160,                          // interleaveBlockSize
    8000,                        // bitRate
-   20*8,                        // minPacketBits
-   20*8,                        // maxPacketBits
-   160);                        // numSamplesPerFrame - 20ms frame
+   20*8,                          // minPacketBits
+   20*8,                         // avgPacketBits
+   20*8,                         // maxPacketBits
+   160,                          // numSamplesPerFrame
+   6);                          // preCodecJitterBufferSize (should be adjusted)
 
 MpdIPPG729::MpdIPPG729(int payloadType)
 : MpDecoderBase(payloadType, &smCodecInfo)
@@ -68,8 +65,18 @@ OsStatus MpdIPPG729::initDecode()
    int lCallResult;
 
    ippStaticInit();
-   codec->lIsVad = 1;
-   strcpy((char*)codec->codecName, "IPP_G729A");
+
+   switch (getPayloadType())
+   {
+   case SdpCodec::SDP_CODEC_G729A:
+   case SdpCodec::SDP_CODEC_G729: 
+      // Apply codec name and VAD to codec definition structure
+      strcpy((char*)codec->codecName, "IPP_G729A");
+      codec->lIsVad = 0;
+      break;
+   default:
+      return OS_FAILED;
+   }
 
    // Load codec by name
    lCallResult = LoadUSCCodecByName(codec, NULL);
@@ -147,64 +154,57 @@ OsStatus MpdIPPG729::freeDecode(void)
 
 int MpdIPPG729::decode(const MpRtpBufPtr &rtpPacket,
                        unsigned decodedBufferLength,
-                       MpAudioSample *samplesBuffer,
-                       UtlBoolean bIsPLCFrame) 
+                       MpAudioSample *samplesBuffer) 
 {
-   if (!rtpPacket.isValid())
-      return 0;
+   int frames;
 
    unsigned payloadSize = rtpPacket->getPayloadSize();
-   unsigned maxPayloadSize = smCodecInfo.getMaxPacketBits()/8;
 
-   assert(payloadSize <= maxPayloadSize);
-   if (payloadSize > maxPayloadSize || payloadSize <= 1)
+   if (decodedBufferLength < 160)
    {
+      osPrintf("MpdIPPG729::decode: Jitter buffer overloaded. Glitch!\n");
       return 0;
    }
 
-   unsigned int decodedSamples = 0;
+   // Each decode pattern must have 10 bytes or less (in case VAD enabled)
+   frames = payloadSize / Bitstream.nbytes;
 
-   if (payloadSize <= 2 && !bIsPLCFrame)
+   // Setup input and output pointers
+   Bitstream.pBuffer = const_cast<char*>(rtpPacket->getDataPtr());
+   PCMStream.pBuffer = reinterpret_cast<char*>(samplesBuffer);
+   // zero the buffer in case we decode less than 320 bytes
+   // as it happens sometimes
+   memset(PCMStream.pBuffer, 0, 320);
+   
+   // Decode frames
+   for (int i = 0; i < frames; i++)
    {
-      // MpDecodeBuffer will generate comfort noise
-      return 0;
-   }
-   else
-   {
-      // Each decode pattern must have 10 bytes or less (in case VAD enabled)
-      int frames = 0;
-      frames = payloadSize / Bitstream.nbytes;
+      // Decode one frame
+      USCCodecDecode(&codec->uscParams, &Bitstream, &PCMStream, 0);
 
-      // Setup input and output pointers
-      Bitstream.pBuffer = const_cast<char*>(rtpPacket->getDataPtr());
-      PCMStream.pBuffer = reinterpret_cast<char*>(samplesBuffer);
-      // zero the buffer in case we decode less than 320 bytes
-      // as it happens sometimes
-      memset(PCMStream.pBuffer, 0, 320);
-
-      // Decode frames
-      for (int i = 0; i < frames; i++)
-      {
-         // Decode one frame
-         USC_Status uscStatus = codec->uscParams.USC_Fns->Decode(codec->uscParams.uCodec.hUSCCodec,
-            bIsPLCFrame ? NULL : &Bitstream,
-            &PCMStream);
-         assert(uscStatus == USC_NoError);
-
-         if (uscStatus != USC_NoError)
-         {
-            return 0;
-         }
-
-         // move pointers
-         Bitstream.pBuffer += Bitstream.nbytes;
-         PCMStream.pBuffer += codec->uscParams.pInfo->params.framesize;
-         decodedSamples += PCMStream.nbytes / sizeof(MpAudioSample);
-      }
+      // move pointers
+      Bitstream.pBuffer += Bitstream.nbytes;
+      PCMStream.pBuffer += codec->uscParams.pInfo->params.framesize;
    }
 
    // Return number of decoded samples
-   return decodedSamples;
+   return 160;
 }
+
+int MpdIPPG729::decodeIn(const MpRtpBufPtr &rtpPacket)
+{
+   unsigned payloadSize = rtpPacket->getPayloadSize();
+
+   if (payloadSize == G729_PATTERN_LENGTH)
+   {
+      return payloadSize;
+   }
+   else
+   {
+      osPrintf("MpdIPPG729: Rejecting rtpPacket of size %i\n", payloadSize);
+      return -1;
+   }
+}
+
 
 #endif /* !HAVE_INTEL_IPP ] */

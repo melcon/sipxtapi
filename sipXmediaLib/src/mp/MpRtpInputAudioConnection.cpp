@@ -18,7 +18,6 @@
 #include <os/OsLock.h>
 #include "os/OsIntPtrMsg.h"
 #include <os/OsSysLog.h>
-#include <mp/MpDefs.h>
 #include <mp/MpRtpInputAudioConnection.h>
 #include <mp/MpFlowGraphBase.h>
 #include <mp/MprDejitter.h>
@@ -28,19 +27,14 @@
 #include <mp/MprDtmfDetectorFactory.h>
 #include "mp/MpResNotification.h"
 #include <sdp/SdpCodec.h>
-#include <sdp/SdpCodecList.h>
 #ifdef RTL_ENABLED
 #   include <rtl_macro.h>
 #endif
-
-// minimum is 5 second
-#define MIN_CONNECTION_IDLE_TIMEOUT 5
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
-long MpRtpInputAudioConnection::ms_maxInactiveFrameCount = FRAMES_PER_SECOND * 120; // default is 2 minutes
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -65,8 +59,6 @@ MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceNa
                        )
 , mpDecode(NULL)
 , mpDtmfDetector(NULL)
-, m_inactiveFrameCount(0)
-, m_bAudioReceived(FALSE)
 , m_bInBandDTMFEnabled(bInBandDTMFEnabled)
 , m_bRFC2833DTMFEnabled(bRFC2833DTMFEnabled)
 , m_samplesPerFrame(samplesPerFrame)
@@ -76,7 +68,7 @@ MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceNa
    int          i;
 
    SNPRINTF(name, sizeof(name), "Decode-%d", myID);
-   mpDecode    = new MprDecode(name, this, m_samplesPerFrame, m_samplesPerSec);
+   mpDecode    = new MprDecode(name, this, samplesPerFrame, samplesPerSec);
    mpDecode->registerObserver(this);
 
    if (m_bInBandDTMFEnabled)
@@ -97,6 +89,12 @@ MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceNa
    //////////////////////////////////////////////////////////////////////////
    // connect Dejitter -> Decode (Non synchronous resources)
    mpDecode->setMyDejitter(mpDejitter);
+
+   //  This got moved to the call flowgraph when the connection is
+   // added to the flowgraph.  Not sure it is still needed there either
+   //pParent->synchronize("new Connection, before enable(), %dx%X\n");
+   //enable();
+   //pParent->synchronize("new Connection, after enable(), %dx%X\n");
 }
 
 // Destructor
@@ -126,9 +124,9 @@ UtlBoolean MpRtpInputAudioConnection::processFrame(void)
                                           mpOutBufs,
                                           mMaxInputs, 
                                           mMaxOutputs, 
-                                          mpDecode->isEnabled(),
-                                          m_samplesPerFrame, 
-                                          m_samplesPerSec);
+                                          mpDecode->mIsEnabled,
+                                          mpDecode->getSamplesPerFrame(), 
+                                          mpDecode->getSamplesPerSec());
     
 		if(mpDtmfDetector)
 		{
@@ -142,36 +140,6 @@ UtlBoolean MpRtpInputAudioConnection::processFrame(void)
 		}
 	}
 
-   if (mpOutBufs)
-   {
-      MpAudioBufPtr audioBufPtr = *mpOutBufs;
-      if (audioBufPtr.isValid())
-      {
-         MpSpeechType speechType = audioBufPtr->getSpeechType();
-         if (speechType == MP_SPEECH_COMFORT_NOISE)
-         {
-            // comfort noise was generated, no frame was received
-            m_inactiveFrameCount++;
-            if (m_inactiveFrameCount >= ms_maxInactiveFrameCount)
-            {
-               // fire notification
-               sendConnectionNotification(MP_NOTIFICATION_REMOTE_SILENT, m_inactiveFrameCount / FRAMES_PER_SECOND);
-               m_inactiveFrameCount = 0;
-               m_bAudioReceived = FALSE; // reset flag, so that we get notification when audio is received again
-            }
-         }
-         else
-         {
-            m_inactiveFrameCount = 0;
-            if (!m_bAudioReceived)
-            {
-               m_bAudioReceived = TRUE;
-               // fire notification
-               sendConnectionNotification(MP_NOTIFICATION_REMOTE_ACTIVE, 0);
-            }
-         }
-      }
-   }
 
     // No input buffers to release
    assert(mMaxInputs == 0);
@@ -181,6 +149,7 @@ UtlBoolean MpRtpInputAudioConnection::processFrame(void)
    pushBufferDownsream(0, mpOutBufs[0]);
    // release the output buffer
    mpOutBufs[0].release();
+
 
    return(result);
 }
@@ -209,12 +178,13 @@ UtlBoolean MpRtpInputAudioConnection::handleMessage(MpResourceMsg& rMsg)
     case MpResourceMsg::MPRM_START_RECEIVE_RTP:
         {
             MprRtpStartReceiveMsg* startMessage = (MprRtpStartReceiveMsg*) &rMsg;
-            UtlSList codecList;
-            startMessage->getCodecList(codecList);
+            SdpCodec** codecArray = NULL;
+            int numCodecs;
+            startMessage->getCodecArray(numCodecs, codecArray);
             OsSocket* rtpSocket = startMessage->getRtpSocket();
             OsSocket* rtcpSocket = startMessage->getRtcpSocket();
 
-            handleStartReceiveRtp(codecList, *rtpSocket, *rtcpSocket);
+            handleStartReceiveRtp(codecArray, numCodecs, *rtpSocket, *rtcpSocket);
             result = TRUE;
         }
         break;
@@ -276,16 +246,18 @@ UtlBoolean MpRtpInputAudioConnection::handleEnable()
 
 OsStatus MpRtpInputAudioConnection::startReceiveRtp(OsMsgQ& messageQueue,
                                                     const UtlString& resourceName,
-                                                    const SdpCodecList& sdpCodecList,
+                                                    SdpCodec* codecArray[], 
+                                                    int numCodecs,
                                                     OsSocket& rRtpSocket,
                                                     OsSocket& rRtcpSocket)
 {
     OsStatus result = OS_INVALID_ARGUMENT;
-    if(sdpCodecList.getCodecCount() > 0)
+    if(numCodecs > 0 && codecArray)
     {
         // Create a message to contain the startRecieveRtp data
         MprRtpStartReceiveMsg msg(resourceName,
-                                  sdpCodecList,
+                                  codecArray,
+                                  numCodecs,
                                   rRtpSocket,
                                   rRtcpSocket);
 
@@ -295,37 +267,49 @@ OsStatus MpRtpInputAudioConnection::startReceiveRtp(OsMsgQ& messageQueue,
     return(result);
 }
 
-void MpRtpInputAudioConnection::handleStartReceiveRtp(UtlSList& codecList,
+void MpRtpInputAudioConnection::handleStartReceiveRtp(SdpCodec* pCodecs[], 
+                                                      int numCodecs,
                                                       OsSocket& rRtpSocket,
                                                       OsSocket& rRtcpSocket)
 {
-   m_bAudioReceived = FALSE;
-   m_inactiveFrameCount = 0;
-
-   if (codecList.entries() > 0)
+   if (numCodecs)
    {
       // if RFC2833 DTMF is disabled
       if (!m_bRFC2833DTMFEnabled)
       {
-         UtlSListIterator itor(codecList);
-         SdpCodec* pCodec = NULL;
          // go through all codecs, if you find telephone event, remove it
-         while (itor())
+         for (int i = 0; i < numCodecs; i++)
          {
-            pCodec = dynamic_cast<SdpCodec*>(itor.item());
-            if (pCodec && pCodec->getCodecType() == SdpCodec::SDP_CODEC_TONES)
+            if (pCodecs[i]->getCodecType() == SdpCodec::SDP_CODEC_TONES)
             {
-               codecList.destroy(pCodec);
+               if (i == (numCodecs - 1))
+               {
+                  // this is the last codec, lie that we have numCodecs-1
+                  numCodecs = numCodecs - 1;
+               }
+               else
+               {
+                  SdpCodec* tmp;
+                  // swap rfc2833 codec with the last one, and lie that we have one
+                  // less codec than we actually have. It is safe to do, as codecs
+                  // are owned by start RTP message.
+                  tmp = pCodecs[i];
+                  pCodecs[i] = pCodecs[numCodecs - 1];
+                  pCodecs[numCodecs - 1] = tmp;
+
+                  numCodecs = numCodecs - 1;
+               }
+               break;
             }
          }
       }
 
       // continue only if numCodecs is still greater than 0
-      if (codecList.entries() > 0)
+      if (numCodecs > 0)
       {
          // initialize jitter buffers for all codecs
-         mpDejitter->initJitterBuffers(codecList);
-         mpDecode->selectCodecs(codecList);
+         mpDejitter->initJitterBuffers(pCodecs, numCodecs);
+         mpDecode->selectCodecs(pCodecs, numCodecs);
       }
    }
    // No need to synchronize as the decoder is not part of the
@@ -335,7 +319,7 @@ void MpRtpInputAudioConnection::handleStartReceiveRtp(UtlSList& codecList,
    // No need to synchronize as the decoder is not part of the
    // flowgraph.  It is part of this connection/resource
    //mpFlowGraph->synchronize();
-   if (codecList.entries() > 0)
+   if (numCodecs)
    {
       mpDecode->enable();
       if (mpDtmfDetector)
@@ -343,8 +327,6 @@ void MpRtpInputAudioConnection::handleStartReceiveRtp(UtlSList& codecList,
          mpDtmfDetector->enable();
       }
    }
-
-   sendConnectionNotification(MP_NOTIFICATION_START_RTP_RECEIVE, 0);
 }
 
 OsStatus MpRtpInputAudioConnection::stopReceiveRtp(OsMsgQ& messageQueue,
@@ -361,9 +343,6 @@ OsStatus MpRtpInputAudioConnection::stopReceiveRtp(OsMsgQ& messageQueue,
 // Stop receiving RTP and RTCP packets.
 void MpRtpInputAudioConnection::handleStopReceiveRtp()
 {
-   m_bAudioReceived = FALSE;
-   m_inactiveFrameCount = 0;
-
    prepareStopReceiveRtp();
 
    // No need to synchronize as the decoder is not part of the
@@ -377,8 +356,6 @@ void MpRtpInputAudioConnection::handleStopReceiveRtp()
    //mpFlowGraph->synchronize();
 
    mpDecode->disable();
-
-   sendConnectionNotification(MP_NOTIFICATION_STOP_RTP_RECEIVE, 0);
 
    if (mpDtmfDetector)
    {
@@ -459,16 +436,6 @@ void MpRtpInputAudioConnection::onNotify(UtlObservable* subject, int code, intpt
 }
 
 /* ============================ ACCESSORS ================================= */
-
-void MpRtpInputAudioConnection::setConnectionIdleTimeout(long timeoutSeconds)
-{
-   if (timeoutSeconds < MIN_CONNECTION_IDLE_TIMEOUT)
-   {
-      timeoutSeconds = MIN_CONNECTION_IDLE_TIMEOUT;
-   }
-
-   ms_maxInactiveFrameCount = timeoutSeconds * FRAMES_PER_SECOND;
-}
 
 MpDecoderBase* MpRtpInputAudioConnection::mapPayloadType(int payloadType)
 {

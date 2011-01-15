@@ -20,7 +20,6 @@
 #include <tapi/InfoStatusEventMsg.h>
 #include "tapi/SipXEvents.h"
 #include <tapi/SipXEventDispatcher.h>
-#include <tapi/SipXCall.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -52,13 +51,13 @@ SipXInfoStatusEventListener::~SipXInfoStatusEventListener()
 
 void SipXInfoStatusEventListener::OnResponse(const SipInfoStatusEvent& event)
 {
-   InfoStatusEventMsg msg(INFOSTATUS_RESPONSE, event);
+   InfoStatusEventMsg msg(INFOSTATUS_RESPONSE, 0, event);
    postMessage(msg);
 }
 
 void SipXInfoStatusEventListener::OnNetworkError(const SipInfoStatusEvent& event)
 {
-   InfoStatusEventMsg msg(INFOSTATUS_NETWORK_ERROR, event);
+   InfoStatusEventMsg msg(INFOSTATUS_NETWORK_ERROR, 0, event);
    postMessage(msg);
 }
 
@@ -75,8 +74,8 @@ UtlBoolean SipXInfoStatusEventListener::handleMessage(OsMsg& rRawMsg)
          {
             // cast succeeded
             const SipInfoStatusEvent& payload = pMsg->getEventPayloadRef();
-            handleInfoStatusEvent(payload.m_sCallId, (SIPX_MESSAGE_STATUS)payload.m_status,
-               payload.m_iResponseCode, payload.m_sResponseText, pMsg->getEvent(), payload.m_pCookie);
+            handleInfoStatusEvent(pMsg->getInfo(), (SIPX_MESSAGE_STATUS)payload.m_status,
+               payload.m_iResponseCode, payload.m_sResponseText, pMsg->getEvent());
          }
       }
       bResult = TRUE;
@@ -88,6 +87,17 @@ UtlBoolean SipXInfoStatusEventListener::handleMessage(OsMsg& rRawMsg)
 
 }
 
+void SipXInfoStatusEventListener::sipxFireInfoStatusEvent(SIPX_INFO hInfo,
+                                                          SIPX_MESSAGE_STATUS status,
+                                                          int responseCode,
+                                                          const UtlString& sResponseText,
+                                                          SIPX_INFOSTATUS_EVENT event)
+{
+   SipInfoStatusEvent payload((SIPXTACK_MESSAGE_STATUS)status, responseCode, sResponseText);
+   InfoStatusEventMsg msg(event, hInfo, payload);
+   postMessage(msg);
+}
+
 /* ============================ ACCESSORS ================================= */
 
 /* ============================ INQUIRY =================================== */
@@ -96,40 +106,21 @@ UtlBoolean SipXInfoStatusEventListener::handleMessage(OsMsg& rRawMsg)
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
-void SipXInfoStatusEventListener::handleInfoStatusEvent(const UtlString& sAbstractCallId,
+void SipXInfoStatusEventListener::handleInfoStatusEvent(SIPX_INFO hInfo,
                                                         SIPX_MESSAGE_STATUS status,
                                                         int responseCode,
                                                         const UtlString& sResponseText,
-                                                        SIPX_INFOSTATUS_EVENT event,
-                                                        void* pCookie)
+                                                        SIPX_INFOSTATUS_EVENT event)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "handleInfoStatusEvent");
-   SIPX_CALL hCall = SIPX_CALL_NULL;
-   SIPX_LINE hLine = SIPX_LINE_NULL;
-
-   hCall = sipxCallLookupHandleByCallId(sAbstractCallId, m_pInst);
-   if (hCall != SIPX_CALL_NULL)
-   {
-      // also try to find line handle
-      SIPX_CALL_DATA* pCallData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
-      if (pCallData)
-      {
-         hLine = pCallData->m_hLine;
-         sipxCallReleaseLock(pCallData, SIPX_LOCK_READ, stackLogger);
-      }
-   }
-
    SIPX_INFOSTATUS_INFO infoStatus;
    memset((void*)&infoStatus, 0, sizeof(SIPX_INFOSTATUS_INFO));
 
    infoStatus.nSize = sizeof(SIPX_INFOSTATUS_INFO);
-   infoStatus.hCall = hCall;
-   infoStatus.hLine = hLine;
+   infoStatus.hInfo = hInfo;
    infoStatus.status = status;
    infoStatus.responseCode = responseCode;
    infoStatus.szResponseText = sResponseText.data();
    infoStatus.event = event;
-   infoStatus.pCookie = pCookie;
 
    SipXEventDispatcher::dispatchEvent(m_pInst, EVENT_CATEGORY_INFO_STATUS, &infoStatus);
 }

@@ -7,7 +7,8 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
+#include "afxres.h"
+
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
@@ -51,8 +52,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,3,0,0
- PRODUCTVERSION 3,3,0,0
+ FILEVERSION 3,2,0,0
+ PRODUCTVERSION 3,2,0,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -69,12 +70,12 @@ BEGIN
         BEGIN
             VALUE "Comments", "Credits:  Bob Andreasen, Andy Jorde, Mike Cohen, Dan Petrie, Jaroslav Libak"
             VALUE "FileDescription", "SIP User-Agent API"
-            VALUE "FileVersion", "3.3.0.0"
+            VALUE "FileVersion", "3.2.0.0"
             VALUE "InternalName", "sipXtapi"
             VALUE "LegalCopyright", "Copyright (C) 2005-2006 SIPFoundry Inc."
             VALUE "OriginalFilename", "sipXtapi.dll"
             VALUE "ProductName", "sipXtapi SDK"
-            VALUE "ProductVersion", "3.3.0.0"
+            VALUE "ProductVersion", "3.2.0.0"
         END
     END
     BLOCK "VarFileInfo"

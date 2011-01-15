@@ -23,6 +23,7 @@
 //#define FORCE_SOCKET_ERRORS
 #if defined(_WIN32)
 #   include <winsock2.h>
+#   include <os/wnt/getWindowsDNSServers.h>
 #elif defined(_VXWORKS)
 #   include <hostLib.h>
 #   include <inetLib.h>
@@ -50,8 +51,6 @@
 #else
 #error Unsupported target platform.
 #endif
-
-#include <os/OsNetwork.h>
 
 #ifdef __linux__
 #include "os/linux/host_address.h"
@@ -790,6 +789,67 @@ UtlBoolean OsSocket::socketInit()
         return(returnCode);
 }
 
+
+/////////////////////////////
+//
+// returns the corredct ipaddress in network byte order
+//
+//
+/////////////////////////////////
+
+unsigned long OsSocket::initDefaultAdapterID(UtlString &interface_id)
+{
+    mInitializeSem.acquire();
+    UtlString address = "";
+    unsigned long retip = htonl(INADDR_ANY);
+
+#ifdef WIN32
+    // Under windows it is possible for many network devices to be present.
+    // in this case we will either return an empty string
+    // or if the configuration parameter  PHONESET_BIND_MAC_ADDRESS is defined
+    // we will look up the mac address against the windows adapters
+    // and then return the correct ip address for that adapter
+    int numAdapters = getAdaptersInfo();  //fills in the structure with the adapter info
+    if (numAdapters < 2)
+    {
+        retip = htonl(INADDR_ANY);
+    } 
+    else
+    {
+        char ipaddress[20];
+        char adapter_id[30];
+
+        *ipaddress = '\0';
+        *adapter_id = '\0';
+
+        strcpy(adapter_id, interface_id.data());
+
+        //if this fails, then we need to choose any address
+        if (strlen(adapter_id) == 0 || 
+                lookupIpAddressByMacAddress(adapter_id, ipaddress) == -1)
+        {
+            retip = htonl(INADDR_ANY);
+        }
+        else
+        {
+            address = ipaddress;
+        }
+    }
+
+    //now convert if it has a string ip address
+    if (address != "")
+    {
+        struct in_addr  ipAddr;
+        ipAddr.s_addr = inet_addr (address.data());
+        retip = ipAddr.s_addr;
+    }
+
+#endif
+
+    mInitializeSem.release();
+    return retip;
+}
+
 /* ============================ ACCESSORS ================================= */
 
 // Returns the socket descriptor
@@ -833,7 +893,7 @@ void OsSocket::getDomainName(UtlString &domain_name)
 
 #ifdef WIN32
         char domain[DOMAIN_NAME_LENGTH];
-        OsNetwork::getWindowsDomainName(domain);
+        getWindowsDomainName (domain);
         m_DomainName = domain;
 #endif  //WIN32
 
@@ -889,7 +949,7 @@ void OsSocket::getHostIp(UtlString* hostAddress)
         const HostAdapterAddress* addresses[MAX_IP_ADDRESSES];
         int numAddresses = MAX_IP_ADDRESSES;
         memset(addresses, 0, sizeof(addresses));
-        OsNetwork::getAllLocalHostIps(addresses, numAddresses);
+        getAllLocalHostIps(addresses, numAddresses);
         assert(numAddresses > 0);
         
         if (numAddresses && hostAddress && addresses[0])

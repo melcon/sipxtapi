@@ -61,11 +61,12 @@ libsipXtack_la_SOURCES =  \
     net/NetMd5Codec.cpp \
     net/PidfBody.cpp \
     net/SdpBody.cpp \
+    net/SdpCodecFactory.cpp \
+    net/SdpHelper.cpp \
     net/SipCallIdGenerator.cpp \
     net/SipClient.cpp \
-    net/SipContact.cpp \
+    net/SipConfigServerAgent.cpp \
     net/SipContactDb.cpp \
-    net/SipContactSelector.cpp \
     net/SipDialog.cpp \
     net/SipDialogEvent.cpp \
     net/SipDialogMgr.cpp \
@@ -96,13 +97,12 @@ libsipXtack_la_SOURCES =  \
     net/SipServerBase.cpp \
     net/SipServerBroker.cpp \
     net/SipServerBrokerListener.cpp \
+    net/SipSession.cpp \
     net/SipSrvLookup.cpp \
     net/SipSubscribeClient.cpp \
     net/SipSubscribeServer.cpp \
     net/SipSubscribeServerEventHandler.cpp \
     net/SipSubscriptionMgr.cpp \
-    net/SipTagGenerator.cpp \
-    net/msg/SipTimerMsg.cpp \
     net/SipTcpServer.cpp \
     net/SipTransaction.cpp \
     net/SipTransactionList.cpp \
@@ -110,6 +110,7 @@ libsipXtack_la_SOURCES =  \
     net/SipUdpServer.cpp \
     net/SipUserAgent.cpp \
     net/SipUserAgentBase.cpp \
+    net/SipUserAgentStateless.cpp \
     net/SmimeBody.cpp \
     net/StateChangeNotifier.cpp \
     net/Url.cpp \

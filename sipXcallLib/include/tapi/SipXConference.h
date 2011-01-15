@@ -35,22 +35,24 @@ class OsStackTraceLogger;
 class SIPX_CONF_DATA
 {
 public:
-   UtlString           m_sConferenceId;
-   SIPX_INSTANCE_DATA* m_pInst;
-   UtlSList            m_hCalls;
-   CONF_HOLD_STATE     m_confHoldState;
-   OsMutex             m_mutex;
-
-   SIPX_CONF_DATA() : m_pInst(NULL),
-      m_sConferenceId(NULL),
-      m_confHoldState(CONF_STATE_UNHELD),
-      m_mutex(OsMutex::Q_FIFO)
+   UtlString           confCallId;
+   SIPX_INSTANCE_DATA* pInst;
+   size_t              nCalls;
+   SIPX_CALL           hCalls[CONF_MAX_CONNECTIONS];
+   CONF_HOLD_STATE     confHoldState;
+   SIPX_TRANSPORT      hTransport;
+   int                 nNumFilesPlaying;
+   OsMutex             mutex;
+   
+   SIPX_CONF_DATA() : pInst(NULL),
+      confCallId(NULL),
+      nCalls(0),
+      confHoldState(CONF_STATE_UNHELD),
+      hTransport(0),
+      nNumFilesPlaying(0),
+      mutex(OsMutex::Q_FIFO)
    {
-   }
-
-   ~SIPX_CONF_DATA()
-   {
-      m_hCalls.destroyAll();
+      memset(hCalls, 0, sizeof(SIPX_CALL) * CONF_MAX_CONNECTIONS);
    }
 
 };
@@ -58,8 +60,6 @@ public:
 // MACROS
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS
-
-SIPX_CONF sipxConfLookupHandleByConfId(const UtlString& confID, SIPX_INST pInst);
 
 SIPX_CONF_DATA* sipxConfLookup(const SIPX_CONF hConf,
                                SIPX_LOCK_TYPE type,
@@ -78,6 +78,7 @@ UtlBoolean validConfData(const SIPX_CONF_DATA* pData);
 UtlBoolean sipxAddCallHandleToConf(const SIPX_CALL hCall,
                                    const SIPX_CONF hConf);
 
+// WARNING: This relies on outside locking of conference SIPX_CONF_DATA
 UtlBoolean sipxRemoveCallHandleFromConf(const SIPX_CONF hConf,
                                         const SIPX_CALL hCall);
 #endif // SipXConference_h__

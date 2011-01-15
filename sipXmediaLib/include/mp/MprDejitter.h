@@ -19,7 +19,6 @@
 #include "os/OsStatus.h"
 #include "os/OsBSem.h"
 #include "mp/MpRtpBuf.h"
-#include <mp/MpJitterBufferBase.h>
 
 // DEFINES
 // MACROS
@@ -40,7 +39,7 @@ public:
 
    enum
    {
-      MAX_PAYLOADS = 128, // dynamic payload id ends with 127
+      MAX_PAYLOADS = 256,
    };
 
 /* ============================ CREATORS ================================== */
@@ -60,7 +59,7 @@ public:
 ///@name Manipulators
 //@{
 
-   OsStatus initJitterBuffers(const UtlSList& codecList);
+   OsStatus initJitterBuffers(SdpCodec* codecs[], int numCodecs);
 
      /// Add a buffer containing an incoming RTP packet to the dejitter pool
    OsStatus pushPacket(const MpRtpBufPtr &pRtp);
@@ -73,7 +72,7 @@ public:
      */
 
      /// Get next RTP packet, or NULL if none is available.
-   MpRtpBufPtr pullPacket(int rtpPayloadType, JitterBufferResult& jbResult);
+   MpRtpBufPtr pullPacket(int rtpPayloadType);
      /**<
      *  @note Significant change is that the downstream puller may NOT pull all
      *        the available packets at once. Instead it is paced according to
@@ -121,7 +120,6 @@ protected:
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   void freeJitterBuffers();
 
                   /// Mutual exclusion lock for internal data
    OsBSem        m_rtpLock;

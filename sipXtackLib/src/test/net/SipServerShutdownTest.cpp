@@ -37,7 +37,7 @@ public:
    void testTcpShutdown()
    {
       SipUserAgent sipUA( PORT_NONE
-                         ,SIP_PORT
+                         ,PORT_NONE
                          ,PORT_NONE
                          ,NULL     // default publicAddress
                          ,NULL     // default defaultUser
@@ -54,7 +54,7 @@ public:
 
       for (int i=0; i<SIP_SHUTDOWN_ITERATIONS; ++i)
       {
-         SipTcpServer pSipTcpServer(5090, &sipUA, SIP_TRANSPORT_TCP_STR, 
+         SipTcpServer pSipTcpServer(5090, &sipUA, SIP_TRANSPORT_TCP, 
                                     "SipTcpServer-%d", false);
          pSipTcpServer.startListener();
 

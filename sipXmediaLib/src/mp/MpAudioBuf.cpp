@@ -11,7 +11,6 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include "mp/MpAudioBuf.h"
-#include "mp/MpDspUtils.h"
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -29,13 +28,30 @@ MpBufPool *MpAudioBuf::smpDefaultPool = NULL;
 
 /* ============================ INQUIRY =================================== */
 
-int MpAudioBuf::compareSamples(const MpAudioBufPtr& frame,
-                               unsigned int tolerance) const
+bool MpAudioBuf::isActiveAudio() const
+{
+    switch (getSpeechType()) {
+        case MP_SPEECH_SILENT:
+        case MP_SPEECH_COMFORT_NOISE:
+        case MP_SPEECH_MUTED:
+            return false;
+        case MP_SPEECH_UNKNOWN:
+        case MP_SPEECH_ACTIVE:
+        case MP_SPEECH_TONE:
+        default:
+            return true;
+
+    };
+}
+
+int MpAudioBuf::compareSamples(const MpAudioBuf& frame1, 
+                               const MpAudioBuf& frame2, 
+                               unsigned int tolerance)
 {
 
     int difference = 0;
-    int samplesInFrame1 = getSamplesNumber();
-    int samplesInFrame2 = frame->getSamplesNumber();
+    int samplesInFrame1 = frame1.getSamplesNumber();
+    int samplesInFrame2 = frame2.getSamplesNumber();
 
     if(samplesInFrame1 > samplesInFrame2)
     {
@@ -49,8 +65,8 @@ int MpAudioBuf::compareSamples(const MpAudioBufPtr& frame,
 
     else
     {
-        const MpAudioSample* samples1 = getSamplesPtr();
-        const MpAudioSample* samples2 = frame->getSamplesPtr();
+        const MpAudioSample* samples1 = frame1.getSamplesPtr();
+        const MpAudioSample* samples2 = frame2.getSamplesPtr();
 
         int sampleDiff;
         for(int sampleIndex = 0; sampleIndex < samplesInFrame1; sampleIndex++)
@@ -78,16 +94,8 @@ int MpAudioBuf::compareSamples(const MpAudioBufPtr& frame,
 
 void MpAudioBuf::init()
 {
-    // No VAD decision yet
-    mParams.mSpeechType = MP_SPEECH_UNKNOWN;
-    // No AGC decision yet
-    mParams.mAmplitude = MpSpeechParams::MAX_AMPLITUDE;
-    // We can't tell if it clipped or not
-    mParams.mIsClipped = FALSE;
-    // Energy is not set yet
-    mParams.mFrameEnergy = -1;
-    // Highest speaker rank - just some reasonable default
-    mParams.mSpeakerRank = 0;
+    mAttenDb = 0;
+    mSpeechType = MP_SPEECH_UNKNOWN;
 #ifdef MPBUF_DEBUG
     osPrintf(">>> MpAudioBuf::init()\n");
 #endif

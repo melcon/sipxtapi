@@ -11,10 +11,12 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
+
 #ifndef _MpSipxDecoders_h_
 #define _MpSipxDecoders_h_
 
 // SYSTEM INCLUDES
+
 // APPLICATION INCLUDES
 #include <mp/MpTypes.h>
 
@@ -25,6 +27,7 @@
 // CONSTANTS
 // STRUCTS
 // TYPEDEFS
+
 // FORWARD DECLARATIONS
 
 #ifdef __cplusplus

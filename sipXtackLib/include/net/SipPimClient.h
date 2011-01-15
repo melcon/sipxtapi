@@ -23,8 +23,6 @@
 #include <os/OsServerTask.h>
 #include <utl/UtlString.h>
 #include <net/Url.h>
-#include <net/SipCallIdGenerator.h>
-#include <net/SipTransport.h>
 
 // DEFINES
 // MACROS
@@ -123,13 +121,11 @@ public:
      * \param messageText - text of the message to send in the IM
      * \param responseCode - the response code from the request to sent the text
      * \param responseCodeText - the response code text from the top header line
-     * \param transport - transport which should be used for sending MESSAGE request
      */
     UtlBoolean sendPagerMessage(Url& destinationAor, 
                                 const char* messageText, const char* subject,
                                 int& responseCode,
-                                UtlString& responseCodeText,
-                                SIP_TRANSPORT_TYPE transport = SIP_TRANSPORT_AUTO);
+                                UtlString& responseCodeText);
 
     //! Set callback function for incoming pager mode text messages 
     /*! Set the function to be called if there are incoming MESSAGE
@@ -166,15 +162,19 @@ public:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
+    //! Call Id generator for SipPimClient
+    void getNextCallId(UtlString& callId);
+
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+
+
     //! Disabled copy constructor
     SipPimClient(const SipPimClient& rSipPimClient);
 
     //! Disabled assignment operator
     SipPimClient& operator=(const SipPimClient& rhs);
 
-    SipCallIdGenerator mSipCallIdGenerator;
     int mCallIdIndex;
     Url mPresentityAor;
     UtlString mFromField;

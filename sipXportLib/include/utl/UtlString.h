@@ -56,14 +56,6 @@ extern int strncasecmp( const char *s1, const char *s2, int N );
  */
 class UtlString : public UtlCopyableContainable
 {
-/* //////////////////////////// PRIVATE /////////////////////////////////// */
-private:
-   // for debugging purposes it's better to have these fields at the beginning
-   char*  mpData;      //: The value of UtlString.
-   size_t mSize;       //: The number of bytes of data used.
-   size_t mCapacity;   //: The allocated size of data.
-   char   mBuiltIn[DEFAULT_UTLSTRING_CAPACITY];
-
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
     static const UtlContainableType TYPE;    /** < Class type used for runtime checking */
@@ -411,14 +403,6 @@ public:
     /// Append a single character to the end of this string.
     UtlString& append(const char c);
 
-    /// Append format string like pritnf
-    UtlString& appendFormat(const char* format, ... )
-#ifdef __GNUC__
-       /* with the -Wformat switch, this enables format string checking */
-       __attribute__ ((format(printf, 2, 3)))
-#endif
-       ;
-
 ///@}
 // ================================================================
 /** @name              Insertion Operators
@@ -556,9 +540,6 @@ public:
      * Invalid position or length results in no changes.
      */
 
-    /// Clears the string leaving empty string.
-    UtlString& clear();
-
 ///@}
 // ================================================================
 /** @name        Stripping and Trimming Operations
@@ -683,6 +664,12 @@ public:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
+/* //////////////////////////// PRIVATE /////////////////////////////////// */
+private:
+    char*  mpData;      //: The value of UtlString.
+    size_t mSize;       //: The number of bytes of data used.
+    size_t mCapacity;   //: The allocated size of data.
+    char   mBuiltIn[DEFAULT_UTLSTRING_CAPACITY];
 };
 
 /* ============================ INLINE METHODS ============================ */

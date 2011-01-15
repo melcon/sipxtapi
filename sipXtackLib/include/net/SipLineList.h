@@ -84,11 +84,13 @@ public:
    void dumpLineAliases();
 
    /**
-    * Tries to find line according to given parameters. First hash lookup by lineUri.
-    * If not found by identityUri, try slow scan by userId. This method is slow if userId
-    * is provided and lineUri doesn't match.
+    * Tries to find line according to given parameters. First try lookup by
+    * lineId if its supplied. If lineId is not supplied, lookup by identityUri. If
+    * not found by identityUri, try by userId. This method is slow, but most likely
+    * to find a match. Line aliases have priority before match by userId.
     */
-   SipLine* findLine(const Url& lineUri,
+   SipLine* findLine(const UtlString& lineId,
+                     const Url& lineUri,
                      const UtlString& userId,
                      UtlBoolean bConsiderAliases = TRUE) const;
 
@@ -113,6 +115,9 @@ public:
     */
    SipLine* getLine(const Url& lineUri, UtlBoolean bConsiderAliases = TRUE) const;
 
+   /** Gets line from the list by lineId. lineId comparison is case sensitive. */
+   SipLine* getLine(const UtlString& lineId) const;
+
    /**
     * Gets line from the list by userID. Multiple lines might match, but
     * only the first match is returned. UserId comparison is case sensitive.
@@ -128,7 +133,7 @@ public:
    UtlBoolean lineExists(const SipLine& line, UtlBoolean bConsiderAliases = TRUE) const;
 
    /** Checks whether this line is present in line list. Also line aliases may be scanned. */
-   UtlBoolean lineExists(const Url& lineUri, UtlBoolean bConsiderAliases = TRUE) const;
+   UtlBoolean lineExists(const Url& lineIdentityUri, UtlBoolean bConsiderAliases = TRUE) const;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
@@ -138,7 +143,7 @@ private:
    void removeAliasesForLine(const Url& lineURI);
 
    mutable UtlHashMap m_lineMap; ///< map of SipLine instances
-   mutable UtlHashMap m_lineAliasMap; ///< map of SipLineAlias instances. Key is alias URI, value is SipLineAlias
+   mutable UtlHashMap m_lineAliasMap; ///< map of SipLineAlias instances
 };
 
 #endif // SipLineList_h__

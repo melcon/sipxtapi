@@ -35,8 +35,7 @@
 // Constructor
 MprSpeexPreprocess::MprSpeexPreprocess(const UtlString& rName,
                           int samplesPerFrame, int samplesPerSec)
-: MpAudioResource(rName, 1, 2, 1, 1, samplesPerFrame, samplesPerSec)
-, m_bVadEnabled(FALSE)
+:  MpAudioResource(rName, 1, 2, 1, 1, samplesPerFrame, samplesPerSec)
 {
    // Initialize Speex preprocessor state
    mpPreprocessState = speex_preprocess_state_init(samplesPerFrame, samplesPerSec);
@@ -66,12 +65,6 @@ UtlBoolean MprSpeexPreprocess::setAGC (UtlBoolean enable)
 UtlBoolean MprSpeexPreprocess::setNoiseReduction (UtlBoolean enable)
 {
    MpFlowGraphMsg msg(SET_NOISE_REDUCTION, this, NULL, NULL, enable);
-   return (postMessage(msg) == OS_SUCCESS);
-}
-
-UtlBoolean MprSpeexPreprocess::setVAD(UtlBoolean enable)
-{
-   MpFlowGraphMsg msg(SET_VAD, this, NULL, NULL, enable);
    return (postMessage(msg) == OS_SUCCESS);
 }
 
@@ -112,7 +105,6 @@ UtlBoolean MprSpeexPreprocess::doProcessFrame(MpBufPtr inBufs[],
 
    // Get incoming data
    inputBuffer.swap(inBufs[0]);
-   int isVoiceActive = 1;
 
    // If the object is not enabled or we don't have valid input, pass input to output
    if (  isEnabled
@@ -124,26 +116,7 @@ UtlBoolean MprSpeexPreprocess::doProcessFrame(MpBufPtr inBufs[],
       assert(res);
 
       // Get Echo residue if we have any
-      isVoiceActive = speex_preprocess_run(mpPreprocessState, (spx_int16_t*)inputBuffer->getSamplesPtr());
-   }
-
-   if (inputBuffer.isValid())
-   {
-      if (m_bVadEnabled)
-      {
-         if (isVoiceActive)
-         {
-            inputBuffer->setSpeechType(MP_SPEECH_ACTIVE);
-         }
-         else
-         {
-            inputBuffer->setSpeechType(MP_SPEECH_SILENT);
-         }
-      }
-      else
-      {
-         inputBuffer->setSpeechType(MP_SPEECH_UNKNOWN);
-      }
+      speex_preprocess_run(mpPreprocessState, (spx_int16_t*)inputBuffer->getSamplesPtr());
    }
 
    outBufs[0].swap(inputBuffer);
@@ -154,7 +127,7 @@ UtlBoolean MprSpeexPreprocess::doProcessFrame(MpBufPtr inBufs[],
 // Handle messages for this resource.
 UtlBoolean MprSpeexPreprocess::handleMessage(MpFlowGraphMsg& rMsg)
 {
-   int msgType;
+   int       msgType;
 
    msgType = rMsg.getMsg();
    switch (msgType)
@@ -164,9 +137,6 @@ UtlBoolean MprSpeexPreprocess::handleMessage(MpFlowGraphMsg& rMsg)
       break;
    case SET_NOISE_REDUCTION:
       return handleSetNoiseReduction(rMsg.getInt1());
-      break;
-   case SET_VAD:
-      return handleSetVAD(rMsg.getInt1());
       break;
    default:
       return MpAudioResource::handleMessage(rMsg);
@@ -178,21 +148,14 @@ UtlBoolean MprSpeexPreprocess::handleMessage(MpFlowGraphMsg& rMsg)
 UtlBoolean MprSpeexPreprocess::handleSetAGC(UtlBoolean enable)
 {
    speex_preprocess_ctl(mpPreprocessState, SPEEX_PREPROCESS_SET_AGC, &enable);
-   return TRUE;
+   return true;
 }
 
 // Handle the SET_NOISE_REDUCTION message.
 UtlBoolean MprSpeexPreprocess::handleSetNoiseReduction(UtlBoolean enable)
 {
    speex_preprocess_ctl(mpPreprocessState, SPEEX_PREPROCESS_SET_DENOISE, &enable);
-   return TRUE;
-}
-
-UtlBoolean MprSpeexPreprocess::handleSetVAD(UtlBoolean enable)
-{
-   m_bVadEnabled = enable;
-   speex_preprocess_ctl(mpPreprocessState, SPEEX_PREPROCESS_SET_VAD, &m_bVadEnabled);
-   return TRUE;
+   return true;
 }
 
 /* ============================ FUNCTIONS ================================= */

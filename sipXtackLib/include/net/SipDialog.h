@@ -71,11 +71,6 @@ class SipMessage;
 *  we can make a call to ourselves or subscribe and send notifications to
 *  ourselves.
 *
-*  Divergence from RFC3261:
-*  - we track localField and remoteField not local URI and remote URI. This also allows
-*    us to track display name.
-*  - remoteContact corresponds to "remote target"
-*
 *  This class is intended to deprecate the SipSession
 *  class.
 */
@@ -110,23 +105,6 @@ public:
       DIALOG_SUBSTATE_CONFIRMED
    } DialogSubState;
 
-   /**
-    * Enum for dialog match results. Typically the best match is returned.
-    */
-   typedef enum
-   {
-      DIALOG_ESTABLISHED_MATCH = 0, /**< both compared dialogs are established and tags match */
-      DIALOG_INITIAL_INITIAL_MATCH, /**< Right hand side initial dialog matches current initial dialog. */
-      DIALOG_INITIAL_ESTABLISHED_MATCH, /**< Right hand side established dialog matches current initial dialog. */
-      DIALOG_ESTABLISHED_INITIAL_MATCH, /**< Right hand side dialog which is initial matches current
-                                         *   established dialog with single tag.
-                                         *   In other words, right hand side initial dialog was the initial
-                                         *   dialog for current established dialog, before 2nd tag
-                                         *   was added.
-                                         */
-      DIALOG_MISMATCH /**< dialog mismatch, either tags or call-id is different */
-   } DialogMatchEnum;
-
    /* ============================ CREATORS ================================== */
 
    //! Default Dialog constructor
@@ -146,10 +124,18 @@ public:
    * \param remoteField - sip message To or From field value representing the 
    *        remote side of the dialog.
    */
-   SipDialog(const UtlString& sSipCallId,
-             const UtlString& sLocalTag = NULL,
-             const UtlString& sRemoteTag = NULL,
-             UtlBoolean isFromLocal = TRUE); 
+   SipDialog(const char* szCallId, const char* szLocalTag, const char* szRemoteTag, UtlBoolean isFromLocal = TRUE); 
+
+   //! Constructor accepting the basic pieces of a session callId, toUrl, and from Url.
+   /*! Optionally construct a dialog from the given message
+   *
+   * \param callId - sip message call-id header value
+   * \param localField - sip message To or From field value representing the 
+   *        local side of the dialog.
+   * \param remoteField - sip message To or From field value representing the 
+   *        remote side of the dialog.
+   */
+   SipDialog(const UtlString& sSipCallId, const UtlString& sLocalTag, const UtlString& sRemoteTag, UtlBoolean isFromLocal = TRUE); 
 
    //! Copy constructor
    SipDialog(const SipDialog& rSipDialog);
@@ -182,9 +168,8 @@ public:
    *  \param method - the sip request method for this request.
    *  \param request - the request which is to be part of this dialog
    *         and sent as orginating from the local side of the dialog.
-   *  \param cseqNum - allows to specify cseq number from outside.
    */
-   void setRequestData(SipMessage& request, const UtlString& method, int cseqNum = -1);
+   void setRequestData(SipMessage& request, const char* method);
 
    /* ============================ ACCESSORS ================================= */
 
@@ -215,17 +200,11 @@ public:
 
    //! Get the SIP call-id header value for this dialog
    void getCallId(UtlString& callId) const;
-   //! Get the SIP call-id header value for this dialog
-   UtlString getCallId() const;
    //! Set the SIP call-id header value for this dialog
    void setCallId(const char* callId);
 
    //! Get the SIP To/From header value for the local side of this dialog
    void getLocalField(Url& localUrl) const;
-   //! Get the SIP To/From header value for the local side of this dialog
-   void getLocalField(UtlString& sLocalUrl) const;
-   //! Get the SIP To/From header value for the local side of this dialog
-   Url getLocalField() const;
    //! Get the tag from the SIP To/From header value for the local side of this dialog
    void getLocalTag(UtlString& localTag) const;
    //! Set the SIP To/From header value for the local side of this dialog
@@ -233,10 +212,6 @@ public:
 
    //! Get the SIP To/From header value for the remote side of this dialog
    void getRemoteField(Url& remoteUrl) const;
-   //! Get the SIP To/From header value for the remote side of this dialog
-   void getRemoteField(UtlString& sRemoteUrl) const;
-   //! Get the SIP To/From header value for the remote side of this dialog
-   Url getRemoteField() const;
    //! Get the tag from the SIP To/From header value for the remote side of this dialog
    void getRemoteTag(UtlString& remoteTag) const;
    //! Set the SIP To/From header value for the remote side of this dialog
@@ -244,15 +219,11 @@ public:
 
    //! Get the SIP Contact header value for the remote side of this dialog
    void getRemoteContact(Url& remoteContact) const;
-   //! Get the SIP Contact header value for the remote side of this dialog
-   void getRemoteContact(UtlString& sRemoteContact) const;
    //! Set the SIP Contact header value for the remote side of this dialog
    void setRemoteContact(const Url& remoteContact);
 
    //! Get the SIP Contact header value for the local side of this dialog
    void getLocalContact(Url& localContact) const;
-   //! Get the SIP Contact header value for the local side of this dialog
-   void getLocalContact(UtlString& sLocalContact) const;
    //! Get the SIP Contact header value for the remote side of this dialog
    void setLocalContact(const Url& localContact);
 
@@ -280,17 +251,17 @@ public:
     * what was received in the last request from the remote 
     * side.
     */
-   void getLocalRequestUri(Url& requestUri) const;
+   void getLocalRequestUri(UtlString& requestUri) const;
 
    /** Set the request URI for the local side */
-   void setLocalRequestUri(const Url& requestUri);
+   void setLocalRequestUri(const UtlString& requestUri);
 
    /**
     *  Gets the requestUri we used in the initial request.
     */
-   void getRemoteRequestUri(Url& requestUri) const;
+   void getRemoteRequestUri(UtlString& requestUri) const;
    //! Set the request URI for the remote side
-   void setRemoteRequestUri(const Url& requestUri);
+   void setRemoteRequestUri(const UtlString& requestUri);
 
    /** Retrieves state of SipDialog. */
    SipDialog::DialogState getDialogState() const { return m_dialogState; }
@@ -345,19 +316,10 @@ public:
    UtlBoolean isSameDialog(const UtlString& dialogHandle,
                            UtlBoolean strictMatch = FALSE) const;
 
-   /**
-   * Compares dialogs according to call-id and tags, returning type of match
-   * that was detected.
-   */
-   DialogMatchEnum compareDialogs(const SipDialog& sipDialog) const;
-
-   /** Returns TRUE if dialog was started locally. */
-   UtlBoolean isLocalInitiatedDialog() const { return m_bLocalInitiatedDialog; }
-
-   /** Determine if this is an initial (not yet established) dialog. Initial dialog has only 1 tag. */
+   /** Determine if this is an initial (not yet established) dialog */
    UtlBoolean isInitialDialog() const;
 
-   /** Determine if this is an established dialog. This is NOT a negation of isInitialDialog! */
+   /** Determine if this is an established dialog */
    UtlBoolean isEstablishedDialog() const;
 
    /** Determine if this is a terminated dialog */
@@ -373,13 +335,13 @@ public:
 
    /**
     * Check if current SipDialog could have been the initial dialog of
-    * given SipMessage dialog. Compares callid and 1 tag.
+    * given SipMessage dialog.
     */
    UtlBoolean isInitialDialogOf(const SipMessage& message) const;
 
    /**
     * Check if current SipDialog could have been the initial dialog of
-    * given dialog. Compares callid and 1 tag.
+    * given dialog.
     */
    UtlBoolean isInitialDialogOf(const UtlString& callId,
                                 const UtlString& localTag,
@@ -449,18 +411,18 @@ private:
    Url m_remoteField; // To or From depending on who initiated the transaction
    UtlString m_sLocalTag;
    UtlString m_sRemoteTag;
-   Url m_localContactField; // our contact url, we use in outbound messages (including display name)
-   Url m_remoteContactField; // In RFC-3261 described as "remote target", contact url of remote party (including display name)
-   UtlString m_sRouteSet; // route set for building Record-Route header
-   UtlString m_sInitialMethod; // INVITE etc
-   Url m_localRequestUri; // request URI used for first inbound request
-   Url m_remoteRequestUri; // request URI used for first outbound request
-   UtlBoolean m_bLocalInitiatedDialog; // TRUE if dialog was started locally
+   Url m_localContact;
+   Url m_remoteContact; // In RFC-2833 described as "remote target"
+   UtlString m_sRouteSet;
+   UtlString m_sInitialMethod;
+   UtlString m_sLocalRequestUri;
+   UtlString m_sRemoteRequestUri;
+   UtlBoolean m_sLocalInitiatedDialog;
    int m_iInitialLocalCseq;
    int m_iInitialRemoteCseq;
-   int m_iLastLocalCseq; // last used Cseq for new outbound transactions
-   int m_iLastRemoteCseq; // last used Cseq for inbound transactions
-   UtlBoolean m_bSecure; // TRUE if dialog is secure
+   int m_iLastLocalCseq;
+   int m_sLastRemoteCseq;
+   UtlBoolean m_bSecure;
    DialogState m_dialogState;
    DialogSubState m_dialogSubState;
 };

@@ -15,8 +15,6 @@
 
 // APPLICATION INCLUDES
 #include "os/OsMsg.h"
-#include <utl/UtlSListIterator.h>
-#include <sdp/SdpCodecList.h>
 #include "mp/MpResourceMsg.h"
 
 // DEFINES
@@ -40,23 +38,69 @@ public:
 
    /// Constructor
    MprRtpStartReceiveMsg(const UtlString& targetResourceName,
-                         const SdpCodecList& sdpCodecList,
+                         SdpCodec* codecs[],
+                         int numCodecs,
                          OsSocket& rRtpSocket,
                          OsSocket& rRtcpSocket)
       : MpResourceMsg(MPRM_START_RECEIVE_RTP, targetResourceName)
+      , mpCodecs(NULL)
+      , mNumCodecs(0)
       , mpRtpSocket(&rRtpSocket)
       , mpRtcpSocket(&rRtcpSocket)
-      , mSdpCodecList(sdpCodecList)
    {
+       assert(numCodecs > 0);
+       if(numCodecs > 0)
+       {
+           mpCodecs = new SdpCodec*[numCodecs];
+           int codecIndex;
+           for(codecIndex = 0; codecIndex < numCodecs; codecIndex++)
+           {
+               if(codecs[codecIndex])
+               {
+                   mpCodecs[codecIndex] = 
+                       new SdpCodec(*(codecs[codecIndex]));
+               }
+
+               // This should never occur:
+               else
+               {
+                   assert(codecs[codecIndex] != NULL);
+                   mpCodecs[codecIndex] = NULL;
+               }
+           }
+           mNumCodecs = numCodecs;
+       }
    };
 
    /// Copy constructor
    MprRtpStartReceiveMsg(const MprRtpStartReceiveMsg& resourceMsg)
       : MpResourceMsg(resourceMsg)
+      , mpCodecs(NULL)
+      , mNumCodecs(resourceMsg.mNumCodecs)
       , mpRtpSocket(resourceMsg.mpRtpSocket)
       , mpRtcpSocket(resourceMsg.mpRtcpSocket)
-      , mSdpCodecList(resourceMsg.mSdpCodecList)
    {
+       assert(resourceMsg.mNumCodecs > 0);
+       if(resourceMsg.mNumCodecs > 0)
+       {
+           // Make a codec array to copy into this message
+           mpCodecs = new SdpCodec*[resourceMsg.mNumCodecs];
+           int codecIndex;
+           for(codecIndex = 0; codecIndex < resourceMsg.mNumCodecs; codecIndex++)
+           {
+               if(resourceMsg.mpCodecs[codecIndex])
+               {
+                   mpCodecs[codecIndex] = new SdpCodec(*(resourceMsg.mpCodecs[codecIndex]));
+               }
+
+               // This should never occur:
+               else
+               {
+                   assert(resourceMsg.mpCodecs[codecIndex] != NULL);
+                   mpCodecs[codecIndex] = NULL;
+               }
+           }
+       }
    };
 
    /// Create a copy of this msg object (which may be of a derived type)
@@ -68,6 +112,20 @@ public:
    /// Destructor
    ~MprRtpStartReceiveMsg() 
    {
+       if(mpCodecs)
+       {
+           int codecIndex;
+           for(codecIndex = 0; codecIndex < mNumCodecs; codecIndex++)
+           {
+               if(mpCodecs[codecIndex])
+               {
+                   delete mpCodecs[codecIndex];
+                   mpCodecs[codecIndex] = NULL;
+               }
+           }
+           delete[] mpCodecs;
+           mpCodecs = NULL;
+       }
    };
 
    //@}
@@ -83,7 +141,45 @@ public:
          return *this;  // handle the assignment to self case
 
       MpResourceMsg::operator=(rhs);  // assign fields for parent class
-      mSdpCodecList = rhs.mSdpCodecList;
+
+      // The target array is bigger free up the spare SdpCodecs
+      int codecIndex;
+      for(codecIndex = rhs.mNumCodecs; codecIndex < mNumCodecs; codecIndex++)
+      {
+          delete mpCodecs[codecIndex];
+          mpCodecs[codecIndex] = NULL;
+      }
+
+      // The target array is not big enough, allocate a bigger one
+      if(mNumCodecs < rhs.mNumCodecs && rhs.mNumCodecs > 0)
+      {
+          SdpCodec** tempCodecArray = mpCodecs;
+          mpCodecs = new SdpCodec*[rhs.mNumCodecs];
+          // Move the existing codecs to the bigger array to avoid
+          // allocation of new ones
+          for(codecIndex = 0; codecIndex < mNumCodecs; codecIndex++)
+          {
+              mpCodecs[codecIndex] = tempCodecArray[codecIndex];
+              tempCodecArray[codecIndex] = NULL;
+          }
+          delete[] tempCodecArray;
+          tempCodecArray = NULL;
+      }
+
+      // Copy the codecs from the source to the target
+      for(codecIndex = 0; codecIndex < rhs.mNumCodecs; codecIndex++)
+      {
+          if(mpCodecs[codecIndex])
+          {
+              *(mpCodecs[codecIndex]) = *(rhs.mpCodecs[codecIndex]);
+          }
+          else
+          {
+              mpCodecs[codecIndex] = new SdpCodec(*(rhs.mpCodecs[codecIndex]));
+          }
+      }
+
+      mNumCodecs = rhs.mNumCodecs;
       mpRtpSocket = rhs.mpRtpSocket;
       mpRtcpSocket = rhs.mpRtcpSocket;
 
@@ -94,9 +190,10 @@ public:
    ///@name Accessors
    //@{
 
-   void getCodecList(UtlSList& codecList)
+   void getCodecArray(int& codecCount, SdpCodec**& codecs)
    {
-      mSdpCodecList.getCodecs(codecList);
+       codecCount = mNumCodecs;
+       codecs = mpCodecs;
    }
 
    OsSocket* getRtpSocket(){return(mpRtpSocket);};
@@ -116,9 +213,10 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+    SdpCodec** mpCodecs;
+    int mNumCodecs;
     OsSocket* mpRtpSocket;
     OsSocket* mpRtcpSocket;
-    SdpCodecList mSdpCodecList;
 };
 
 /* ============================ INLINE METHODS ============================ */

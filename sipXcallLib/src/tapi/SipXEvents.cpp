@@ -91,12 +91,6 @@ static const char* convertEventCategoryToString(SIPX_EVENT_CATEGORY category)
    case EVENT_CATEGORY_KEEPALIVE:
       str = MAKESTR(EVENT_CATEGORY_KEEPALIVE);
       break;
-   case EVENT_CATEGORY_RTP_REDIRECT:
-      str = MAKESTR(EVENT_CATEGORY_RTP_REDIRECT);
-      break;
-   case EVENT_CATEGORY_CONFERENCE:
-	   str = MAKESTR(EVENT_CATEGORY_CONFERENCE);
-	   break;
    default:
       break;
    }
@@ -151,12 +145,6 @@ const char* convertCallstateEventToString(SIPX_CALLSTATE_EVENT eMajor)
       break;
    case CALLSTATE_TRANSFER_EVENT:
       str = MAKESTR(CALLSTATE_TRANSFER_EVENT);
-      break;
-   case CALLSTATE_QUEUED:
-      str = MAKESTR(CALLSTATE_QUEUED);
-      break;
-   case CALLSTATE_REMOTE_QUEUED:
-      str = MAKESTR(CALLSTATE_REMOTE_QUEUED);
       break;
    default:
       break;
@@ -261,15 +249,6 @@ const char* convertCallstateCauseToString(SIPX_CALLSTATE_CAUSE eMinor)
       break;
    case CALLSTATE_CAUSE_CANCEL:
       str = MAKESTR(CALLSTATE_CAUSE_CANCEL);
-      break;
-   case CALLSTATE_CAUSE_CLIENT_ERROR:
-      str = MAKESTR(CALLSTATE_CAUSE_CLIENT_ERROR);
-      break;
-   case CALLSTATE_CAUSE_SERVER_ERROR:
-      str = MAKESTR(CALLSTATE_CAUSE_SERVER_ERROR);
-      break;
-   case CALLSTATE_CAUSE_GLOBAL_ERROR:
-      str = MAKESTR(CALLSTATE_CAUSE_GLOBAL_ERROR);
       break;
    default:
       break;
@@ -470,6 +449,9 @@ const char* convertKeepaliveTypeToString(SIPX_KEEPALIVE_TYPE type)
    case SIPX_KEEPALIVE_STUN:
       str = MAKESTR(SIPX_KEEPALIVE_STUN);
       break;
+   case SIPX_KEEPALIVE_SIP_PING:
+      str = MAKESTR(SIPX_KEEPALIVE_SIP_PING);
+      break;
    case SIPX_KEEPALIVE_SIP_OPTIONS:
       str = MAKESTR(SIPX_KEEPALIVE_SIP_OPTIONS);
       break;
@@ -479,110 +461,6 @@ const char* convertKeepaliveTypeToString(SIPX_KEEPALIVE_TYPE type)
    return str;
 }
 
-SIPXTAPI_API const char* sipxRtpRedirectEventToString(SIPX_RTP_REDIRECT_EVENT event)
-{
-   const char* str = "Unknown";
-
-   switch (event)
-   {
-   case RTP_REDIRECT_REQUESTED:
-      str = MAKESTR(RTP_REDIRECT_REQUESTED);
-      break;
-   case RTP_REDIRECT_ACTIVE:
-      str = MAKESTR(RTP_REDIRECT_ACTIVE);
-      break;
-   case RTP_REDIRECT_ERROR:
-      str = MAKESTR(RTP_REDIRECT_ERROR);
-      break;
-   case RTP_REDIRECT_STOP:
-      str = MAKESTR(RTP_REDIRECT_STOP);
-      break;
-   default:
-      break;
-   }
-   return str;
-}
-
-SIPXTAPI_API const char* sipxRtpRedirectCauseToString(SIPX_RTP_REDIRECT_CAUSE cause)
-{
-   const char* str = "Unknown";
-
-   switch (cause)
-   {
-   case RTP_REDIRECT_CAUSE_NORMAL:
-      str = MAKESTR(RTP_REDIRECT_CAUSE_NORMAL);
-      break;
-   case RTP_REDIRECT_CAUSE_SDP_CODEC_MISMATCH:
-      str = MAKESTR(RTP_REDIRECT_CAUSE_SDP_CODEC_MISMATCH);
-      break;
-   case RTP_REDIRECT_CAUSE_CALL_NOT_READY:
-      str = MAKESTR(RTP_REDIRECT_CAUSE_CALL_NOT_READY);
-      break;
-   case RTP_REDIRECT_CAUSE_SETUP_FAILED:
-      str = MAKESTR(RTP_REDIRECT_CAUSE_SETUP_FAILED);
-      break;
-   default:
-      break;
-   }
-   return str;
-}
-
-SIPXTAPI_API const char* sipxConferenceEventToString(SIPX_CONFERENCE_EVENT event)
-{
-	const char* str = "Unknown";
-
-	switch (event)
-	{
-	case CONFERENCE_CREATED:
-		str = MAKESTR(CONFERENCE_CREATED);
-		break;
-	case CONFERENCE_DESTROYED:
-		str = MAKESTR(CONFERENCE_DESTROYED);
-		break;
-	case CONFERENCE_CALL_ADDED:
-		str = MAKESTR(CONFERENCE_CALL_ADDED);
-		break;
-   case CONFERENCE_CALL_ADD_FAILURE:
-      str = MAKESTR(CONFERENCE_CALL_ADD_FAILURE);
-      break;
-	case CONFERENCE_CALL_REMOVED:
-		str = MAKESTR(CONFERENCE_CALL_REMOVED);
-		break;
-   case CONFERENCE_CALL_REMOVE_FAILURE:
-      str = MAKESTR(CONFERENCE_CALL_REMOVE_FAILURE);
-      break;
-	default:
-		break;
-	}
-	return str;
-}
-
-SIPXTAPI_API const char* sipxConferenceCauseToString(SIPX_CONFERENCE_CAUSE cause)
-{
-	const char* str = "Unknown";
-
-	switch (cause)
-	{
-	case CONFERENCE_CAUSE_NORMAL:
-		str = MAKESTR(CONFERENCE_CAUSE_NORMAL);
-		break;
-   case CP_CONFERENCE_CAUSE_INVALID_STATE:
-      str = MAKESTR(CP_CONFERENCE_CAUSE_INVALID_STATE);
-      break;
-   case CONFERENCE_CAUSE_NOT_FOUND:
-      str = MAKESTR(CONFERENCE_CAUSE_NOT_FOUND);
-      break;
-   case CONFERENCE_CAUSE_LIMIT_REACHED:
-      str = MAKESTR(CONFERENCE_CAUSE_LIMIT_REACHED);
-      break;
-   case CONFERENCE_CAUSE_UNEXPECTED_ERROR:
-      str = MAKESTR(CONFERENCE_CAUSE_UNEXPECTED_ERROR);
-      break;
-	default:
-		break;
-	}
-	return str;
-}
 
 static const char* convertInfoStatusEventToString(SIPX_INFOSTATUS_EVENT event)
 {
@@ -1013,24 +891,6 @@ SIPXTAPI_API void sipxEventToString(const SIPX_EVENT_CATEGORY category,
             sipxKeepaliveCauseToString(pEventData->cause));
       }
       break;
-   case EVENT_CATEGORY_RTP_REDIRECT:
-      {
-         SIPX_RTP_REDIRECT_INFO* pEventData = (SIPX_RTP_REDIRECT_INFO*)pEvent;
-         SNPRINTF(szBuffer, nBuffer, "%s::%s::%s", 
-            convertEventCategoryToString(category),
-            sipxRtpRedirectEventToString(pEventData->event),
-            sipxRtpRedirectCauseToString(pEventData->cause));
-      }
-      break;
-   case EVENT_CATEGORY_CONFERENCE:
-	   {
-		   SIPX_CONFERENCE_INFO* pEventData = (SIPX_CONFERENCE_INFO*)pEvent;
-		   SNPRINTF(szBuffer, nBuffer, "%s::%s::%s", 
-			   convertEventCategoryToString(category),
-			   sipxConferenceEventToString(pEventData->event),
-			   sipxConferenceCauseToString(pEventData->cause));
-	   }
-	   break;
    default:
       assert(false);
       break;
@@ -1072,8 +932,6 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
             pInfo->hAssociatedCall = pSourceInfo->hAssociatedCall;
             pInfo->sipResponseCode = pSourceInfo->sipResponseCode;
             pInfo->szSipResponseText = SAFE_STRDUP(pSourceInfo->szSipResponseText);
-            pInfo->szReferredBy = SAFE_STRDUP(pSourceInfo->szReferredBy);
-            pInfo->szReferTo = SAFE_STRDUP(pSourceInfo->szReferTo);
 
             *pEventCopy = pInfo;
 
@@ -1110,13 +968,11 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
             memset(pInfo, 0, sizeof(SIPX_INFOSTATUS_INFO));
 
             pInfo->nSize = pSourceInfo->nSize;
-            pInfo->hCall = pSourceInfo->hCall;
-            pInfo->hLine = pSourceInfo->hLine;
+            pInfo->hInfo = pSourceInfo->hInfo;
             pInfo->status = pSourceInfo->status;
             pInfo->responseCode = pSourceInfo->responseCode;
             pInfo->szResponseText = SAFE_STRDUP(pSourceInfo->szResponseText);
             pInfo->event = pSourceInfo->event;
-            pInfo->pCookie = pSourceInfo->pCookie;
 
             *pEventCopy = pInfo;
 
@@ -1134,12 +990,13 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
             pInfo->nSize = pSourceInfo->nSize;
             pInfo->hCall = pSourceInfo->hCall;
             pInfo->hLine = pSourceInfo->hLine;
+            pInfo->szFromURL = SAFE_STRDUP(pSourceInfo->szFromURL);
+            pInfo->szUserAgent = SAFE_STRDUP(pSourceInfo->szUserAgent) ;
             pInfo->szContentType = SAFE_STRDUP(pSourceInfo->szContentType);
 
             if (pSourceInfo->nContentLength > 0 && pSourceInfo->pContent)
             {
-               pInfo->pContent = (char*)malloc(pSourceInfo->nContentLength + 1);
-               ((char*)pInfo->pContent)[pSourceInfo->nContentLength] = 0; // terminate string
+               pInfo->pContent = (char*)malloc(pSourceInfo->nContentLength);
                assert(pInfo->pContent);
                memcpy((void*)pInfo->pContent, pSourceInfo->pContent, pSourceInfo->nContentLength);
                pInfo->nContentLength = pSourceInfo->nContentLength;
@@ -1189,9 +1046,9 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
 
             if (pSourceInfo->nContentLength > 0 && pSourceInfo->pContent)
             {
-               pInfo->pContent = (char*)malloc(pSourceInfo->nContentLength);
+               pInfo->pContent = malloc(pSourceInfo->nContentLength);
                assert(pInfo->pContent);
-               memcpy((void*) pInfo->pContent, (void*)pSourceInfo->pContent, pSourceInfo->nContentLength);
+               memcpy((void*) pInfo->pContent, pSourceInfo->pContent, pSourceInfo->nContentLength);
                pInfo->nContentLength = pSourceInfo->nContentLength;
             }
             else
@@ -1213,26 +1070,16 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
             SIPX_CONFIG_INFO* pInfo = new SIPX_CONFIG_INFO();
             memset(pInfo, 0, sizeof(SIPX_CONFIG_INFO));
 
-            pInfo->nSize = sizeof(SIPX_CONFIG_INFO);
+            pInfo->nSize = pSourceInfo->nSize;
             pInfo->event = pSourceInfo->event;
 
             if (pSourceInfo->pData)
             {
-               if (pSourceInfo->event == CONFIG_STUN_SUCCESS)
-               {
-                  pInfo->pData = new SIPX_CONTACT_ADDRESS(*((SIPX_CONTACT_ADDRESS*)pSourceInfo->pData));
-               }
-               else if (pSourceInfo->event == CONFIG_STUN_FAILURE)
-               {
-                  const SIPX_STUN_FAILURE_INFO* pSourceStunFailureInfo = (const SIPX_STUN_FAILURE_INFO*)pSourceInfo->pData;
-                  assert(pSourceStunFailureInfo->nSize == sizeof(SIPX_STUN_FAILURE_INFO));
-                  // create copy
-                  SIPX_STUN_FAILURE_INFO* pStunFailureInfo = new SIPX_STUN_FAILURE_INFO();
-                  pStunFailureInfo->nSize = sizeof(SIPX_STUN_FAILURE_INFO);
-                  pStunFailureInfo->szAdapterName = SAFE_STRDUP(pSourceStunFailureInfo->szAdapterName);
-                  pStunFailureInfo->szInterfaceIp = SAFE_STRDUP(pSourceStunFailureInfo->szInterfaceIp);
-                  pInfo->pData = pStunFailureInfo;
-               }
+               pInfo->pData = new SIPX_CONTACT_ADDRESS(*((SIPX_CONTACT_ADDRESS*)pSourceInfo->pData));
+            }
+            else
+            {
+               pInfo->pData = NULL;
             }
 
             *pEventCopy = pInfo;
@@ -1355,44 +1202,6 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
             rc = SIPX_RESULT_SUCCESS;
          }
          break;
-      case EVENT_CATEGORY_RTP_REDIRECT:
-         {
-            SIPX_RTP_REDIRECT_INFO* pSourceInfo = (SIPX_RTP_REDIRECT_INFO*)pEventSource;
-            assert(pSourceInfo->nSize == sizeof(SIPX_RTP_REDIRECT_INFO));
-
-            SIPX_RTP_REDIRECT_INFO* pInfo = new SIPX_RTP_REDIRECT_INFO();
-            memset(pInfo, 0, sizeof(SIPX_RTP_REDIRECT_INFO));
-
-            pInfo->nSize = pSourceInfo->nSize;
-            pInfo->event = pSourceInfo->event;
-            pInfo->cause = pSourceInfo->cause;
-            pInfo->hCall = pSourceInfo->hCall;
-            pInfo->hLine = pSourceInfo->hLine;
-
-            *pEventCopy = pInfo;
-
-            rc = SIPX_RESULT_SUCCESS;
-         }
-         break;
-	  case EVENT_CATEGORY_CONFERENCE:
-		  {
-			  SIPX_CONFERENCE_INFO* pSourceInfo = (SIPX_CONFERENCE_INFO*)pEventSource;
-			  assert(pSourceInfo->nSize == sizeof(SIPX_CONFERENCE_INFO));
-
-			  SIPX_CONFERENCE_INFO* pInfo = new SIPX_CONFERENCE_INFO();
-			  memset(pInfo, 0, sizeof(SIPX_CONFERENCE_INFO));
-
-			  pInfo->nSize = pSourceInfo->nSize;
-			  pInfo->event = pSourceInfo->event;
-			  pInfo->cause = pSourceInfo->cause;
-			  pInfo->hConf = pSourceInfo->hConf;
-			  pInfo->hCall = pSourceInfo->hCall;
-
-			  *pEventCopy = pInfo;
-
-			  rc = SIPX_RESULT_SUCCESS;
-		  }
-		  break;
       default:
          *pEventCopy = NULL;
          break;
@@ -1420,8 +1229,6 @@ SIPXTAPI_API SIPX_RESULT sipxFreeDuplicatedEvent(SIPX_EVENT_CATEGORY category,
             SIPX_CALLSTATE_INFO* pSourceInfo = (SIPX_CALLSTATE_INFO*)pEventCopy;
             assert(pSourceInfo->nSize == sizeof(SIPX_CALLSTATE_INFO));
             free((void*)pSourceInfo->szSipResponseText);
-            free((void*)pSourceInfo->szReferredBy);
-            free((void*)pSourceInfo->szReferTo);
             delete pSourceInfo;
 
             rc = SIPX_RESULT_SUCCESS;
@@ -1452,6 +1259,8 @@ SIPXTAPI_API SIPX_RESULT sipxFreeDuplicatedEvent(SIPX_EVENT_CATEGORY category,
          {
             SIPX_INFO_INFO* pSourceInfo = (SIPX_INFO_INFO*)pEventCopy;
             assert(pSourceInfo->nSize == sizeof(SIPX_INFO_INFO));
+            free((void*)pSourceInfo->szFromURL);
+            free((void*)pSourceInfo->szUserAgent);
             free((void*)pSourceInfo->szContentType);
             free((void*)pSourceInfo->pContent);
             delete pSourceInfo;
@@ -1486,19 +1295,11 @@ SIPXTAPI_API SIPX_RESULT sipxFreeDuplicatedEvent(SIPX_EVENT_CATEGORY category,
             SIPX_CONFIG_INFO* pSourceInfo = (SIPX_CONFIG_INFO*)pEventCopy;
             assert(pSourceInfo->nSize == sizeof(SIPX_CONFIG_INFO));
 
-            if (pSourceInfo->event == CONFIG_STUN_SUCCESS)
+            if (pSourceInfo->event == CONFIG_STUN_SUCCESS ||
+               pSourceInfo->event == CONFIG_STUN_FAILURE)
             {
                delete ((SIPX_CONTACT_ADDRESS*)pSourceInfo->pData);
-            }
-            else if (pSourceInfo->event == CONFIG_STUN_FAILURE)
-            {
-               SIPX_STUN_FAILURE_INFO* pStunFailureInfo = (SIPX_STUN_FAILURE_INFO*)pSourceInfo->pData;
-               assert(pStunFailureInfo->nSize == sizeof(SIPX_STUN_FAILURE_INFO));
-               free((void*)pStunFailureInfo->szAdapterName);
-               free((void*)pStunFailureInfo->szInterfaceIp);
-               delete pStunFailureInfo;
-            }
-
+            }                    
             delete pSourceInfo;
 
             rc = SIPX_RESULT_SUCCESS;
@@ -1550,24 +1351,6 @@ SIPXTAPI_API SIPX_RESULT sipxFreeDuplicatedEvent(SIPX_EVENT_CATEGORY category,
             rc = SIPX_RESULT_SUCCESS;
          }
          break;
-      case EVENT_CATEGORY_RTP_REDIRECT:
-         {
-            SIPX_RTP_REDIRECT_INFO* pSourceInfo = (SIPX_RTP_REDIRECT_INFO*)pEventCopy;
-            assert(pSourceInfo->nSize == sizeof(SIPX_RTP_REDIRECT_INFO));
-            delete pSourceInfo;
-
-            rc = SIPX_RESULT_SUCCESS;
-         }
-         break;
-	  case EVENT_CATEGORY_CONFERENCE:
-		  {
-			  SIPX_CONFERENCE_INFO* pSourceInfo = (SIPX_CONFERENCE_INFO*)pEventCopy;
-			  assert(pSourceInfo->nSize == sizeof(SIPX_CONFERENCE_INFO));
-			  delete pSourceInfo;
-
-			  rc = SIPX_RESULT_SUCCESS;
-		  }
-		  break;
       default:
          break;
       }
@@ -1629,8 +1412,7 @@ void sipxFirePIMEvent(void* userData,
 
 void sipxFireConfigEvent(const SIPX_INST pInst,                                                        
                          SIPX_CONFIG_EVENT event,
-                         const SIPX_CONTACT_ADDRESS* pContactAddress,
-                         const SIPX_STUN_FAILURE_INFO* pStunFailureDetails)
+                         void* pEventData)
 {
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
       "sipxFireConfigEvent src=%p event=%s\n",
@@ -1639,6 +1421,7 @@ void sipxFireConfigEvent(const SIPX_INST pInst,
 
    SIPX_CONFIG_INFO eventInfo;
    memset(&eventInfo, 0, sizeof(SIPX_CONFIG_INFO));
+
    eventInfo.nSize = sizeof(SIPX_CONFIG_INFO);
    eventInfo.event = event;
 
@@ -1646,22 +1429,20 @@ void sipxFireConfigEvent(const SIPX_INST pInst,
    {
    case CONFIG_STUN_SUCCESS:
       {
-         if (pContactAddress)
-         {
-            SIPX_CONTACT_ADDRESS sipxContact(*pContactAddress);
-            // Fire off an event for the STUN contact (normal)
-            sipxContact.eContactType = CONTACT_NAT_MAPPED;
-            eventInfo.pData = &sipxContact;
-            SipXEventDispatcher::dispatchEvent(pInst, EVENT_CATEGORY_CONFIG, &eventInfo);
-         }
-         break;
+         SIPX_CONTACT_ADDRESS* pContact = (SIPX_CONTACT_ADDRESS*)pEventData;
+         SIPX_CONTACT_ADDRESS sipxContact(*pContact);
+
+         // Fire off an event for the STUN contact (normal)
+         sipxContact.eContactType = CONTACT_NAT_MAPPED;
+         eventInfo.pData = &sipxContact;
+         SipXEventDispatcher::dispatchEvent(pInst, EVENT_CATEGORY_CONFIG, &eventInfo);
       }
+      break;
    case CONFIG_STUN_FAILURE:
       {
-         eventInfo.pData = (void*)pStunFailureDetails;
          SipXEventDispatcher::dispatchEvent(pInst, EVENT_CATEGORY_CONFIG, &eventInfo);
-         break;
       }
+      break;
    }
 }
 

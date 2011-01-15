@@ -12,15 +12,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <assert.h>
-#include <mp/MpDefs.h>
 #include "mp/MpDecoderBase.h"
 
 // Constructor
 // Returns a new decoder object.
 // param: payloadType - (in) RTP payload type associated with this decoder
-MpDecoderBase::MpDecoderBase(int payloadType, const MpCodecInfo* pInfo)
-: mpCodecInfo(pInfo)
-, mPayloadType(payloadType)
+MpDecoderBase::MpDecoderBase(int payloadType, const MpCodecInfo* pInfo) :
+   mpCodecInfo(pInfo),
+   mPayloadType(payloadType)
 {
  // initializers do it all!
 }

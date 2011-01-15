@@ -21,18 +21,19 @@
 
 /* ============================ CREATORS ================================== */
 
-InfoStatusEventMsg::InfoStatusEventMsg()
-: OsMsg(INFOSTATUS_MSG, 0)
+InfoStatusEventMsg::InfoStatusEventMsg() : OsMsg(INFOSTATUS_MSG, 0)
 , m_event(INFOSTATUS_UNKNOWN)
+, m_hInfo(0)
 , m_eventPayload()
 {
 
 }
 
 InfoStatusEventMsg::InfoStatusEventMsg(SIPX_INFOSTATUS_EVENT event,
-                                       const SipInfoStatusEvent& eventPayload)
-: OsMsg(INFOSTATUS_MSG, 0)
+                                       SIPX_INFO hInfo,
+                                       const SipInfoStatusEvent& eventPayload) : OsMsg(INFOSTATUS_MSG, 0)
 , m_event(event)
+, m_hInfo(hInfo)
 , m_eventPayload(eventPayload)
 {
 
@@ -45,7 +46,7 @@ InfoStatusEventMsg::~InfoStatusEventMsg()
 
 OsMsg* InfoStatusEventMsg::createCopy(void) const
 {
-   return new InfoStatusEventMsg(m_event, m_eventPayload);
+   return new InfoStatusEventMsg(m_event, m_hInfo, m_eventPayload);
 }
 
 /* ============================ MANIPULATORS ============================== */

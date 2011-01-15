@@ -64,7 +64,7 @@ SipTcpServer::SipTcpServer(int port,
     {
         int numAddresses = MAX_IP_ADDRESSES;
         const HostAdapterAddress* adapterAddresses[MAX_IP_ADDRESSES];
-        OsNetwork::getAllLocalHostIps(adapterAddresses, numAddresses);
+        getAllLocalHostIps(adapterAddresses, numAddresses);
 
         for (int i = 0; i < numAddresses; i++)
         {
@@ -141,13 +141,16 @@ OsStatus SipTcpServer::createServerSocket(const char* szBindAddr, int& port, con
         if (pSocket && pSocket->isOk())
         {
             port = pSocket->getLocalHostPort();
+            SIPX_CONTACT_ADDRESS contact;
+            SAFE_STRNCPY(contact.cIpAddress, szBindAddr, sizeof(contact.cIpAddress));
+            contact.iPort = port;
+            contact.eContactType = CONTACT_LOCAL;
+            UtlString adapterName;
 
-            UtlString adapterName;        
-            OsNetwork::getAdapterName(adapterName, szBindAddr);
-
-            SipContact sipContact(-1, SIP_CONTACT_LOCAL, SIP_TRANSPORT_TCP,
-               szBindAddr, port, adapterName, szBindAddr);
-            mSipUserAgent->addContact(sipContact);
+            getContactAdapterName(adapterName, contact.cIpAddress);
+            SAFE_STRNCPY(contact.cInterface, adapterName.data(), sizeof(contact.cInterface));
+            contact.eTransportType = TRANSPORT_TCP;
+            mSipUserAgent->addContactAddress(contact);
        
             // add address and port to the maps. Socket object deletion is managed by SipServerBroker
             mServerSocketMap.insertKeyAndValue(new UtlString(szBindAddr),
@@ -165,7 +168,7 @@ OsStatus SipTcpServer::createServerSocket(const char* szBindAddr, int& port, con
 
 // Copy constructor
 SipTcpServer::SipTcpServer(const SipTcpServer& rSipTcpServer) :
-    SipProtocolServerBase(NULL, SIP_TRANSPORT_TCP_STR, "SipTcpServer-%d")
+    SipProtocolServerBase(NULL, SIP_TRANSPORT_TCP, "SipTcpServer-%d")
 {
 }
 

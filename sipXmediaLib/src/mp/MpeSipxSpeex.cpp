@@ -13,6 +13,17 @@
 
 #ifdef HAVE_SPEEX /* [ */
 
+
+// WIN32: Add libspeex to linker input.
+#ifdef WIN32 // [
+#   ifdef _DEBUG // [
+#      pragma comment(lib, "libspeexd.lib")
+#   else // _DEBUG ][
+#      pragma comment(lib, "libspeex.lib")
+#   endif // _DEBUG ]
+#endif // WIN32 ]
+
+
 #define TEST_PRINT
 #include "assert.h"
 // APPLICATION INCLUDES
@@ -25,13 +36,16 @@
 
 
 const MpCodecInfo MpeSipxSpeex::smCodecInfo(
-         SdpCodec::SDP_CODEC_SPEEX_24,    // codecType
+         SdpCodec::SDP_CODEC_SPEEX,    // codecType
          "Speex",                      // codecVersion
+         true,                         // usesNetEq
          8000,                         // samplingRate
-         16,                            // numBitsPerSample
+         8,                            // numBitsPerSample
          1,                            // numChannels
-         24600,                         // bitRate. It doesn't matter right now.
-         1*8,                           // minPacketBits
+         160,                          // interleaveBlockSize
+         8000,                         // bitRate. It doesn't matter right now.
+         38,                           // minPacketBits
+         38*8,                         // avgPacketBits
          63*8,                         // maxPacketBits
          160);                         // numSamplesPerFrame
 
@@ -97,22 +111,22 @@ OsStatus MpeSipxSpeex::initEncode(void)
 
    if(mDoPreprocess)
    {
-      mpPreprocessState = speex_preprocess_state_init(getInfo()->getNumSamplesPerFrame(), mSampleRate);
-      speex_preprocess_ctl(mpPreprocessState, SPEEX_PREPROCESS_SET_DENOISE, &mDoDenoise);
+      mpPreprocessState = speex_preprocess_state_init(160, mSampleRate);
+      speex_preprocess_ctl(mpPreprocessState, SPEEX_PREPROCESS_SET_DENOISE,
+                          &mDoDenoise);
       speex_preprocess_ctl(mpPreprocessState, SPEEX_PREPROCESS_SET_AGC, &mDoAgc);
-   }   
+   }
+
+   
 
    return OS_SUCCESS;
 }
 
 OsStatus MpeSipxSpeex::freeEncode(void)
 {
-   if (mpEncoderState)
-   {
-      speex_encoder_destroy(mpEncoderState);
-      mpEncoderState = NULL;
-      speex_bits_destroy(&mBits);
-   }
+   speex_bits_destroy(&mBits);
+   speex_encoder_destroy(mpEncoderState);
+   mpEncoderState = NULL;
 
    return OS_SUCCESS;
 }
@@ -126,19 +140,10 @@ OsStatus MpeSipxSpeex::encode(const MpAudioSample* pAudioSamples,
                               const int bytesLeft,
                               int& rSizeInBytes,
                               UtlBoolean& sendNow,
-                              MpSpeechType& speechType)
+                              MpAudioBuf::SpeechType& rAudioCategory)
 {
-   int size = 0;
-
-   if (speechType == MP_SPEECH_SILENT && ms_bEnableVAD && mBufferLoad == 0)
-   {
-      // VAD must be enabled, do DTX
-      rSamplesConsumed = numSamples;
-      rSizeInBytes = 0;
-      sendNow = TRUE; // sends any unsent frames now
-      return OS_SUCCESS;
-   }
-
+   int size = 0;   
+   
    memcpy(&mpBuffer[mBufferLoad], pAudioSamples, sizeof(MpAudioSample)*numSamples);
    mBufferLoad = mBufferLoad+numSamples;
    assert(mBufferLoad <= 160);
@@ -151,14 +156,11 @@ OsStatus MpeSipxSpeex::encode(const MpAudioSample* pAudioSamples,
       // We don't have echo data, but it should be possible to use the
       // Speex echo cancelator in sipxtapi.
       if(mDoPreprocess)
-      {
          speex_preprocess(mpPreprocessState, mpBuffer, NULL);
-      }
-
       speex_encode_int(mpEncoderState, mpBuffer, &mBits);
 
       // Copy to the byte buffer
-      size = speex_bits_write(&mBits,(char*)pCodeBuf, bytesLeft);      
+      size = speex_bits_write(&mBits,(char*)pCodeBuf,200);      
 
       // Reset the buffer count.
       mBufferLoad = 0;
@@ -169,9 +171,10 @@ OsStatus MpeSipxSpeex::encode(const MpAudioSample* pAudioSamples,
    }
    else
    {
-      sendNow = FALSE;
+      sendNow = false;
    }
 
+   rAudioCategory = MpAudioBuf::MP_SPEECH_UNKNOWN;
    rSamplesConsumed = numSamples;
    rSizeInBytes = size;
    
