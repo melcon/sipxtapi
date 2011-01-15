@@ -1,0 +1,81 @@
+## Process this file with automake to produce Makefile.in
+
+
+EXTRA_DIST = tapi
+
+SUBDIRS = .
+
+INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/../sipXmediaAdapterLib/interface/include
+
+lib_LTLIBRARIES = libsipXcall.la
+
+## Libtool version info - update only immediately before a release
+# Current - increment if any interfaces are added, removed, or changed
+version_Current=1
+# Revision - set to 0 if Current was incremented
+#            increment if any implementation has changed
+version_Revision=0
+# Age - set to 0 of any interfaces have been removed
+#       increment if any interfaces have been added
+version_Age=0
+
+libsipXcall_la_LDFLAGS = -version-info ${version_Current}:${version_Revision}:${version_Age}
+
+libsipXcall_la_LIBADD = \
+	@SIPXMEDIA_MP_LIBS@ -lstdc++
+
+libsipXcall_la_CXXFLAGS = \
+	-DSIPX_CONFDIR=\"@SIPX_CONFDIR@\" \
+    @VIDEO_DEFINE@
+
+libsipXcall_la_SOURCES = \
+    ../config/sipxcalllib-buildstamp.h \
+    ../config/sipxcalllib-buildstamp.cpp \
+    cp/CallManager.cpp \
+    cp/Connection.cpp \
+    cp/CpCall.cpp \
+    cp/CpCallManager.cpp \
+    cp/CpGhostConnection.cpp \
+    cp/CpIntMessage.cpp \
+    cp/CpMultiStringMessage.cpp \
+    cp/CpPeerCall.cpp \
+    cp/CSeqManager.cpp \
+    cp/SipConnection.cpp \
+    cp/XCpAbstractCall.cpp \
+    cp/XCpAbstractConnection.cpp \
+    cp/XCpCall.cpp \
+    cp/XCpCallManager.cpp \
+    cp/XCpConference.cpp \
+    cp/XCpSipConnection.cpp \
+    tapi/CallStateEventMsg.cpp \
+    tapi/InfoStatusEventMsg.cpp \
+    tapi/KeepaliveEventMsg.cpp \
+    tapi/LineStateEventMsg.cpp \
+    tapi/MediaEventMsg.cpp \
+    tapi/SecurityEventMsg.cpp \
+    tapi/SecurityHelper.cpp \
+    tapi/SipXAudio.cpp \
+    tapi/SipXCall.cpp \
+    tapi/SipXCallEventListener.cpp \
+    tapi/SipXConference.cpp \
+    tapi/SipXConfig.cpp \
+    tapi/SipXCore.cpp \
+    tapi/SipXEventDispatcher.cpp \
+    tapi/SipXEvents.cpp \
+    tapi/SipXHandleMap.cpp \
+    tapi/SipXInfo.cpp \
+    tapi/SipXInfoStatusEventListener.cpp \
+    tapi/SipXKeepaliveEventListener.cpp \
+    tapi/SipXLine.cpp \
+    tapi/SipXLineEventListener.cpp \
+    tapi/SipXMediaEventListener.cpp \
+    tapi/SipXMessageObserver.cpp \
+    tapi/SipXPim.cpp \
+    tapi/SipXPublish.cpp \
+    tapi/SipXSecurityEventListener.cpp \
+    tapi/SipXSubscribe.cpp \
+    tapi/sipXtapi.cpp \
+    tapi/SipXTransport.cpp \
+    tapi/SipXUtil.cpp
+
+DISTCLEANFILES = Makefile.in
