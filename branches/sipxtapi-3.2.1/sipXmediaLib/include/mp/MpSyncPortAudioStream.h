@@ -71,6 +71,16 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
+   /**
+    * Returns input latency in seconds of the stream.
+    */
+   virtual double getInputLatency() const;
+
+   /**
+    * Returns output latency in seconds of the stream.
+    */
+   virtual double getOutputLatency() const;
+
    /* ============================ INQUIRY =================================== */
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */

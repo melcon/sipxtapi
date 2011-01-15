@@ -45,6 +45,8 @@ MpPortAudioStreamBase::MpPortAudioStreamBase(MpAudioStreamId streamId,
 , m_outputSampleSize(0)
 , m_inputVolumeMeter(NULL)
 , m_outputVolumeMeter(NULL)
+, m_inputPortStreamLatency(0.0)
+, m_outputPortStreamLatency(0.0)
 {
    switch(m_inputSampleFormat & 0x3f)
    {
@@ -151,6 +153,12 @@ unsigned MpPortAudioStreamBase::hash() const
 UtlContainableType MpPortAudioStreamBase::getContainableType() const
 {
    return MpPortAudioStreamBase::TYPE;
+}
+
+
+double MpPortAudioStreamBase::getSampleRate() const
+{
+   return m_sampleRate;
 }
 
 /* ============================ INQUIRY =================================== */
