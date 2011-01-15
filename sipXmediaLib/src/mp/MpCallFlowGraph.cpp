@@ -1843,12 +1843,11 @@ UtlBoolean MpCallFlowGraph::isInboundRFC2833DTMFEnabled()
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 int MpCallFlowGraph::estimateEchoQueueLatency(int samplesPerSec,int samplesPerFrame)
 {
-#define BASE_STREAM_LATENCY 16
 #define MIN_DRIVER_LATENCY 4
 
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
-   int echoQueueLatency = BASE_STREAM_LATENCY;
+   int echoQueueLatency = 0;
 
    if (pAudioManager)
    {
