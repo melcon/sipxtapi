@@ -11,6 +11,7 @@
 #include <mp/MpMediaTask.h>
 #include <mp/MpFlowGraphBase.h>
 #include <mp/MpTestResource.h>
+#include <mp/MpDefs.h>
 #include <mp/MpMisc.h>
 #include <mp/MprBridge.h>
 #include <mp/MpBufferMsg.h>

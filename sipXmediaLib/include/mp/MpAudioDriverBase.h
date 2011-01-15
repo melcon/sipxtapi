@@ -295,7 +295,8 @@ public:
    virtual OsStatus getStreamCpuLoad(MpAudioStreamId stream, double& cpuLoad) const = 0;
 
    /**
-   * Read from a given synchronous stream given number of frames.
+   * Read from a given stream given number of frames. Stream may be synchronous or
+   * asynchronous.
    *
    * @param stream Id of audio stream
    * @param buffer Buffer to read into. Note that different sample sizes can be set
@@ -305,44 +306,13 @@ public:
    * @returns OS_SUCCESS if successful, OS_OVERFLOW if successful but some data
    *          was lost before
    */
-   virtual OsStatus readStreamSync(MpAudioStreamId stream,
-                                   void *buffer,
-                                   unsigned long frames) = 0;
+   virtual OsStatus readStream(MpAudioStreamId stream,
+                               void *buffer,
+                               unsigned long frames) = 0;
 
    /**
-   * Write into a given synchronous stream given number of frames.
-   *
-   * @param stream Id of audio stream
-   * @param buffer Buffer to write from. Note that different sample sizes can be set
-   *               on stream.
-   * @param frames Number of frames to written from buffer. The actual number of bytes
-   *               copied depends on sample size.
-   * @returns OS_SUCCESS if successful, OS_UNDERFLOW if successful but some data
-   *          had to be inserted before
-   */
-   virtual OsStatus writeStreamSync(MpAudioStreamId stream,
-                                    const void *buffer,
-                                    unsigned long frames) = 0;
-
-   /**
-   * Read from a given asynchronous stream given number of frames. Cannot be used
-   * with synchronous streams.
-   *
-   * @param stream Id of audio stream
-   * @param buffer Buffer to read into. Note that different sample sizes can be set
-   *               on stream.
-   * @param frames Number of frames to read into buffer. The actual number of bytes
-   *               copied depends on sample size.
-   * @returns OS_SUCCESS if successful, OS_OVERFLOW if successful but some data
-   *          was lost before
-   */
-   virtual OsStatus readStreamAsync(MpAudioStreamId stream,
-                                    void *buffer,
-                                    unsigned long frames) = 0;
-
-   /**
-   * Write into a given asynchronous stream given number of frames. Cannot be used
-   * with synchronous streams.
+   * Write into a given stream given number of frames. Stream may be synchronous or
+   * asynchronous.
    *
    * @param stream Id of audio stream
    * @param buffer Buffer to write from. Note that different sample sizes can be set
@@ -351,9 +321,9 @@ public:
    *               copied depends on sample size.
    * @returns OS_SUCCESS if successful
    */   
-   virtual OsStatus writeStreamAsync(MpAudioStreamId stream,
-                                     const void *buffer,
-                                     unsigned long frames) = 0;
+   virtual OsStatus writeStream(MpAudioStreamId stream,
+                                const void *buffer,
+                                unsigned long frames) = 0;
 
    /**
    * Gets number of frames that can be read from a synchronous audio stream without

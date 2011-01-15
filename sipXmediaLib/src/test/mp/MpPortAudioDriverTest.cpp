@@ -932,7 +932,7 @@ public:
 
             bytesRead = fread(buffer, 1, sampleSize * frames, file);
 
-            res = m_pDriver->writeStreamSync(stream, buffer, frames);
+            res = m_pDriver->writeStream(stream, buffer, frames);
 //            CPPUNIT_ASSERT(res == OS_SUCCESS);
          }
          fclose(file);
@@ -994,7 +994,7 @@ public:
 
       for (int i = 0; i < duration; i++)
       {
-         res = m_pDriver->readStreamSync(stream, pBuffer, frames);
+         res = m_pDriver->readStream(stream, pBuffer, frames);
          pBuffer += (sampleSize * frames);
       }
       
@@ -1003,7 +1003,7 @@ public:
       // now play back what we recorded
       for (int i = 0; i < duration; i++)
       {
-         res = m_pDriver->writeStreamSync(stream, pBuffer, frames);
+         res = m_pDriver->writeStream(stream, pBuffer, frames);
          pBuffer += (sampleSize * frames);
       }
 
@@ -1074,7 +1074,7 @@ public:
 
             bytesRead = fread(buffer, 1, sampleSize * realFrames, file);
 
-            res = m_pDriver->writeStreamSync(stream, buffer, realFrames);
+            res = m_pDriver->writeStream(stream, buffer, realFrames);
             cnt++;
          }
          fclose(file);
@@ -1149,7 +1149,7 @@ public:
             realFrames = realFrames * 2;
          }
 
-         res = m_pDriver->readStreamSync(stream, pBuffer, realFrames);
+         res = m_pDriver->readStream(stream, pBuffer, realFrames);
          pBuffer += (sampleSize * realFrames);
          cnt++;
       }
@@ -1170,7 +1170,7 @@ public:
             realFrames = realFrames * 2;
          }
 
-         res = m_pDriver->writeStreamSync(stream, pBuffer, realFrames);
+         res = m_pDriver->writeStream(stream, pBuffer, realFrames);
          pBuffer += (sampleSize * realFrames);
          cnt++;
       }
@@ -1245,7 +1245,7 @@ public:
             event.reset();
             
             // now copy data to stream
-            m_pDriver->writeStreamAsync(stream, pBuffer, frames);
+            m_pDriver->writeStream(stream, pBuffer, frames);
 
             // repeat until we run out of buffer
             pBuffer += sampleSize * frames;
@@ -1333,7 +1333,7 @@ public:
             event.reset();
 
             // now copy data to stream
-            m_pDriver->writeStreamAsync(stream, pBuffer, realFrames);
+            m_pDriver->writeStream(stream, pBuffer, realFrames);
           
             // repeat until we run out of buffer
             pBuffer += sampleSize * realFrames;
@@ -1433,7 +1433,7 @@ public:
          event.reset();
 
          // now copy data to stream
-         res = m_pDriver->readStreamAsync(stream, pBuffer, frames);
+         res = m_pDriver->readStream(stream, pBuffer, frames);
          CPPUNIT_ASSERT(res == OS_SUCCESS || res == OS_UNDERFLOW || res == OS_PREFETCH);
 
          if (res == OS_SUCCESS || res == OS_UNDERFLOW)
@@ -1454,7 +1454,7 @@ public:
          event.reset();
 
          // now copy data to stream
-         res = m_pDriver->writeStreamAsync(stream, pBuffer, frames);
+         res = m_pDriver->writeStream(stream, pBuffer, frames);
          CPPUNIT_ASSERT(res == OS_SUCCESS || res == OS_OVERFLOW);
 
          pBuffer += sampleSize * frames;
@@ -1544,7 +1544,7 @@ public:
          event.reset();
 
          // now copy data to stream
-         res = m_pDriver->readStreamAsync(stream, pBuffer, realFrames);
+         res = m_pDriver->readStream(stream, pBuffer, realFrames);
          CPPUNIT_ASSERT(res == OS_SUCCESS || res == OS_UNDERFLOW || res == OS_PREFETCH);
 
          if (res == OS_SUCCESS || res == OS_UNDERFLOW)
@@ -1578,7 +1578,7 @@ public:
          event.reset();
 
          // now copy data to stream
-         res = m_pDriver->writeStreamAsync(stream, pBuffer, realFrames);
+         res = m_pDriver->writeStream(stream, pBuffer, realFrames);
          CPPUNIT_ASSERT(res == OS_SUCCESS || res == OS_OVERFLOW);
 
          pBuffer += sampleSize * realFrames;

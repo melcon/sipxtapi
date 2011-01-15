@@ -13,6 +13,7 @@ nobase_include_HEADERS =  \
     mp/HandsetFilterBank.h \
     mp/HandsetFilterbankWindows.h \
     mp/MpArrayBuf.h \
+    mp/MpAsyncPortAudioStream.h \
     mp/MpAudioAbstract.h \
     mp/MpAudioBuf.h \
     mp/MpAudioDeviceInfo.h \
@@ -67,7 +68,7 @@ nobase_include_HEADERS =  \
     mp/MpPlayerListener.h \
     mp/MpPortAudioDriver.h \
     mp/MpPortAudioMixer.h \
-    mp/MpPortAudioStream.h \
+    mp/MpPortAudioStreamBase.h \
     mp/MpQueuePlayerListener.h \
     mp/MpRawAudioBuffer.h \
     mp/MpResNotification.h \
@@ -89,6 +90,7 @@ nobase_include_HEADERS =  \
     mp/MpStreamPlayer.h \
     mp/MpStreamPlaylistPlayer.h \
     mp/MpStreamQueuePlayer.h \
+    mp/MpSyncPortAudioStream.h \
     mp/MpToneResourceMsg.h \
     mp/MpTopologyGraph.h \
     mp/MpTypes.h \

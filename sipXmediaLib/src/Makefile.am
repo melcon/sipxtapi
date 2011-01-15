@@ -53,6 +53,7 @@ libsipXmedia_la_SOURCES =  \
     mp/FilterBank.cpp \
     mp/HandsetFilterBank.cpp \
     mp/MpArrayBuf.cpp \
+    mp/MpAsyncPortAudioStream.cpp \
     mp/MpAudioAbstract.cpp \
     mp/MpAudioBuf.cpp \
     mp/MpAudioDeviceInfo.cpp \
@@ -95,7 +96,7 @@ libsipXmedia_la_SOURCES =  \
     mp/MpPlayerEvent.cpp \
     mp/MpPortAudioDriver.cpp \
     mp/MpPortAudioMixer.cpp \
-    mp/MpPortAudioStream.cpp \
+    mp/MpPortAudioStreamBase.cpp \
     mp/MpRawAudioBuffer.cpp \
     mp/MpResNotificationMsg.cpp \
     mp/MpResource.cpp \
@@ -115,6 +116,7 @@ libsipXmedia_la_SOURCES =  \
     mp/MpStreamPlaylistPlayer.cpp \
     mp/MpStreamQueuePlayer.cpp \
     mp/MpTopologyGraph.cpp \
+    mp/MpSyncPortAudioStream.cpp \
     mp/MpUdpBuf.cpp \
     mp/MpdIPPG7231.cpp \
     mp/MpdIPPG729.cpp \
