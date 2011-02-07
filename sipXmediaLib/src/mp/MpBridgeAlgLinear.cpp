@@ -605,9 +605,15 @@ UtlBoolean MpBridgeAlgLinear::doMix(MpBufPtr inBufs[], int inBufsSize,
             const MpAudioBufPtr pInBuf(inBufs[origInput]);
             MpAudioSample prevAmplitude = mpPrevAmplitudes[origInput];
             MpAudioSample curAmplitude = pInBuf->getAmplitude();
+            // Make sure curAmplitude is not 0 as it will result in a division by 0
             if (curAmplitude == 0)
             {
                curAmplitude = 1;
+            }
+            // Make sure prevAmplitude is not 0 as it will result in a division by 0
+            if (prevAmplitude == 0)
+            {
+               prevAmplitude = 1;
             }
 
             mpMixDataSpeechType[extOutput] = pInBuf->getSpeechType();
