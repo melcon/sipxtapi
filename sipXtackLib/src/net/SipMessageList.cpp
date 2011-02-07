@@ -291,13 +291,18 @@ SipMessageList::remove( SipMessage* message )
          osPrintf("\nSipMessageList::remove parameter Message %s \n-------\n",MessageStr.data());
       #endif
 
-        if(listMessage == message)
+        //if(listMessage == message)
+         if(listMessage == message || listMessage->isSameMessage(message, TRUE))
         {
 #ifdef TEST_PRINT
             osPrintf("SipMessageList::remove removing message\n");
 #endif
             messageList.remove(iteratorHandle);
-
+            if(listMessage != message)
+            {
+              // If the parameter message does not match the listMessage then delete the list message as well or we have a memory leak
+              delete listMessage;
+            }
             break;
         }
     }
@@ -311,9 +316,13 @@ void SipMessageList::add(SipMessage* message)
     messageList.push(message);
 }
 
-void SipMessageList::remove(int iteratorHandle)
+void SipMessageList::remove(int iteratorHandle, UtlBoolean deleteMessage)
 {
-    messageList.remove(iteratorHandle);
+    SipMessage *msg = (SipMessage*)messageList.remove(iteratorHandle);
+    if(deleteMessage && msg)
+    {
+      delete msg;
+    }
 }
 
 void SipMessageList::removeOldMessages(long oldTime, UtlBoolean deleteMessages)

@@ -69,7 +69,7 @@ public:
     void add(SipMessage* message);
 
     void removeOldMessages(long oldTime, UtlBoolean deleteMessages = TRUE);
-    void remove(int iteratorHandle);
+    void remove(int iteratorHandle, UtlBoolean deleteMessage = TRUE);
 
     void toString(UtlString& listDumpString);
 
