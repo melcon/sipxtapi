@@ -266,6 +266,8 @@ SipRefreshMgr::sendRequest (
       // lease period timeout if the timer triggers and we've not received
       // a good response from the server within FAILED_PERCENTAGE_TIMEOUT
       // secs resubscribe
+      // LBA: Whats the point???:
+      /*
       SipMessage* message = new SipMessage( request );
 
       if (!message)
@@ -275,6 +277,7 @@ SipRefreshMgr::sendRequest (
       {
          message->setResponseListenerData( request.getResponseListenerData() );
       }
+      */
    }
    else
    {
@@ -625,11 +628,11 @@ SipRefreshMgr::processOKResponse(
 
    if ( method.compareTo(SIP_REGISTER_METHOD) == 0 )
    {
-      //reschedule only if expires value != 0, otherwise it means we just did an unregister
+      // Reschedule only if expires value != 0, otherwise it means we just did an unregister
       if ( requestRefreshPeriod == 0 )
       {
 
-         // if its an unregister, remove all related messasges 
+         // if its an unregister, remove all related messages 
          // from the appropriate request list
          response->setCSeqField(-1, method);
          // TODO - should also destroy the timer now
