@@ -65,16 +65,19 @@ IRTCPControl *CRTCManager::getRTCPControl(void)
         ISDESReport *piSDESReport =
                             (ISDESReport *)CSourceDescription::GetLocalSDES();
 
-        if((m_spoRTCManager = new CRTCManager(piSDESReport)) == NULL)
+        if(piSDESReport != NULL)
         {
+          if((m_spoRTCManager = new CRTCManager(piSDESReport)) == NULL)
+          {
             osPrintf("**** FAILURE **** CRTCManager::getRTCPControl() -"
-                                      " RTCManager Object Creation Failed\n");
+              " RTCManager Object Creation Failed\n");
             piSDESReport->Release();
             return(NULL);
-        }
+          }
 
-        // Release Reference to SDES Report
-        piSDESReport->Release();
+          // Release Reference to SDES Report
+          piSDESReport->Release();
+        }
     }
 
     // Check whether the RTCManager object has been initialized.
@@ -98,7 +101,6 @@ IRTCPControl *CRTCManager::getRTCPControl(void)
     m_spoRTCManager->AddRef();
 
     return((IRTCPControl *)m_spoRTCManager);
-
 }
 
 
@@ -172,7 +174,10 @@ CRTCManager::~CRTCManager(void)
 
     // Release Source Description object reference
     if(m_piSDESReport)
+    {
         m_piSDESReport->Release();
+        m_piSDESReport = NULL;
+    }
 
     // Iterate through the EventRegistration List and release all references
     // to objects contained therein
@@ -349,7 +354,6 @@ IRTCPSession * CRTCManager::CreateSession(unsigned long ulSSRC)
                                    " Unable to create CRTCPSession object\n");
         return(NULL);
     }
-
     // Initialize RTCP Session object
     else if(!poRTCPSession->Initialize())
     {

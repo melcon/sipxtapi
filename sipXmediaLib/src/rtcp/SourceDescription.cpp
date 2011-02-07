@@ -96,10 +96,9 @@ CSourceDescription *CSourceDescription::GetLocalSDES(void)
     }
  
       // sLock.release();
- 
     // Bump the reference count to this object
     m_spoLocalSDES->AddRef();
- 
+
     return(m_spoLocalSDES);
 
 }
@@ -235,6 +234,7 @@ CSourceDescription::~CSourceDescription(void)
 {
 // Our reference count must have gone to 0 to get here.  We have not allocated
 // any memory so we shall now go quietly into that good night!
+  m_spoLocalSDES = NULL;
 }
 
 
