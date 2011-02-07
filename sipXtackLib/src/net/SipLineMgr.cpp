@@ -363,6 +363,20 @@ UtlBoolean SipLineMgr::setStateForLine(const Url& lineUri,
    return FALSE;
 }
 
+UtlBoolean SipLineMgr::getStateForLine(const Url& lineUri, SipLine::LineStateEnum& state)
+{
+  OsLock lock(m_mutex); // scoped lock
+
+  SipLine *pLine = m_listList.getLine(lineUri);
+  if (pLine)
+  {
+    state = pLine->getState();
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
 void SipLineMgr::dumpLines()
 {
    // external lock is assumed
