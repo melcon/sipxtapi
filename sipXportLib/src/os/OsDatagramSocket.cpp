@@ -22,6 +22,7 @@
 #if defined(_WIN32)
 #   include <winsock2.h>
 #   include <time.h>
+#define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
 #elif defined(_VXWORKS)
 #   undef resolvGetHostByName
 #   include <inetLib.h>
@@ -142,6 +143,8 @@ int OsDatagramSocket::ctorCommonCode()
         return error;
     }
 
+    makeICMPPortUnreachableResistant();
+
     return 0;
 }
 
@@ -197,7 +200,6 @@ int OsDatagramSocket::bind(int localHostPortNum, const char* localHost)
         mLocalIp = localHost;
     }
 #endif
-
     
     error = ::bind( socketDescriptor, (struct sockaddr*) &localAddr,
                     sizeof(localAddr));
@@ -564,6 +566,19 @@ UtlBoolean OsDatagramSocket::getMappedIp(UtlString* ip, int* port)
     return FALSE ;
 }
     
+void OsDatagramSocket::makeICMPPortUnreachableResistant()
+{
+#if defined(_WIN32)
+    int newValue = FALSE;
+    unsigned long bytesReturned = 0;
+
+    int error = WSAIoctl(socketDescriptor, SIO_UDP_CONNRESET, &newValue, sizeof(newValue), NULL, 0, &bytesReturned, NULL, NULL);
+    if(error == SOCKET_ERROR)
+    {
+        osPrintf("WSAIoctl call failed with error: %d in OsSocket::OsSocket\n", error);
+    }
+#endif
+}
 
 /* ============================ INQUIRY =================================== */
 
