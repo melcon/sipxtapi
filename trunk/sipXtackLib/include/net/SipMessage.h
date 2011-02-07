@@ -1123,6 +1123,8 @@ public:
 
     void decrementMaxForwards();
 
+    void setRecordRoutes(const SipMessage *inviteRequest);
+
     UtlBoolean getRecordRouteField(int index,
                                   UtlString* recordRouteField) const;
 
