@@ -905,6 +905,8 @@ void SipMessage::setOkResponseData(const SipMessage* request,
                                    const char* localContact)
 {
    setResponseData(request, SIP_OK_CODE, SIP_OK_TEXT, localContact);
+
+   setRecordRoutes(request);
 }
 
 void SipMessage::setNotifyData(SipMessage *subscribeRequest,
@@ -3719,6 +3721,18 @@ UtlBoolean SipMessage::getRecordRouteUri(int index, UtlString* recordRouteUri) c
     UtlBoolean fieldExists = getFieldSubfield(SIP_RECORD_ROUTE_FIELD, index, recordRouteUri);
     NameValueTokenizer::frontBackTrim(recordRouteUri, " \t");
     return(fieldExists && !recordRouteUri->isNull());
+}
+
+void SipMessage::setRecordRoutes(const SipMessage *inviteRequest)
+{
+  UtlString recordRouteField;
+  int recordRouteIndex = 0;
+  while(inviteRequest->getRecordRouteField(recordRouteIndex,
+    &recordRouteField))
+  {
+    setRecordRouteField(recordRouteField.data(), recordRouteIndex);
+    recordRouteIndex++;
+  }
 }
 
 void SipMessage::setRecordRouteField(const char* recordRouteField,
