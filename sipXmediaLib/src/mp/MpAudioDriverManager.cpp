@@ -262,6 +262,12 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
             m_outputAudioMixer = m_pAudioDriver->getMixerForStream(m_outputAudioStream, OUTPUT_MIXER_INDEX);
             return OS_SUCCESS;
          }
+
+         // Selecting a device that is already selected is not a failure
+         if(bDeviceFound && i == m_outputDeviceIndex)
+         {
+           return OS_SUCCESS;
+         }
       }
    }   
    
@@ -410,6 +416,12 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
             m_inputAudioMixer = m_pAudioDriver->getMixerForStream(m_inputAudioStream, INPUT_MIXER_INDEX);
 
             return OS_SUCCESS;
+         }
+
+         // Selecting a device that is already selected is not a failure
+         if(bDeviceFound && i == m_inputDeviceIndex)
+         {
+           return OS_SUCCESS;
          }
       }
    }   
