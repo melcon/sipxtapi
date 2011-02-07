@@ -538,8 +538,8 @@ void SipSrvLookup::lookup_SRV(server_t*& list,
                               const char* srcIp)
 {
    // To hold the return of res_query_and_parse.
-   res_response* response;
-   const char* canonical_name;
+   res_response* response = NULL;
+   const char* canonical_name = NULL;
 
    // Construct buffer to hold the key string for the lookup:
    //    _service._protocol.domain
@@ -641,8 +641,8 @@ void SipSrvLookup::lookup_A(server_t*& list,
                             )
 {
    // To hold the return of res_query_and_parse.
-   res_response* response;
-   const char* canonical_name;
+   res_response* response = NULL;
+   const char* canonical_name = NULL;
 
    // Make the query and parse the response.
    SipSrvLookup::res_query_and_parse(domain, T_A, in_response, canonical_name,
