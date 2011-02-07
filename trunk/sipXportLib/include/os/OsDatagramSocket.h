@@ -79,7 +79,7 @@ public:
    //! param: buffer - the bytes to be written to the socket
    //! param: bufferLength - the number of bytes contained in buffer
    //! param: ipAddress - remote host to send datagram(s) to
-   //! param: port - port on the remote host to send the datgram(s)
+   //! param: port - port on the remote host to send the datagram(s)
    //! returns: the number of bytes actually written to the socket
 
    virtual int read(char* buffer, int bufferLength);
@@ -140,6 +140,7 @@ private:
 
    virtual UtlBoolean getToSockaddr(void);
 
+   void makeICMPPortUnreachableResistant();
 };
 
 /* ============================ INLINE METHODS ============================ */
