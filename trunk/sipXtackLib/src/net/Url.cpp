@@ -255,7 +255,7 @@ void Url::removeParameters()
 
 void Url::reset()
 {
-    mScheme = SipUrlScheme;
+    mScheme = UnknownUrlScheme;
     mDisplayName.remove(0);
     mUserId.remove(0);
     mPassword.remove(0);
