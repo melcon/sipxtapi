@@ -90,6 +90,9 @@ public:
    /** Sets state on given line. */
    UtlBoolean setStateForLine(const Url& lineUri, SipLine::LineStateEnum state);
 
+   /** Gets state on given line. */
+   UtlBoolean getStateForLine(const Url& lineUri, SipLine::LineStateEnum& state);
+
    /** Adds new credentials to given line */
    UtlBoolean addCredentialForLine(const Url& lineUri,
                                    const SipLineCredential& credential);
