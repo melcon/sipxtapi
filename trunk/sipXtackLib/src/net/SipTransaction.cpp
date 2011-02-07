@@ -1346,7 +1346,8 @@ void SipTransaction::handleResendEvent(const SipMessage& outgoingMessage,
       else if(!mIsCanceled &&
          ((mpLastFinalResponse == NULL &&
          mpLastProvisionalResponse == NULL &&
-         mTransactionState == TRANSACTION_CALLING) || relationship == MESSAGE_CANCEL))
+         (mTransactionState == TRANSACTION_CALLING || relationship == MESSAGE_CANCEL))))
+         // This does not seem to work for CANCEL messages, they keep being resend: mTransactionState == TRANSACTION_CALLING) || relationship == MESSAGE_CANCEL))
       {
          UtlString method;
          outgoingMessage.getRequestMethod(&method);
