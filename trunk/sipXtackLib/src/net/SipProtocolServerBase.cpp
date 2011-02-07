@@ -200,6 +200,14 @@ SipClient* SipProtocolServerBase::createClient(const char* hostAddress,
         int writeWait = 3000; // mSec
         UtlBoolean isReadyToWrite = clientSocket->isReadyToWrite(writeWait);
 
+        if(!isOk)
+        {
+            OsSysLog::add(FAC_SIP, PRI_WARNING,
+                "SIP %s socket %s:%d not OK",
+                mProtocolString.data(), hostAddress, hostPort);
+
+        }
+
         if(!isReadyToWrite)
         {
             OsSysLog::add(FAC_SIP, PRI_WARNING,
