@@ -565,6 +565,8 @@ bool OsNetworkWnt::getBestInterfaceName(const UtlString& targetIpAddress, UtlStr
             {
                OsSysLog::add(FAC_KERNEL, PRI_ERR, "Cannot determine the best interface name, GetInterfaceInfo failed with error %d\n", dwRes);
             }
+            // Free the PIP_INTERFACE_INFO structure
+            free(pIpInterfaceInfo);
          }
          else
          {
