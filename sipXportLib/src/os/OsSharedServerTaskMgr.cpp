@@ -88,10 +88,10 @@ UtlBoolean OsSharedServerTaskMgr::manage(OsSharedServerTask& serverTask)
       return FALSE;
    }
 
-   UtlInt* pKey = new UtlInt(serverTask.getTaskId());
+   UtlInt key(serverTask.getTaskId());
    OsLock lock(m_memberMutex);
    // first try to find if we are already managing it
-   OsSharedTaskInfo* pTaskInfo = dynamic_cast<OsSharedTaskInfo*>(m_managedTaskInfo.find(pKey));
+   OsSharedTaskInfo* pTaskInfo = dynamic_cast<OsSharedTaskInfo*>(m_managedTaskInfo.find(&key));
    if (!pTaskInfo)
    {
       // add it
@@ -99,12 +99,6 @@ UtlBoolean OsSharedServerTaskMgr::manage(OsSharedServerTask& serverTask)
       m_managedTaskInfo.insert(pTaskInfo);
       serverTask.taskAttached(this);
       return TRUE;
-   }
-   else
-   {
-      // we are already managing it
-      delete pKey;
-      pKey = NULL;
    }
 
    return FALSE;
