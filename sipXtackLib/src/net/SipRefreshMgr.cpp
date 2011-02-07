@@ -188,6 +188,34 @@ void SipRefreshMgr::unRegisterUser(const Url& fromUrl)
    }
 }
 
+void SipRefreshMgr::deleteUser(const Url& fromUrl)
+{
+  SipMessage sipMsg;
+  if (isDuplicateRegister(fromUrl, sipMsg))
+  {
+    //dont set a common expires - then you need to send * in contact field
+    //sipMsg.setExpiresField(0);
+    UtlString contactField;
+    sipMsg.getContactField(0,contactField);
+    Url contact(contactField);
+    contact.setFieldParameter(SIP_EXPIRES_FIELD,"0");
+    sipMsg.setContactField(contact.toString());
+    sipMsg.removeHeader(SIP_EXPIRES_FIELD,0);
+    // Don't let prepareContact override the contact field - that will destroy the expires filed parameter
+    sipMsg.allowContactOverride(FALSE);
+
+    Url lineUri = SipLine::getLineUri(fromUrl);
+
+    if (m_pLineListener) 
+    {
+      m_pLineListener->OnLineUnregistering(SipLineStateEvent(lineUri.toString(), SIPXTACK_LINESTATE_UNREGISTERING_NORMAL));
+    }
+
+    // clear out any pending register requests
+    removeAllFromRequestList(&sipMsg);
+  }
+}
+
 UtlBoolean SipRefreshMgr::isDuplicateRegister(const Url& fromUrl, 
                                               SipMessage &oldMsg)
 {

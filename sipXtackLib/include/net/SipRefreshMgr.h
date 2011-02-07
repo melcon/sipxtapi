@@ -73,6 +73,7 @@ public:
    void reRegister(const Url& fromUrl);
 
    void unRegisterUser(const Url& fromUrl);
+   void deleteUser(const Url& fromUrl);
 
    void setLineMgr(SipLineMgr* lineMgr);
 

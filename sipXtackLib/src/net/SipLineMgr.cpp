@@ -104,14 +104,33 @@ UtlBoolean SipLineMgr::addLine(SipLine& line)
 
 UtlBoolean SipLineMgr::deleteLine(const Url& lineUri)
 {
-   OsLock lock(m_mutex);
-
-   if (m_listList.remove(lineUri))
+   Url fullLineUrl;
    {
-      syslog(FAC_LINE_MGR, PRI_INFO, "SipLineMgr::deleteLine deleted line: %s",
+     OsLock lock(m_mutex);
+
+     SipLine *pLine = m_listList.getLine(lineUri);
+     if (!pLine)
+     {
+       syslog(FAC_LINE_MGR, PRI_ERR, "SipLineMgr::deleteLine unable to delete line (not found): %s",
+         lineUri.toString().data());
+       return FALSE;
+     }
+
+     fullLineUrl = pLine->getFullLineUrl();
+     pLine = NULL;
+
+     if (m_listList.remove(lineUri))
+     {
+       syslog(FAC_LINE_MGR, PRI_INFO, "SipLineMgr::deleteLine deleted line: %s",
          lineUri.toString().data());
 
-      return TRUE;
+       if(fullLineUrl.isNull() == FALSE)
+       {
+         m_pRefreshMgr->deleteUser(fullLineUrl);
+       }
+
+       return TRUE;
+     }
    }
 
    return FALSE;
