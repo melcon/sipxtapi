@@ -2225,6 +2225,20 @@ SipConnectionStateTransition* BaseSipConnectionState::processCancelResponse(cons
    // if CANCEL succeeds, 487 Request Terminated will be sent on INVITE transaction (with cseq method INVITE)
    // and then we terminate INVITE transaction
 
+   // OBS: We do care - some servers (SipXecs) does not send 487 if we are in remote offering
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   int responseCode = sipMessage.getResponseStatusCode();
+   UtlString responseText;
+   sipMessage.getResponseStatusText(&responseText);
+
+   if (responseCode == SIP_OK_CODE)
+   {
+      // progress to disconnected state
+      SipResponseTransitionMemory memory(responseCode, responseText);
+      return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+   }
+
    return NULL;
 }
 
