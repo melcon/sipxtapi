@@ -1,6 +1,6 @@
 = Windows =
 
-Visual Studio 2003 or later is required. Solution and projects for VS2005 are provided, which can be upgraded to VS2008 projects by user upon opening. VS2003 projects are available for 3.2.0 release and trunk. VC6 is not supported anymore. VS2008 projects are available in experimental callllib-rewrite branch, and will be present in sipXtapi 3.3.0.
+Visual Studio 2003 or later is required. Solution and projects for VS2005 are provided, which can be upgraded to VS2008 projects by user upon opening. VS2003 projects are available for 3.2.0 release and trunk. VC6 is not supported anymore. VS2008 projects are available in experimental callllib-rewrite branch, and will be present in sipXtapi 3.3.0. In case problems are encountered in VS2005, try updating to SP1 or SP2.
 
 === Libraries included in sipxtapi: ===
  * nspr-4.6.4 - will be removed in the future
